@@ -1,0 +1,52 @@
+@use './colors.scss';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  font-weight: normal;
+}
+
+body {
+  color: var(--color-text);
+  background: var(--color-background);
+  font-family: Blinker, sans-serif;
+  font-size: 15px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0.5rem;
+
+  font-weight: normal;
+}
+
+a {
+  all: unset;
+
+  &[href] {
+    cursor: pointer;
+  }
+}
+
+button,
+a img {
+  all: unset;
+  display: flex;
+
+  &:disabled {
+    filter: grayscale(100%) opacity(30%);
+  }
+
+  &:not(:disabled) {
+    &:hover {
+      filter: drop-shadow(0 0 0.2rem black);
+    }
+    &:active {
+      filter: drop-shadow(0 0 0.1rem black);
+    }
+  }
+}
