@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use implicit_clone::ImplicitClone;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
@@ -10,6 +12,7 @@ pub struct Module {
     pub logo: AttrValue,
 
     pub factions: IndexMap<AttrValue, Faction>,
+    pub aliases: HashMap<AttrValue, AttrValue>,
 }
 #[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
 pub struct Faction {

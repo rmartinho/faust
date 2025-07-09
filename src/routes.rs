@@ -1,7 +1,7 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-use crate::components::{module_list::ModuleList, module_page::ModulePage};
+use crate::components::{FactionPage, ModuleList, ModulePage};
 
 #[derive(Clone, Routable, PartialEq)]
 pub enum Route {
@@ -30,6 +30,9 @@ pub fn switch(route: Route) -> Html {
     match route {
         Route::Home => html! { <ModuleList /> },
         Route::Module { module } => html! { <ModulePage id={module} /> },
+        Route::Faction { module, faction } => {
+            html! { <FactionPage module_id={module} faction_id={faction} /> }
+        }
         Route::NotFound => html! { <h1>{ "404" }</h1> },
         _ => html! { <h1>{ "TODO" }</h1> },
     }
