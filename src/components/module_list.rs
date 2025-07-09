@@ -18,8 +18,9 @@ pub fn module_list() -> Html {
 }
 
 fn module_link(m: Module) -> Html {
+    let route = Route::Module { module: m.id };
     html! {
-      <Link<Route> to={Route::Module { module: m.id }}>
+      <Link<Route> to={route}>
         <img class="logo" src={ m.logo } title={ m.name } />
       </Link<Route>>
     }

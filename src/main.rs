@@ -1,5 +1,6 @@
 use crate::modules::Module;
 use crate::routes::{Route, switch};
+use implicit_clone::ImplicitClone;
 use indexmap::IndexMap;
 use yew::prelude::*;
 use yew_autoprops::autoprops;
@@ -9,26 +10,60 @@ mod components;
 mod modules;
 mod routes;
 
-const MODULES: &str = include_str!("../data/mods.json");
-
-#[derive(Clone, PartialEq)]
+#[derive(ImplicitClone, Clone, PartialEq)]
 pub struct AppContext {
-    modules: IndexMap<AttrValue, Module>,
+    modules: ModuleMap,
 }
 
-#[autoprops(AppProps)]
+#[autoprops]
 #[function_component(App)]
-pub fn app(modules: &IndexMap<AttrValue, Module>) -> Html {
-    html! {
-      <ContextProvider<AppContext> context={AppContext{ modules: modules.clone()}}>
+pub fn app(context: AppContext) -> HtmlResult {
+    Ok(html! {
+      <ContextProvider<AppContext> {context}>
         <BrowserRouter>
           <Switch<Route> render={switch} />
         </BrowserRouter>
       </ContextProvider<AppContext>>
+    })
+}
+
+#[cfg(not(feature = "static"))]
+mod wrapper {
+    use gloo::net::http::Request;
+    use yew::{prelude::*, suspense::use_future};
+
+    #[function_component(Wrapper)]
+    pub fn wrapper() -> HtmlResult {
+        let fallback = html! {<div>{"Loading..."}</div>};
+
+        Ok(html! {
+          <Suspense {fallback}>
+            <Fetcher />
+          </Suspense>
+        })
+    }
+
+    #[function_component(Fetcher)]
+    pub fn fetcher() -> HtmlResult {
+        let res = use_future(async || {
+            Request::get("/mods.json")
+                .send()
+                .await
+                .unwrap()
+                .json::<super::ModuleMap>()
+                .await
+        })?;
+        let Ok(ref modules) = *res else { todo!() };
+        let context = super::AppContext {
+            modules: modules.clone(),
+        };
+
+        Ok(html! { <super::App {context} /> })
     }
 }
 
 fn main() {
-    let modules: IndexMap<AttrValue, Module> = serde_json::from_str(MODULES).unwrap();
-    yew::Renderer::<App>::with_props(AppProps { modules }).render();
+    yew::Renderer::<wrapper::Wrapper>::new().render();
 }
+
+type ModuleMap = IndexMap<AttrValue, Module>;
