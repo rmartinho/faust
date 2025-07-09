@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="256"
+   height="256"
+   viewBox="0 0 67.733335 67.733335"
+   version="1.1"
+   id="svg1610"
+   xml:space="preserve"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+     id="defs1607"><marker
+       markerWidth="0.52499998"
+       markerHeight="0.99999994"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       id="CapTriangle"
+       viewBox="0 0 0.525 1"
+       style="overflow:visible"
+       preserveAspectRatio="xMidYMid"><path
+         style="fill:context-stroke;stroke-linecap:butt"
+         d="M 0,-1 1,0 0,1 -0.05,0 Z"
+         transform="scale(0.5)"
+         id="path61" /></marker></defs><g
+     id="g1"
+     transform="translate(4.3496705e-7,-0.17318008)"><rect
+       style="font-variation-settings:normal;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:4.23334;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000"
+       id="rect1"
+       width="40.460747"
+       height="25.211502"
+       x="13.636294"
+       y="32.111679" /><path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:4.23334;stroke-linecap:butt;stroke-linejoin:round;stroke-dasharray:none;marker-end:url(#CapTriangle);paint-order:markers stroke fill"
+       d="M 13.636293,32.11168 V 10.756514"
+       id="path1" /><path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:4.23334;stroke-linecap:butt;stroke-linejoin:round;stroke-dasharray:none;marker-end:url(#CapTriangle);paint-order:markers stroke fill"
+       d="M 54.097039,32.11168 V 10.756514"
+       id="path2" /><path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:4.23334;stroke-linecap:butt;stroke-linejoin:round;stroke-dasharray:none;marker-end:url(#CapTriangle);paint-order:markers stroke fill"
+       d="M 37.91274,32.11168 V 10.756514"
+       id="path3" /><path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:4.23334;stroke-linecap:butt;stroke-linejoin:round;stroke-dasharray:none;marker-end:url(#CapTriangle);paint-order:markers stroke fill"
+       d="M 29.820591,32.11168 V 10.756514"
+       id="path4" /><path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:4.23334;stroke-linecap:butt;stroke-linejoin:round;stroke-dasharray:none;marker-end:url(#CapTriangle);paint-order:markers stroke fill"
+       d="M 21.728442,32.11168 V 10.756514"
+       id="path5" /><path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:4.23334;stroke-linecap:butt;stroke-linejoin:round;stroke-dasharray:none;marker-end:url(#CapTriangle);paint-order:markers stroke fill"
+       d="M 46.00489,32.11168 V 10.756514"
+       id="path6" /></g></svg>
