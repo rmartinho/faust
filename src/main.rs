@@ -1,24 +1,37 @@
+use crate::modules::Module;
+use crate::routes::{Route, switch};
+use indexmap::IndexMap;
 use yew::prelude::*;
+use yew_autoprops::autoprops;
+use yew_router::prelude::*;
 
-#[function_component]
-fn App() -> Html {
-    let counter = use_state(|| 0);
-    let onclick = {
-        let counter = counter.clone();
-        move |_| {
-            let value = *counter + 1;
-            counter.set(value);
-        }
-    };
+mod components;
+mod modules;
+mod routes;
 
+const MODULES: &str = include_str!("../data/mods.json");
+
+#[derive(Clone, PartialEq)]
+pub struct Context {
+    modules: Vec<Module>,
+}
+
+#[autoprops(AppProps)]
+#[function_component(App)]
+pub fn app(modules: &Vec<Module>) -> Html {
     html! {
-        <div>
-            <button {onclick}>{ "+1" }</button>
-            <p>{ *counter }</p>
-        </div>
+      <ContextProvider<Context> context={Context{ modules: modules.clone()}}>
+        <BrowserRouter>
+          <Switch<Route> render={switch} />
+        </BrowserRouter>
+      </ContextProvider<Context>>
     }
 }
 
 fn main() {
-    yew::Renderer::<App>::new().render();
+    let modules: IndexMap<String, Module> = serde_json::from_str(MODULES).unwrap();
+    yew::Renderer::<App>::with_props(AppProps {
+        modules: modules.values().cloned().collect(),
+    })
+    .render();
 }
