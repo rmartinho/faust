@@ -1,9 +1,11 @@
 use crate::modules::Module;
 use crate::routes::{Route, switch};
-use implicit_clone::unsync::IString;
+use gloo::net::http::Request;
 use implicit_clone::ImplicitClone;
+use implicit_clone::unsync::IString;
 use indexmap::IndexMap;
 use yew::prelude::*;
+use yew::suspense::use_future;
 use yew_autoprops::autoprops;
 use yew_router::prelude::*;
 
@@ -28,43 +30,37 @@ pub fn app(context: AppContext) -> HtmlResult {
     })
 }
 
-#[cfg(not(feature = "static"))]
-mod wrapper {
-    use gloo::net::http::Request;
-    use yew::{prelude::*, suspense::use_future};
+#[function_component(Wrapper)]
+pub fn wrapper() -> HtmlResult {
+    let fallback = html! {<div>{"Loading..."}</div>};
 
-    #[function_component(Wrapper)]
-    pub fn wrapper() -> HtmlResult {
-        let fallback = html! {<div>{"Loading..."}</div>};
+    Ok(html! {
+      <Suspense {fallback}>
+        <Fetcher />
+      </Suspense>
+    })
+}
 
-        Ok(html! {
-          <Suspense {fallback}>
-            <Fetcher />
-          </Suspense>
-        })
-    }
+#[function_component(Fetcher)]
+pub fn fetcher() -> HtmlResult {
+    let res = use_future(async || {
+        Request::get("/mods.json")
+            .send()
+            .await
+            .unwrap()
+            .json::<ModuleMap>()
+            .await
+    })?;
+    let Ok(ref modules) = *res else { todo!() };
+    let context = AppContext {
+        modules: modules.clone(),
+    };
 
-    #[function_component(Fetcher)]
-    pub fn fetcher() -> HtmlResult {
-        let res = use_future(async || {
-            Request::get("/mods.json")
-                .send()
-                .await
-                .unwrap()
-                .json::<super::ModuleMap>()
-                .await
-        })?;
-        let Ok(ref modules) = *res else { todo!() };
-        let context = super::AppContext {
-            modules: modules.clone(),
-        };
-
-        Ok(html! { <super::App {context} /> })
-    }
+    Ok(html! { <App {context} /> })
 }
 
 fn main() {
-    yew::Renderer::<wrapper::Wrapper>::new().render();
+    yew::Renderer::<Wrapper>::new().render();
 }
 
 type ModuleMap = IndexMap<IString, Module>;
