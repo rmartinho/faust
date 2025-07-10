@@ -33,9 +33,10 @@ a {
   }
 }
 
+button { all: unset; }
+
 button,
 a img {
-  all: unset;
   display: flex;
 
   &:disabled {
