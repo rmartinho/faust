@@ -1,5 +1,6 @@
 use crate::modules::Module;
 use crate::routes::{Route, switch};
+use implicit_clone::unsync::IString;
 use implicit_clone::ImplicitClone;
 use indexmap::IndexMap;
 use yew::prelude::*;
@@ -66,4 +67,4 @@ fn main() {
     yew::Renderer::<wrapper::Wrapper>::new().render();
 }
 
-type ModuleMap = IndexMap<AttrValue, Module>;
+type ModuleMap = IndexMap<IString, Module>;

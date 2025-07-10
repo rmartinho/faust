@@ -1,19 +1,21 @@
-.modules {
-  display: flex;
-  flex-flow: row wrap;
-  align-items: stretch;
-  justify-content: center;
-  gap: 1rem;
+@scope (.module-list) {
+  :scope {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: stretch;
+    justify-content: center;
+    gap: 1rem;
 
-  a {
-    .logo {
-      border-radius: 8px;
-      object-fit: cover;
-      @media (orientation: portrait) {
-        max-width: calc(100vw - 64px);
-      }
-      @media (orientation: landscape) {
-        max-width: calc(50vw - 64px);
+    a {
+      .logo {
+        border-radius: 8px;
+        object-fit: cover;
+        @media (orientation: portrait) {
+          max-width: calc(100vw - 64px);
+        }
+        @media (orientation: landscape) {
+          max-width: calc(50vw - 64px);
+        }
       }
     }
   }

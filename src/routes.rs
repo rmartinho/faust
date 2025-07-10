@@ -1,3 +1,4 @@
+use implicit_clone::unsync::IString;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
@@ -8,17 +9,17 @@ pub enum Route {
     #[at("/")]
     Home,
     #[at("/:module")]
-    Module { module: AttrValue },
+    Module { module: IString },
     #[at("/:module/:faction")]
     Faction {
-        module: AttrValue,
-        faction: AttrValue,
+        module: IString,
+        faction: IString,
     },
     #[at("/:module/:faction/:era")]
     FactionEra {
-        module: AttrValue,
-        faction: AttrValue,
-        era: AttrValue,
+        module: IString,
+        faction: IString,
+        era: IString,
     },
     #[not_found]
     #[at("/404")]
@@ -33,7 +34,9 @@ pub fn switch(route: Route) -> Html {
         Route::Faction { module, faction } => {
             html! { <FactionPage module_id={module} faction_id={faction} /> }
         }
+        Route::FactionEra { module, faction, era } => {
+            html! { <FactionPage module_id={module} faction_id={faction} {era} /> }
+        }
         Route::NotFound => html! { <h1>{ "404" }</h1> },
-        _ => html! { <h1>{ "TODO" }</h1> },
     }
 }

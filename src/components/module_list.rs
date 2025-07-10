@@ -10,7 +10,7 @@ pub fn module_list() -> Html {
 
     html! {
       <main>
-        <div class="modules">
+        <div class="module-list">
           {for links}
         </div>
       </main>
