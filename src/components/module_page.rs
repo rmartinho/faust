@@ -10,9 +10,9 @@ use yew_router::{components::Link, hooks::use_route};
 
 #[autoprops]
 #[function_component(ModulePage)]
-pub fn module_page(id: &IString) -> Html {
+pub fn module_page(id: IString) -> Html {
     let ctx = use_context::<AppContext>().expect("no context");
-    let module = &ctx.modules[id];
+    let module = &ctx.modules[&id];
 
     let links = module
         .factions
@@ -45,31 +45,29 @@ fn back_link() -> Html {
 
 #[autoprops]
 #[function_component(FactionLink)]
-fn faction_link(to: &Faction) -> Html {
+fn faction_link(to: Faction) -> Html {
     let Some(Route::Module { module }) = use_route::<Route>() else {
         unreachable!()
     };
 
-    let f = to.clone();
     let route = Route::Faction {
         module,
-        faction: f.id_or_alias(),
+        faction: to.id_or_alias(),
     };
     html! {
       <Link<Route> to={route}>
-        <img class="icon" src={f.image} title={f.name.clone()} />
-        <div class="name">{ f.name }</div>
+        <img class="icon" src={to.image} title={&to.name} />
+        <div class="name">{ to.name }</div>
       </Link<Route>>
     }
 }
 
 #[autoprops]
 #[function_component(ModuleHeader)]
-fn module_header(module: &Module) -> Html {
-    let m = module.clone();
+fn module_header(module: Module) -> Html {
     html! {
       <div class="banner">
-        <img class="logo" src={m.logo} title={m.name} />
+        <img class="logo" src={module.logo} title={module.name} />
       </div>
     }
 }
