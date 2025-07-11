@@ -1,12 +1,13 @@
 use crate::{
     AppContext,
+    components::Link,
     modules::{Faction, Module},
     routes::Route,
 };
 use implicit_clone::unsync::IString;
 use yew::prelude::*;
 use yew_autoprops::autoprops;
-use yew_router::{components::Link, hooks::use_route};
+use yew_router::hooks::use_route;
 
 #[autoprops]
 #[function_component(ModulePage)]
@@ -37,9 +38,9 @@ pub fn module_page(id: IString) -> Html {
 fn back_link() -> Html {
     let route = Route::Home;
     html! {
-      <Link<Route> to={route}>
+      <Link to={route}>
         <img class="back" title="to mod list" src="/icons/ui/back.png" />
-      </Link<Route>>
+      </Link>
     }
 }
 
@@ -55,10 +56,10 @@ fn faction_link(to: Faction) -> Html {
         faction: to.id_or_alias(),
     };
     html! {
-      <Link<Route> to={route}>
+      <Link to={route}>
         <img class="icon" src={to.image} title={&to.name} />
         <div class="name">{ to.name }</div>
-      </Link<Route>>
+      </Link>
     }
 }
 

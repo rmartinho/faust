@@ -8,12 +8,10 @@ static = []
 
 [dependencies]
 gloo = { version = "0.11.0", default-features = false, features = ["console", "net"] }
-# this is some bullshit, it needs to be kept in sync with the version used by yew because yew doesn't work with serde
 implicit-clone = { version = "0.5.1", features = ["serde"] }
 indexmap = { version = "2.10.0", features = ["serde"] }
-js-sys = "0.3.77"
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
-yew = { git = "https://github.com/yewstack/yew/", features = ["ssr", "hydration"] }
+yew = { git = "https://github.com/rmartinho/yew.git", features = ["ssr", "hydration"] }
 yew-autoprops = "0.4.1"
-yew-router = { git = "https://github.com/yewstack/yew.git" }
+yew-router = { git = "https://github.com/rmartinho/yew.git" }

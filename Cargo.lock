@@ -733,7 +733,6 @@ dependencies = [
  "gloo",
  "implicit-clone",
  "indexmap",
- "js-sys",
  "serde",
  "serde_json",
  "yew",
@@ -1106,7 +1105,7 @@ dependencies = [
 [[package]]
 name = "yew"
 version = "0.21.0"
-source = "git+https://github.com/yewstack/yew/#4d08a0335542a5b310976624c5d1744a102cb5dd"
+source = "git+https://github.com/rmartinho/yew.git#893db67e650e89131f215bf9f16617bd08742295"
 dependencies = [
  "base64ct",
  "bincode",
@@ -1144,7 +1143,7 @@ dependencies = [
 [[package]]
 name = "yew-macro"
 version = "0.21.0"
-source = "git+https://github.com/yewstack/yew/#4d08a0335542a5b310976624c5d1744a102cb5dd"
+source = "git+https://github.com/rmartinho/yew.git#893db67e650e89131f215bf9f16617bd08742295"
 dependencies = [
  "once_cell",
  "prettyplease",
@@ -1158,7 +1157,7 @@ dependencies = [
 [[package]]
 name = "yew-router"
 version = "0.18.0"
-source = "git+https://github.com/yewstack/yew/#4d08a0335542a5b310976624c5d1744a102cb5dd"
+source = "git+https://github.com/rmartinho/yew.git#893db67e650e89131f215bf9f16617bd08742295"
 dependencies = [
  "gloo",
  "js-sys",
@@ -1176,7 +1175,7 @@ dependencies = [
 [[package]]
 name = "yew-router-macro"
 version = "0.18.0"
-source = "git+https://github.com/yewstack/yew/#4d08a0335542a5b310976624c5d1744a102cb5dd"
+source = "git+https://github.com/rmartinho/yew.git#893db67e650e89131f215bf9f16617bd08742295"
 dependencies = [
  "proc-macro2",
  "quote",
