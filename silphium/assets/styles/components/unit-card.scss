@@ -1,0 +1,11 @@
+@scope (.unit-card) {
+  :scope {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+    img {
+        width: 82px;
+    }
+  }
+}

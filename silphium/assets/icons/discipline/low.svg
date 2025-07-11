@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+
+<svg
+   width="512"
+   height="512"
+   viewBox="0 0 15.36 15.36"
+   fill="none"
+   version="1.1"
+   id="svg1"
+   xml:space="preserve"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+     id="defs1" /><path
+     style="fill:none;stroke:none;stroke-width:0.0468749"
+     d="m 7.6800002,12.325162 c 0.7693548,0 1.3935484,-0.833226 1.3935484,-1.858065 0,-1.0248392 -0.6241936,-1.8580649 -1.3935484,-1.8580649 -0.7693549,0 -1.3935485,0.8332257 -1.3935485,1.8580649 0,1.024839 0.6241936,1.858065 1.3935485,1.858065 z"
+     id="path17" /><g
+     style="fill:none"
+     id="g1"><g
+       id="g4"
+       style="display:inline;stroke-width:1.30825"
+       transform="matrix(0.76438146,0,0,0.76438144,-1.4905284,-1.4924555)"><ellipse
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.941938;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;paint-order:markers stroke fill"
+         id="path2-5"
+         cx="11.997319"
+         cy="11.999841"
+         rx="8.9484291"
+         ry="8.9484119" /><circle
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.627959;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
+         id="path3"
+         cx="8.9907742"
+         cy="10.003861"
+         r="1.4803462" /><circle
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.627959;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
+         id="circle4"
+         cx="8.9907742"
+         cy="10.003861"
+         r="1.4803462"
+         transform="matrix(-0.99999999,0,0,0.99999999,23.994638,0)" /><path
+         id="path5"
+         style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.941938;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
+         transform="matrix(-0.99999999,0,0,0.99999999,23.994638,0)"
+         d="m 8.9907741,17.198641 c 1.0760489,-2.961816 4.9370399,-2.961817 6.0130899,0" /></g></g><path
+     id="path2"
+     style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.72;stroke-linejoin:round;stroke-miterlimit:8;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
+     d="m 4.2503034,7.2858597 c -0.014753,0.8501771 -1.8601802,2.5456137 0,2.5456137 1.8601802,0 0.014753,-1.6954366 0,-2.5456137 z" /></svg>
