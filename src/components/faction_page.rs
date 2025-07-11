@@ -3,10 +3,7 @@ use yew_autoprops::autoprops;
 use yew_router::prelude::*;
 
 use crate::{
-    AppContext,
-    components::{BackLink, Link},
-    modules::{Faction, Module},
-    routes::Route,
+    components::{BackLink, FactionRoster, Link}, modules::{Faction, Module}, routes::Route, AppContext
 };
 
 #[autoprops]
@@ -34,9 +31,9 @@ pub fn faction_page(
             <img class="help button" title="Help" src="/icons/ui/help.png" />
           </button>
         </div>
-        <FactionHeader classes={classes!("header")} {module} {faction} {era} />
+        <FactionHeader classes={classes!("header")} {module} faction={faction.clone()} {era} />
       </div>
-    // <FactionRoster roster={faction.roster} />
+      <FactionRoster roster={faction.roster} />
     // <template v-if="faction.id == 'mercs'">
     //   <MercenaryRoster :pools />
     // </template>
