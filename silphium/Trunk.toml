@@ -1,7 +1,2 @@
 [tools]
 sass = "1.89.2"
-
-[build]
-dist = "../dist"
-filehash = false
-minify = "on_release"
