@@ -1,4 +1,4 @@
-@scope (.faction-page) to (.faction-header > *) {
+@scope (.faction-page) to (:is(.roster, .faction-header) > *) {
   :scope {
     display: flex;
     flex-direction: column;
@@ -15,7 +15,7 @@
         align-items: center;
         gap: 1rem;
 
-        .button {
+        .back, .button {
           cursor: pointer;
           width: 48px;
         }

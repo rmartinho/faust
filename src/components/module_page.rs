@@ -1,6 +1,6 @@
 use crate::{
     AppContext,
-    components::Link,
+    components::{BackLink, Link},
     modules::{Faction, Module},
     routes::Route,
 };
@@ -31,16 +31,6 @@ pub fn module_page(id: IString) -> Html {
           {for links}
         </main>
       </div>
-    }
-}
-
-#[function_component(BackLink)]
-fn back_link() -> Html {
-    let route = Route::Home;
-    html! {
-      <Link to={route}>
-        <img class="back" title="to mod list" src="/icons/ui/back.png" />
-      </Link>
     }
 }
 

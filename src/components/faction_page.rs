@@ -4,6 +4,7 @@ use yew_router::prelude::*;
 
 use crate::{
     AppContext,
+    components::{BackLink, Link},
     modules::{Faction, Module},
     routes::Route,
 };
@@ -35,7 +36,7 @@ pub fn faction_page(
         </div>
         <FactionHeader classes={classes!("header")} {module} {faction} {era} />
       </div>
-      // <FactionRoster roster={faction.roster} />
+    // <FactionRoster roster={faction.roster} />
     // <template v-if="faction.id == 'mercs'">
     //   <MercenaryRoster :pools />
     // </template>
@@ -116,26 +117,11 @@ fn era_link(to: AttrValue, active: bool) -> Html {
 
     let era = module.eras[&to].clone();
     html! {
-      <Link<Route> to={era_route}>
+      <Link to={era_route}>
         <div class={classes!("era", if active {Some("checked")} else {None})}>
           <img src={&era.icon} title={&era.name} />
           <span>{ era.name }</span>
         </div>
-      </Link<Route>>
-    }
-}
-
-#[function_component(BackLink)]
-fn back_link() -> Html {
-    let module = match use_route::<Route>() {
-        Some(Route::Faction { module, .. }) => module,
-        Some(Route::FactionEra { module, .. }) => module,
-        _ => unreachable!(),
-    };
-    let route = Route::Module { module };
-    html! {
-      <Link<Route> to={route}>
-        <img class="back button" title="to faction list" src="/icons/ui/back.png" />
-      </Link<Route>>
+      </Link>
     }
 }

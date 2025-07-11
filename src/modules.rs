@@ -30,6 +30,19 @@ pub struct Faction {
     pub alias: Option<IString>,
     #[serde(default)]
     pub eras: IArray<IString>,
+    #[serde(alias = "horde")] // TODO remove this
+    pub is_horde: bool,
+    pub roster: IndexMap<IString, IArray<Unit>>,
+}
+
+#[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
+pub struct Unit {
+    #[serde(rename = "type")] // TODO remove this
+    pub id: IString,
+    #[serde(rename = "id")] // TODO remove this
+    pub dict: IString,
+    pub name: IString,
+    pub image: IString,
 }
 
 #[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
