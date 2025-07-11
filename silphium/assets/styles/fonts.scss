@@ -1,28 +1,7 @@
 @font-face {
   font-family: Blinker;
   src: local('Blinker Regular'), local('Blinker'),
-    url(/fonts/f-H9b52LVcSe78xJr710DBrPRFFW8bWbpOaACGTT6ms-owDKosCEVed7D9m1jN7uBBjhZGJclYv7ites6Vlhktg.woff2)
-      format(woff2);
-  font-display: swap;
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
-    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
-    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-  font-weight: 400;
-  font-style: normal;
-}
-@font-face {
-  font-family: 'Blinker Fallback: Arial';
-  src: local('Arial');
-  size-adjust: 92.418%;
-  ascent-override: 103.8759%;
-  descent-override: 25.969%;
-  line-gap-override: 0%;
-}
-@font-face {
-  font-family: Blinker;
-  src: local('Blinker Regular'), local('Blinker'),
-    url(/fonts/b6QeNsmcIoYrE9hXsQH5mfLqwAdVSKfWtZNerDsoPgE-JsTFGrR3GsSuB_NOYbWj__UO9bbln_UsHkSQp3h0icU.woff2)
-      format(woff2);
+    url(/fonts/blinker-regular-1.woff2) format(woff2);
   font-display: swap;
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
     U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
@@ -32,21 +11,18 @@
 }
 @font-face {
   font-family: Blinker;
-  src: local('Blinker Bold'),
-    url(/fonts/_LH5eAcxJOYiyTAjvppoZni9vl5YG2wF9xHTfPwfT5U-lkowKM_NSksbtOyiT2IohRePllaSrrEDZt_dVItqL1o.woff2)
-      format(woff2);
+  src: local('Blinker Regular'), local('Blinker'),
+    url(/fonts/binker-regular-2.woff2) format(woff2);
   font-display: swap;
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
     U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
     U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-  font-weight: 700;
+  font-weight: 400;
   font-style: normal;
 }
 @font-face {
   font-family: Blinker;
-  src: local('Blinker Bold'),
-    url(/fonts/GFikWf9aakoA-t5Tq3jlNOePnmyo27Qm0ldlxnJyfZ4-8PQnZctS5iMehbFeG32yrmDP4iRcJacgS_sGg8JUU5c.woff2)
-      format(woff2);
+  src: local('Blinker Bold'), url(/fonts/blinker-bold-1.woff2) format(woff2);
   font-display: swap;
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
     U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
@@ -56,18 +32,25 @@
 }
 @font-face {
   font-family: Blinker;
+  src: local('Blinker Bold'), url(/fonts/blinker-bold-2.woff2) format(woff2);
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  font-weight: 700;
+  font-style: normal;
+}
+@font-face {
+  font-family: Blinker;
   src: local('Blinker Regular'), local('Blinker'),
-    url(/fonts/Dj8xpsvDcw_h2LOlY-hiqWN-OI2OWafQYkORZwdW5bc-em_8RAeRAs8J7sTPHbIeAeZOSqlAcNyDmnS70U9Z1S8.woff)
-      format(woff);
+    url(/fonts/blinker-regular.woff) format(woff);
   font-display: swap;
   font-weight: 400;
   font-style: normal;
 }
 @font-face {
   font-family: Blinker;
-  src: local('Blinker Bold'),
-    url(/fonts/Gql5ewOJMZI6JOGRi7WLTsNMoOXumB0-wu3SB2X1dt0-T18Z5lRC69Zp3ntvyrOq7JWlHNBGlTYxt__JEhdRqIA.woff)
-      format(woff);
+  src: local('Blinker Bold'), url(/fonts/blinker-bold.woff) format(woff);
   font-display: swap;
   font-weight: 700;
   font-style: normal;
