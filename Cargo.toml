@@ -19,6 +19,7 @@ yew-autoprops = "0.4.1"
 yew-router = { git = "https://github.com/rmartinho/yew.git" }
 cargo-emit = "0.2.1"
 askama = "0.14.0"
+serde_yml = "0.0.12"
 
 [build-dependencies]
 cargo-emit = "0.2.1"
