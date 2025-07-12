@@ -1,6 +1,8 @@
-use std::{fs, io, path::Path};
+use std::{io, path::Path};
 
 use askama::Template;
+
+use crate::utils::write_file;
 
 #[derive(Template)]
 #[template(path = "index.html")]
@@ -15,12 +17,9 @@ pub struct StaticFile<'a> {
 }
 
 impl<'a> StaticFile<'a> {
-    pub fn create(&self) -> io::Result<()> {
-        let dir = Path::parent(self.path.as_ref());
-        if let Some(dir) = dir {
-            fs::create_dir_all(dir)?;
-        }
-        fs::write(self.path, self.contents)
+    pub async fn create(&self, path: impl AsRef<Path>) -> io::Result<()> {
+        let path = path.as_ref().join(self.path);
+        write_file(path, self.contents).await
     }
 }
 

@@ -17,7 +17,7 @@ mod routes;
 
 pub use routes::Route;
 
-type ModuleMap = IndexMap<IString, Module>;
+pub type ModuleMap = IndexMap<IString, Module>;
 
 #[derive(ImplicitClone, Clone, PartialEq)]
 struct AppContext {
