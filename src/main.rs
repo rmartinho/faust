@@ -117,6 +117,6 @@ impl Env {
 
 fn prepare_route(route: Route) -> RenderRoute {
     let path: String = route.to_path();
-    let path = PathBuf::from(&path[1..]).with_extension("html");
+    let path = PathBuf::from(&path[1..]).join("index.html");
     RenderRoute { path, route }
 }

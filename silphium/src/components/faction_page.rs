@@ -3,7 +3,10 @@ use yew_autoprops::autoprops;
 use yew_router::prelude::*;
 
 use crate::{
-    components::{BackLink, FactionRoster, Link}, modules::{Faction, Module}, routes::Route, AppContext
+    AppContext,
+    components::{BackLink, FactionRoster, Link},
+    modules::{Faction, Module},
+    routes::Route,
 };
 
 #[autoprops]
@@ -18,6 +21,17 @@ pub fn faction_page(
     let aliases = &module.aliases;
     let faction_id = aliases.get(&faction_id).unwrap_or(&faction_id);
     let faction = module.factions[faction_id].clone();
+
+    if era.is_none() && faction.eras.len() > 1 {
+        let route = Route::FactionEra {
+            module: module.id.clone(),
+            faction: faction.id_or_alias(),
+            era: faction.eras[0].clone(),
+        };
+        return html! {
+          <Redirect<Route> to={route}/>
+        };
+    }
 
     html! {
     <div class="faction-page">
@@ -53,17 +67,7 @@ pub fn faction_header(
     faction: Faction,
     #[prop_or_default] era: Option<AttrValue>,
 ) -> Html {
-    if era.is_none() && faction.eras.len() > 1 {
-        let route = Route::FactionEra {
-            module: module.id.clone(),
-            faction: faction.id.clone(),
-            era: faction.eras[0].clone(),
-        };
-        return html! {
-          <Redirect<Route> to={route}/>
-        };
-    }
-
+    let _ = module;
     let era_links = faction
         .eras
         .iter()
