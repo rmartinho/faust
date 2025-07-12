@@ -3,24 +3,26 @@ use std::path::PathBuf;
 use silphium::{ModuleMap, Route};
 use yew_router::Routable as _;
 
+use crate::args::Args;
+
 #[derive(Clone)]
 pub struct Env {
     pub manifest_path: PathBuf,
-    pub routes: Vec<RenderRoute>,
     pub out_dir: PathBuf,
+    pub routes: Vec<RenderRoute>,
     pub data: String,
 }
 
 impl Env {
-    pub fn new() -> Self {
-        const MODULES: &str = "[]";//include_str!("../silphium/data/mods.json"); // HACK, PARSER GOES HERE
+    pub fn new(args: Args) -> Self {
+        const MODULES: &str = "{}"; //include_str!("../silphium/data/mods.json"); // HACK, PARSER GOES HERE
         let modules = serde_json::from_str(MODULES).unwrap();
 
         let routes = collect_routes(&modules);
         Self {
-            manifest_path: "faust.yml".into(),
+            manifest_path: args.manifest.unwrap_or_else(|| "faust.yml".into()),
             routes,
-            out_dir: "faust".into(),
+            out_dir: args.out_dir.unwrap_or_else(|| "faust".into()),
             data: MODULES.into(),
         }
     }

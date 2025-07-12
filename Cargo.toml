@@ -20,6 +20,7 @@ yew-router = { git = "https://github.com/rmartinho/yew.git" }
 cargo-emit = "0.2.1"
 askama = "0.14.0"
 serde_yml = "0.0.12"
+clap = { version = "4.5.41", features = ["derive"] }
 
 [build-dependencies]
 cargo-emit = "0.2.1"
