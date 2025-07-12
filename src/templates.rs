@@ -11,6 +11,12 @@ pub struct IndexHtml<'a> {
     pub body: &'a str,
 }
 
+#[derive(Template)]
+#[template(path = "redirect.html")]
+pub struct RedirectHtml<'a> {
+    pub target: &'a str,
+}
+
 pub struct StaticFile<'a> {
     path: &'a str,
     contents: &'a [u8],

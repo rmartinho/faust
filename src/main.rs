@@ -5,7 +5,7 @@ use silphium::{ModuleMap, Route, StaticApp, StaticAppProps};
 use yew_router::Routable as _;
 
 use crate::{
-    templates::{FILESYSTEM_STATIC, IndexHtml},
+    templates::{FILESYSTEM_STATIC, IndexHtml, RedirectHtml},
     utils::write_file,
 };
 
@@ -26,12 +26,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 async fn render_routes(env: Env) -> tokio::io::Result<()> {
     for r in &env.routes {
-        let body = &render_route(r.route.clone(), env.clone()).await;
-        write_file(
-            Path::join(&env.out_dir, &r.path),
-            IndexHtml { head: "", body }.render()?,
-        )
-        .await?;
+        if let Some(ref target) = r.redirect {
+            write_file(
+                Path::join(&env.out_dir, &r.path),
+                RedirectHtml { target }.render()?,
+            )
+            .await?;
+        } else {
+            let body = &render_route(r.route.clone(), env.clone()).await;
+            write_file(
+                Path::join(&env.out_dir, &r.path),
+                IndexHtml { head: "", body }.render()?,
+            )
+            .await?;
+        }
     }
     Ok(())
 }
@@ -56,6 +64,7 @@ struct Env {
 #[derive(Clone)]
 struct RenderRoute {
     pub route: Route,
+    pub redirect: Option<String>,
     pub path: PathBuf,
 }
 
@@ -65,11 +74,9 @@ impl Env {
         let out_dir = root_dir.clone().join("faust");
 
         if out_dir.exists() {
-            println!("Removing existing output directory");
             tokio::fs::remove_dir_all(&out_dir).await?;
         }
 
-        println!("Creating output directory");
         tokio::fs::create_dir_all(&out_dir).await?;
 
         const MODULES: &str = include_str!("../silphium/data/mods.json"); // HACK, insert parser here
@@ -78,10 +85,12 @@ impl Env {
         routes.push(RenderRoute {
             route: Route::Home,
             path: "index.html".into(),
+            redirect: None,
         });
         routes.push(RenderRoute {
             route: Route::NotFound,
             path: "404.html".into(),
+            redirect: None,
         });
 
         let modules: ModuleMap = serde_json::from_str(MODULES).unwrap();
@@ -91,10 +100,56 @@ impl Env {
             }));
 
             for faction in module.factions.values() {
-                routes.push(prepare_route(Route::Faction {
+                let id_or_alias = faction.id_or_alias();
+                let route: Route = Route::Faction {
                     module: module.id.clone(),
-                    faction: faction.id_or_alias(),
-                }));
+                    faction: id_or_alias.clone(),
+                };
+                if id_or_alias != faction.id {
+                    routes.push(prepare_redirect(
+                        Route::Faction {
+                            module: module.id.clone(),
+                            faction: faction.id.clone(),
+                        },
+                        route.clone(),
+                    ));
+                    for era in faction.eras.iter() {
+                        routes.push(prepare_redirect(
+                            Route::FactionEra {
+                                module: module.id.clone(),
+                                faction: faction.id.clone(),
+                                era: era.clone(),
+                            },
+                            Route::FactionEra {
+                                module: module.id.clone(),
+                                faction: id_or_alias.clone(),
+                                era,
+                            },
+                        ));
+                    }
+                }
+                if faction.eras.len() <= 1 {
+                    if faction.eras.len() == 1 {
+                        routes.push(prepare_redirect(
+                            Route::FactionEra {
+                                module: module.id.clone(),
+                                faction: id_or_alias.clone(),
+                                era: faction.eras[0].clone(),
+                            },
+                            route.clone(),
+                        ))
+                    }
+                    routes.push(prepare_route(route));
+                } else {
+                    routes.push(prepare_redirect(
+                        route,
+                        Route::FactionEra {
+                            module: module.id.clone(),
+                            faction: faction.id_or_alias(),
+                            era: faction.eras[0].clone(),
+                        },
+                    ))
+                }
 
                 for era in faction.eras.iter() {
                     routes.push(prepare_route(Route::FactionEra {
@@ -118,5 +173,20 @@ impl Env {
 fn prepare_route(route: Route) -> RenderRoute {
     let path: String = route.to_path();
     let path = PathBuf::from(&path[1..]).join("index.html");
-    RenderRoute { path, route }
+    RenderRoute {
+        path,
+        route,
+        redirect: None,
+    }
+}
+
+fn prepare_redirect(from: Route, to: Route) -> RenderRoute {
+    let path = from.to_path();
+    let path = PathBuf::from(&path[1..]).join("index.html");
+    let target = to.to_path();
+    RenderRoute {
+        path,
+        route: from,
+        redirect: Some(target),
+    }
 }
