@@ -1,0 +1,12 @@
+[general]
+dirs = ["dist"]
+default_syntax = "silphium"
+
+[[syntax]]
+name = "silphium"
+block_start = "<!--{%"
+block_end = "%}-->"
+comment_start = "<!--{#"
+comment_end = "#}-->"
+expr_start = "<!--{{"
+expr_end = "}}-->"

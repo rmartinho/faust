@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <base data-trunk-public-url />
-    <link data-trunk rel="icon" href="assets/favicon.ico" />
+    <link data-trunk rel="icon" href="assets/favicon.png" />
     <link data-trunk rel="rust" />
     <link data-trunk rel="scss" href="assets/styles/main.scss" />
     <link data-trunk rel="copy-dir" href="assets/icons" />
@@ -13,6 +13,9 @@
     <link data-trunk rel="copy-file" href="data/mods.json" />
 
     <title>FAUST</title>
+    <!--{{ head|safe }}-->
   </head>
-  <body></body>
+  <body>
+    <!--{{ body|safe }}-->
+  </body>
 </html>
