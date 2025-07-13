@@ -12,7 +12,10 @@ mod utils;
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
-    let manifest_path = args.manifest.clone().unwrap_or_else(|| "faust.yml".into());
+    let manifest_path = args
+        .manifest
+        .clone()
+        .unwrap_or_else(|| "faust/faust.yml".into());
     let manifest = Manifest::from_yaml(File::open(&manifest_path)?)?;
     let modules = parse::parse(manifest);
 

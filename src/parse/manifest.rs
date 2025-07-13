@@ -13,12 +13,18 @@ pub struct Manifest {
     pub dir: Option<PathBuf>,
     #[serde(default = "default_campaign")]
     pub campaign: String,
+    #[serde(default = "default_banner")]
+    pub banner: PathBuf,
     // overrides
     // strings
 }
 
 fn default_campaign() -> String {
     "imperial_campaign".into()
+}
+
+fn default_banner() -> PathBuf {
+    "faust/banner.png".into()
 }
 
 #[derive(Debug, Serialize, Deserialize)]
