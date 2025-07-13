@@ -2,22 +2,21 @@ use std::fs::File;
 
 use clap::Parser;
 
-use crate::{args::Args, env::Env, parse::manifest::Manifest};
+use crate::{args::Args, parse::Manifest, render::Renderer};
 
 mod args;
-mod env;
 mod parse;
 mod render;
 mod utils;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let env = Env::new(Args::parse());
+    let args = Args::parse();
+    let manifest_path = args.manifest.clone().unwrap_or_else(|| "faust.yml".into());
+    let manifest = Manifest::from_yaml(File::open(&manifest_path)?)?;
+    let modules = parse::parse(manifest);
 
-    let _manifest = Manifest::from_yaml(File::open(&env.manifest_path)?)?;
-
-    render::create_directory(&env).await?;
-    render::create_static_files(&env).await?;
-    render::render_routes(&env).await?;
+    let renderer = Renderer::new(args, modules);
+    renderer.render().await?;
     Ok(())
 }

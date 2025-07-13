@@ -1,4 +1,3 @@
-use crate::modules::Module;
 use crate::routes::switch;
 use gloo::history::{AnyHistory, MemoryHistory};
 use gloo::net::http::Request;
@@ -15,8 +14,8 @@ mod components;
 mod modules;
 mod routes;
 
+pub use modules::Module;
 pub use routes::Route;
-
 pub type ModuleMap = IndexMap<IString, Module>;
 
 #[derive(ImplicitClone, Clone, PartialEq)]

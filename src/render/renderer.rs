@@ -1,30 +1,82 @@
 use std::path::PathBuf;
 
-use silphium::{ModuleMap, Route};
+use askama::Template as _;
+use silphium::{ModuleMap, Route, StaticApp, StaticAppProps};
+use tokio::{fs, io};
 use yew_router::Routable as _;
 
-use crate::args::Args;
+use crate::{
+    args::Args,
+    render::templates::{FILESYSTEM_STATIC, IndexHtml, RedirectHtml},
+    utils::write_file,
+};
 
 #[derive(Clone)]
-pub struct Env {
-    pub manifest_path: PathBuf,
+pub struct Renderer {
     pub out_dir: PathBuf,
     pub routes: Vec<RenderRoute>,
     pub data: String,
 }
 
-impl Env {
-    pub fn new(args: Args) -> Self {
-        const MODULES: &str = "{}"; //include_str!("../silphium/data/mods.json"); // HACK, PARSER GOES HERE
-        let modules = serde_json::from_str(MODULES).unwrap();
-
+impl Renderer {
+    pub fn new(args: Args, modules: ModuleMap) -> Self {
         let routes = collect_routes(&modules);
         Self {
-            manifest_path: args.manifest.unwrap_or_else(|| "faust.yml".into()),
             routes,
             out_dir: args.out_dir.unwrap_or_else(|| "faust".into()),
-            data: MODULES.into(),
+            data: serde_json::to_string(&modules).unwrap(),
         }
+    }
+
+    pub async fn render(&self) -> io::Result<()> {
+        self.create_directory().await?;
+        self.create_static_files().await?;
+        self.render_routes().await?;
+        Ok(())
+    }
+
+    async fn render_routes(&self) -> io::Result<()> {
+        for r in &self.routes {
+            println!("{}", r.route.to_path());
+            if let Some(ref target) = r.redirect {
+                write_file(
+                    &self.out_dir.join(&r.path),
+                    RedirectHtml { target }.render()?,
+                )
+                .await?;
+            } else {
+                let body = &self.render_route(r.route.clone()).await;
+                write_file(
+                    &self.out_dir.join(&r.path),
+                    IndexHtml { head: "", body }.render()?,
+                )
+                .await?;
+            }
+        }
+        Ok(())
+    }
+
+    async fn render_route(&self, route: Route) -> String {
+        let props = StaticAppProps {
+            route,
+            data: self.data.clone().into(),
+        };
+        let renderer = yew::LocalServerRenderer::<StaticApp>::with_props(props);
+        renderer.render().await
+    }
+
+    async fn create_directory(&self) -> io::Result<()> {
+        if self.out_dir.exists() {
+            fs::remove_dir_all(&self.out_dir).await?;
+        }
+        fs::create_dir_all(&self.out_dir).await
+    }
+
+    async fn create_static_files(&self) -> io::Result<()> {
+        for file in FILESYSTEM_STATIC {
+            file.create(&self.out_dir).await?;
+        }
+        Ok(())
     }
 }
 

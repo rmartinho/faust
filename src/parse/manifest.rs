@@ -9,16 +9,12 @@ pub struct Manifest {
     pub name: IString,
     #[serde(default)]
     pub mode: ParserMode,
-    #[serde(default = "default_dir")]
-    pub dir: PathBuf,
+    #[serde(default)]
+    pub dir: Option<PathBuf>,
     #[serde(default = "default_campaign")]
     pub campaign: String,
     // overrides
     // strings
-}
-
-fn default_dir() -> PathBuf {
-    ".".into()
 }
 
 fn default_campaign() -> String {
