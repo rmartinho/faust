@@ -21,6 +21,8 @@ cargo-emit = "0.2.1"
 askama = "0.14.0"
 serde_yml = "0.0.12"
 clap = { version = "4.5.41", features = ["derive"] }
+pest = "2.8.1"
+pest_derive = "2.8.1"
 
 [build-dependencies]
 cargo-emit = "0.2.1"

@@ -17,7 +17,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .clone()
         .unwrap_or_else(|| "faust/faust.yml".into());
     let manifest = Manifest::from_yaml(File::open(&manifest_path)?)?;
-    let modules = parse::parse(manifest);
+    let modules = parse::parse_folder(manifest);
 
     let renderer = Renderer::new(args, modules);
     renderer.render().await?;

@@ -1,0 +1,33 @@
+file = _{ SOI ~ NEWLINE* ~ region+ ~ EOI }
+
+region = {
+    region_id ~ NEWLINE
+  ~ (legion_decl ~ NEWLINE)?
+  ~ city_id ~ NEWLINE
+  ~ faction_id ~ NEWLINE
+  ~ rebel_id ~ NEWLINE
+  ~ color ~ NEWLINE
+  ~ hidden_resources ~ NEWLINE
+  ~ triumph_value ~ NEWLINE
+  ~ farm_level ~ NEWLINE
+  ~ religions ~ NEWLINE
+}
+region_id = @{ ident }
+city_id = @{ ident }
+faction_id = @{ ident }
+rebel_id = @{ ident }
+color = { num ~ num ~ num }
+hidden_resources = { "none" | (hidden_resource ~ ("," ~ hidden_resource)*) }
+hidden_resource = @{ ident } 
+triumph_value = @{ ident }
+farm_level = @{ ident }
+religions = { religion+ }
+religion = { ident ~ num }
+legion_decl = _{ "legion:" ~ legion_id }
+legion_id = @{ ident }
+
+ident = @{ (ASCII_ALPHANUMERIC | "_" | "-")+ }
+num = @{ ASCII_DIGIT+ }
+
+COMMENT = _{ ";" ~ (!NEWLINE ~ ANY)* ~ (NEWLINE | EOI) }
+WHITESPACE = _{ " " | "\t" }

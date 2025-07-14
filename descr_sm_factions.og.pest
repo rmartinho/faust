@@ -1,0 +1,81 @@
+file = _{ SOI ~ NEWLINE* ~ factions ~ EOI }
+
+factions = _{ faction+ }
+
+faction = {
+    faction_decl
+  ~ culture_decl
+  ~ symbols
+  ~ primary_color
+  ~ secondary_color
+  ~ loading_logo_decl
+  ~ standard_index_decl
+  ~ logo_index
+  ~ triumph_decl
+  ~ movies
+  ~ custom_battle_decl
+  ~ can_sap_decl
+  ~ naval_invasions_decl
+}
+
+faction_decl = _{
+    "faction" ~ id
+  ~ ("," ~ (shadowing_decl | shadowed_decl))*
+}
+shadowing_decl = _{ "shadowing" ~ shadowing }
+shadowed_decl = _{ "shadowed_by" ~ shadowed_by }
+id = @{ ident }
+shadowing = @{ ident }
+shadowed_by = @{ ident }
+culture_decl = _{ "culture" ~ culture }
+culture = @{ ident }
+symbols = { "symbol" ~ main ~ "rebel_symbol" ~ rebel }
+main = @{ path }
+rebel = @{ path}
+primary_color = { "primary_colour" ~ color }
+secondary_color = { "secondary_colour" ~ color }
+color = _{
+    "red" ~ red ~ ","
+  ~ "green" ~ green ~ ","
+  ~ "blue" ~ blue
+}
+red = @{ num }
+green = @{ num }
+blue = @{ num }
+loading_logo_decl = _{ "loading_logo" ~ loading_logo }
+loading_logo = @{ path }
+standard_index_decl = _{ "standard_index" ~ standard_index }
+standard_index = @{ num }
+logo_index = {
+    "logo_index" ~ large
+  ~ "small_logo_index" ~ small
+}
+large = @{ num }
+small = @{ num }
+triumph_decl = _{ "triumph_value" ~ triumph }
+triumph = @{ num }
+movies = {
+    "intro_movie" ~ intro
+  ~ "victory_movie" ~ victory
+  ~ "defeat_movie" ~ defeat
+  ~ "death_movie" ~ death
+}
+intro = @{ path }
+victory = @{ path }
+defeat = @{ path }
+death = @{ path }
+custom_battle_decl = _{ "custom_battle_availability" ~ custom_battle }
+custom_battle = @{ bool }
+can_sap_decl = _{ "can_sap" ~ can_sap }
+can_sap = @{ bool }
+naval_invasions_decl = _{ "prefers_naval_invasions" ~ naval_invasions }
+naval_invasions = @{ bool }
+
+bool = { "yes" | "no" }
+path = { (ASCII_ALPHANUMERIC | "_" | "'" | "." | "/")+ }
+ident = @{ (ASCII_ALPHANUMERIC | "_" | "'")+ }
+num = @{ ASCII_DIGIT+ }
+float = @{ num ~ ("." ~ num)? }
+
+COMMENT = _{ ";" ~ (!NEWLINE ~ ANY)* ~ (NEWLINE | EOI) }
+WHITESPACE = _{ " " | "\t" | NEWLINE }

@@ -1,0 +1,111 @@
+file = _{ SOI ~ NEWLINE* ~ faction_decl ~ ","? ~ EOI }
+
+faction_decl = _{
+    "\"factions\"" ~ ":"
+  ~ "[" ~ factions ~ "]"
+}
+
+factions = _{ (faction ~ ",")* ~ (faction ~ ","?)? }
+faction = {
+    "\"" ~ id ~ "\"" ~ ":"
+  ~ "{"
+  ~ (faction_prop ~ ",")* ~ (faction_prop ~ ","?)?
+  ~ "}"
+}
+id = @{ string }
+faction_prop = _{
+    string_decl
+  | description_decl
+  | culture_decl
+  | ethnicity_decl
+  | tags_decl
+  | namelists_decl
+  | logos_decl
+  | colors_decl
+  | movies_decl
+  | custom_battle_decl
+  | naval_invasions_decl
+  | personality_decl
+  | reproduction_decl
+  | shadow_decl
+  | shadow_max_provinces_decl
+  | shadow_allow_switchback_decl
+  | religion_decl
+  | emergence_decl
+}
+string_decl = _{ "\"string\"" ~ ":" ~ "\"" ~ name_key ~ "\"" }
+name_key = @{ string }
+description_decl = _{ "\"description\"" ~ ":" ~ "\"" ~ description_key ~ "\"" }
+description_key = @{ string }
+culture_decl = _{ "\"culture\"" ~ ":" ~ "\"" ~ culture ~ "\"" }
+culture = @{ string }
+ethnicity_decl = _{ "\"ethnicity\"" ~ ":" ~ "\"" ~ ethnicity ~ "\"" }
+ethnicity = @{ string }
+tags_decl = _{ "\"tags\"" ~ ":" ~ "[" ~ tags ~ "]" }
+tags = { (tag_str ~ ",")* ~ (tag_str ~ ","?)? }
+tag_str = _{ "\"" ~ tag ~ "\"" }
+tag = @{ string }
+namelists_decl = _{ "\"namelists\"" ~ ":" ~ "{" ~ namelist_entries ~ "}" }
+namelist_entries = { (namelist ~ ",")* ~ (namelist ~ ","?)? }
+namelist = { "\"" ~ key ~ "\"" ~ ":" ~ "\"" ~ value ~ "\"" }
+key = @{ string }
+value = @{ string }
+logos_decl = _{ "\"logos\"" ~ ":" ~ "{" ~ logo_entries ~ "}" }
+logo_entries = { (logo ~ ",")* ~ (logo ~ ","?)? }
+logo = {
+	"\"" ~ key ~ "\"" ~ ":"
+  ~ (("\"" ~ path ~ "\"") | index)
+}
+path = @{ string }
+index = @{ num }
+colors_decl = { "\"colours\"" ~ ":" ~ "{" ~ colors_entries ~ "}" }
+colors_entries = _{ (color_def ~ ",")* ~ (color_def ~ ","?)? }
+color_def = {
+	"\"" ~ key ~ "\"" ~ ":"
+  ~ (color | "{" ~ colors_entries ~ "}")
+}
+color = {
+    "["
+  ~ red ~ ","
+  ~ green ~ ","
+  ~ blue ~ ","?
+  ~ "]"
+}
+red = @{ num }
+green = @{ num }
+blue = @{ num }
+movies_decl = _{ "\"movies\"" ~ ":" ~ "{" ~ movie_entries ~ "}" }
+movie_entries = { (movie ~ ",")* ~ (movie ~ ","?)? }
+movie = { "\"" ~ key ~ "\"" ~ ":" ~ "\"" ~ path ~ "\"" }
+custom_battle_decl = _{ "\"available in custom battles\"" ~ ":" ~ custom_battle }
+custom_battle = @{ bool }
+naval_invasions_decl = _{ "\"prefer naval invasions\"" ~ ":" ~ naval_invasions }
+naval_invasions = @{ bool }
+personality_decl = _{ "\"default battle ai personality\"" ~ ":" ~ "\"" ~ personality ~ "\"" }
+personality = @{ string }
+reproduction_decl = _{ "\"allow reproduction\"" ~ ":" ~ reproduction }
+reproduction = @{ bool }
+shadow_decl = _{ "\"shadow faction\"" ~ ":" ~ "\"" ~ shadow ~ "\"" }
+shadow = @{ string }
+shadow_max_provinces_decl = _{ "\"shadow max provinces\"" ~ ":" ~ shadow_max_provinces }
+shadow_max_provinces = @{ "-"? ~ num }
+shadow_allow_switchback_decl = _{ "\"allow shadow switchback\"" ~ ":" ~ shadow_allow_switchback }
+shadow_allow_switchback = @{ bool }
+religion_decl = _{ "\"default religion\"" ~ ":" ~ "\"" ~ religion ~ "\"" }
+religion = @{ string }
+emergence_decl = _{ "\"emergence\"" ~ ":" ~ "{" ~ emergence ~ "}" }
+emergence = { (emergence_prop ~ ",")* ~ (emergence_prop ~ ","?)? }
+emergence_prop = _{ settlement_units | strength_decl }
+settlement_units = { "\"settlement units\"" ~ ":" ~ "[" ~ unit_list ~ "]" }
+unit_list = { ("\"" ~ unit ~ "\"" ~ ",")* ~ ("\"" ~ unit ~ "\"" ~ ","?)? }
+unit = @{ string }
+strength_decl = { "\"strength\"" ~ ":" ~ strength }
+strength = @{ float }
+
+bool = { "false" | "true" }
+string = @{ (!"\"" ~ ANY)* }
+num = @{ ASCII_DIGIT+ }
+float = @{ num ~ ("." ~ num)? }
+
+COMMENT = _{ ";" ~ (!NEWLINE ~ ANY)* ~ (NEWLINE | EOI) }
+WHITESPACE = _{ " " | "\t" | NEWLINE }

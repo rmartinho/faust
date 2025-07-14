@@ -1,0 +1,22 @@
+file = _{ SOI ~ NEWLINE* ~ campaign_decl } // ~ EOI }
+
+campaign_decl = {
+    id_decl ~ NEWLINE+
+  ~ (options ~ NEWLINE+)?
+  ~ playable ~ NEWLINE+
+  ~ unlockable ~ NEWLINE+
+  ~ nonplayable ~ NEWLINE+
+}
+id_decl = _{ "campaign" ~ id }
+id = @{  ident }
+options = _{ "options" ~ (!NEWLINE ~ ANY)* }
+playable = { "playable" ~ NEWLINE+ ~ faction_list ~ "end" }
+unlockable = { "unlockable" ~ NEWLINE+ ~ faction_list ~ "end" }
+nonplayable = { "nonplayable" ~ NEWLINE+ ~ faction_list ~ "end" }
+faction_list = _{ (!"end" ~ faction ~ NEWLINE)* }
+faction = @{ ident }
+
+ident = @{ (ASCII_ALPHANUMERIC | "_" | "-")+ }
+
+COMMENT = _{ ";" ~ (!NEWLINE ~ ANY)* ~ (NEWLINE | EOI) }
+WHITESPACE = _{ " " | "\t" }
