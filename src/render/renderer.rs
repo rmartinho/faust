@@ -19,11 +19,11 @@ pub struct Renderer {
 }
 
 impl Renderer {
-    pub fn new(args: Args, modules: ModuleMap) -> Self {
+    pub fn new(args: &Args, modules: ModuleMap) -> Self {
         let routes = collect_routes(&modules);
         Self {
             routes,
-            out_dir: args.out_dir.unwrap_or_else(|| "faust".into()),
+            out_dir: args.out_dir.clone().unwrap_or_else(|| "faust".into()),
             data: serde_json::to_string(&modules).unwrap(),
         }
     }

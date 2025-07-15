@@ -1,3 +1,5 @@
+#![feature(str_from_utf16_endian)]
+
 use std::fs::File;
 
 use clap::Parser;
@@ -17,9 +19,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .clone()
         .unwrap_or_else(|| "faust/faust.yml".into());
     let manifest = Manifest::from_yaml(File::open(&manifest_path)?)?;
-    let modules = parse::parse_folder(manifest);
+    let modules = parse::parse_folder(&args, manifest).await?;
 
-    let renderer = Renderer::new(args, modules);
+    let renderer = Renderer::new(&args, modules);
     renderer.render().await?;
     Ok(())
 }

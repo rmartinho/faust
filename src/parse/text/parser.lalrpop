@@ -1,0 +1,19 @@
+use std::{collections::HashMap, iter::Iterator};
+
+use crate::parse::text::Token;
+
+grammar<'source>;
+
+pub TextMap: HashMap<String, String> =
+    <KeyValue+> => (<>).into_iter().map(|(a, b)| (a.into(), b.into())).collect();
+
+KeyValue: (&'source str, &'source str) = <key> <value>;
+
+extern {
+    type Error = ();
+
+    enum Token<'source> {
+        key => Token::Key(<&'source str>),
+        value => Token::Value(<&'source str>),
+    }
+}
