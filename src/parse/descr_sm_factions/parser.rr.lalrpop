@@ -1,0 +1,171 @@
+use std::path::PathBuf;
+
+use crate::parse::descr_sm_factions::{Faction, FactionProp, rr::Token};
+
+grammar<'source>;
+
+pub Factions = <Value<"factions", Array<Faction>>> ","?;
+
+Faction: Faction = Entry<String, FactionObject>
+    =>? {
+        let (id, mut props) = <>;
+        props.push(Some(FactionProp::Id(id)));
+        Ok(Faction::try_from(props)?)
+    };
+
+FactionObject = Object<FactionEntry>;
+
+FactionEntry: Option<FactionProp> = {
+    Value<"string", String> => Some(FactionProp::Name(<>)),
+    Value<"description", String> => None,
+    Value<"culture", String> => Some(FactionProp::Culture(<>)),
+    Value<"ethnicity", String> => None,
+    Value<"tags", Array<String>> => None,
+    Value<"namelists", Object<NamelistEntry>> => None,
+    Value<"logos", Object<LogoEntry>> => <>.into_iter().flatten().next(),
+    Value<"colours", Object<ColorEntry>> => None,
+    Value<"movies", Object<MovieEntry>> => None,
+    Value<"available in custom battles", bool> => None,
+    Value<"prefer naval invasions", bool> => None,
+    Value<"default battle ai personality", String> => None,
+    Value<"allow reproduction", bool> => None,
+};
+
+NamelistEntry: () = {
+    Value<"men", String> => (),
+    Value<"women", String> => (),
+    Value<"surnames", String> => (),
+};
+
+LogoEntry: Option<FactionProp> = {
+    Value<"loading screen icon", Path> => Some(FactionProp::Logo(<>)),
+    Value<"standard index", int>  => None,
+    Value<"rebel standard index", int>  => None,
+    Value<"logo index", int>  => None,
+    Value<"rebel logo index", int>  => None,
+    Value<"strat symbol model", String>  => None,
+    Value<"strat rebel symbol model", String>  => None,
+};
+
+ColorEntry: () = {
+    Value<"primary", Color> => (),
+    Value<"secondary", Color> => (),
+    Value<"family tree", Object<FamilyTreeEntry>> => (),
+};
+
+FamilyTreeEntry: () = {
+    Value<"background", Color> => (),
+    Value<"font", Color> => (),
+    Value<"selected line", Color> => (),
+    Value<"unselected line", Color> => (),
+};
+
+Color = "[" int "," int "," int ","? "]";
+
+MovieEntry: () = {
+    Value<"intro", String> => (),
+    Value<"victory", String> => (),
+    Value<"defeat", String> => (),
+};
+
+String: String = {
+    string => (<>).into(),
+    "factions" => "factions".into(),
+    "string" => "string".into(),
+    "description" => "description".into(),
+    "culture" => "culture".into(),
+    "ethnicity" => "ethnicity".into(),
+    "tags" => "tags".into(),
+    "namelists" => "namelists".into(),
+    "logos" => "logos".into(),
+    "colours" => "colours".into(),
+    "movies" => "movies".into(),
+    "available in custom battles" => "available in custom battles".into(),
+    "prefer naval invasions" => "prefer naval invasions".into(),
+    "default battle ai personality" => "default battle ai personality".into(),
+    "allow reproduction" => "allow reproduction".into(),
+    "men" => "men".into(),
+    "women" => "women".into(),
+    "surnames" => "surnames".into(),
+    "loading screen icon" => "loading screen icon".into(),
+    "standard index" => "standard index".into(),
+    "rebel standard index" => "rebel standard index".into(),
+    "logo index" => "logo index".into(),
+    "rebel logo index" => "rebel logo index".into(),
+    "strat symbol model" => "strat symbol model".into(),
+    "strat rebel symbol model" => "strat rebel symbol model".into(),
+    "intro" => "intro".into(),
+    "victory" => "victory".into(),
+    "defeat" => "defeat".into(),
+    "primary" => "primary".into(),
+    "secondary" => "secondary".into(),
+    "family tree" => "family tree".into(),
+    "background" => "background".into(),
+    "font" => "font".into(),
+    "selected line" => "selected line".into(),
+    "unselected line" => "unselected line".into(),
+};
+Path: PathBuf = String => (<>).into();
+Array<T> = "[" <SepBy<T, ",">> "]";
+Value<K, V> = K ":" <V>;
+Entry<K, V> = <K> ":" <V>;
+Object<T> = "{" <SepBy<T, ",">> "}";
+
+SepBy<T, Sep>: Vec<T> = <mut v:(<T> Sep)*> <e:T?>
+    => match e {
+        None => v,
+        Some(e) => {
+            v.push(e);
+            v
+        }
+    };
+
+extern {
+    type Error = ();
+
+    enum Token<'source> {
+        "factions" => Token::String("factions"),
+        "string" => Token::String("string"),
+        "description" => Token::String("description"),
+        "culture" => Token::String("culture"),
+        "ethnicity" => Token::String("ethnicity"),
+        "tags" => Token::String("tags"),
+        "namelists" => Token::String("namelists"),
+        "logos" => Token::String("logos"),
+        "colours" => Token::String("colours"),
+        "movies" => Token::String("movies"),
+        "available in custom battles" => Token::String("available in custom battles"),
+        "prefer naval invasions" => Token::String("prefer naval invasions"),
+        "default battle ai personality" => Token::String("default battle ai personality"),
+        "allow reproduction" => Token::String("allow reproduction"),
+        "men" => Token::String("men"),
+        "women" => Token::String("women"),
+        "surnames" => Token::String("surnames"),
+        "loading screen icon" => Token::String("loading screen icon"),
+        "standard index" => Token::String("standard index"),
+        "rebel standard index" => Token::String("rebel standard index"),
+        "logo index" => Token::String("logo index"),
+        "rebel logo index" => Token::String("rebel logo index"),
+        "strat symbol model" => Token::String("strat symbol model"),
+        "strat rebel symbol model" => Token::String("strat rebel symbol model"),
+        "intro" => Token::String("intro"),
+        "victory" => Token::String("victory"),
+        "defeat" => Token::String("defeat"),
+        "primary" => Token::String("primary"),
+        "secondary" => Token::String("secondary"),
+        "family tree" => Token::String("family tree"),
+        "background" => Token::String("background"),
+        "font" => Token::String("font"),
+        "selected line" => Token::String("selected line"),
+        "unselected line" => Token::String("unselected line"),
+        "[" => Token::OpenBracket,
+        "]" => Token::CloseBracket,
+        "{" => Token::OpenBrace,
+        "}" => Token::CloseBrace,
+        ":" => Token::Colon,
+        "," => Token::Comma,
+        string => Token::String(<&'source str>),
+        bool => Token::Bool(<bool>),
+        int => Token::Int(<u32>),
+    }
+}

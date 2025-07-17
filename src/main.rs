@@ -1,4 +1,5 @@
 #![feature(str_from_utf16_endian)]
+#![allow(dead_code)]
 
 use std::fs::File;
 

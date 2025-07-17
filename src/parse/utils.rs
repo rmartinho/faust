@@ -1,5 +1,26 @@
 use logos::{Lexer, Logos, Skip, Source};
 
+pub enum UpToTwo<T> {
+    Zero,
+    One(T),
+    Two(T, T),
+}
+
+impl<T> UpToTwo<T> {
+    pub fn push_to(self, mut v: Vec<T>) -> Vec<T> {
+        match self {
+            Self::Zero => {}
+            Self::One(x) => v.push(x),
+            Self::Two(x, y) => v.extend([x, y]),
+        };
+        v
+    }
+
+    pub fn to_vec(self) -> Vec<T> {
+        self.push_to(vec![])
+    }
+}
+
 pub fn without_delimiters<'source, Token>(lex: &mut Lexer<'source, Token>) -> &'source str
 where
     Token: Logos<'source>,
@@ -16,27 +37,13 @@ where
     Skip
 }
 
-// #[derive(Logos, Debug, PartialEq)]
-// #[logos(skip r"[ \t\n]+")]
-// enum Token<'source> {
-// 	#[regex("[A-Za-z][A-Za-z0-9_'+-]*", Lexer::slice)]
-// 	Ident(&'source str),
-
-// 	#[regex("[A-Za-z](?:[ A-Za-z0-9_'+-]*[A-Za-z0-9_'+-])?", Lexer::slice)]
-// 	IdentSpace(&'source str),
-
-// 	#[regex("[A-Za-z0-9_/+-]+", Lexer::slice)]
-// 	Path(&'source str),
-
-// 	#[regex("[0-9]+.[0-9]+", |lex| lex.slice().parse())]
-// 	Float(f64),
-
-// 	#[regex("[0-9]+", |lex| lex.slice().parse())]
-// 	Int(u32),
-
-//     #[regex("\"[^\"]*\"", |lex| &lex.slice()[1..lex.slice().len()-1])]
-//     Quoted(&'source str),
-
-//     #[regex(";[^\n]*", Lexer::slice)]
-//     Comment(&'source str),
-// }
+pub fn spanned_lexer<'source, Tok: Logos<'source>>(
+    source: &'source Tok::Source,
+) -> impl Iterator<Item = Result<(usize, Tok, usize), Tok::Error>>
+where
+    Tok::Extras: Default,
+{
+    Tok::lexer(source)
+        .spanned()
+        .map(|(res, range)| res.map(|tok| (range.start, tok, range.end)))
+}

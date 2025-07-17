@@ -2,15 +2,26 @@ use std::{collections::HashMap, env, path::PathBuf};
 
 use logos::Logos as _;
 use silphium::ModuleMap;
-
-mod text;
-mod utils;
-
-mod manifest;
-pub use manifest::Manifest;
 use tokio::{fs, io};
 
-use crate::args::Args;
+use crate::{
+    args::Args,
+    parse::{
+        descr_mercenaries::Pool, descr_regions::Region, descr_sm_factions::Faction,
+        export_descr_unit::Unit, manifest::ParserMode, text::TextMap,
+        export_descr_buildings::{Requires, Building},
+    },
+};
+pub use manifest::Manifest;
+
+mod descr_mercenaries;
+mod descr_regions;
+mod descr_sm_factions;
+mod export_descr_buildings;
+mod export_descr_unit;
+mod manifest;
+mod text;
+mod utils;
 
 pub async fn parse_folder(args: &Args, manifest: Manifest) -> io::Result<ModuleMap> {
     let manifest_path = args
@@ -23,87 +34,102 @@ pub async fn parse_folder(args: &Args, manifest: Manifest) -> io::Result<ModuleM
         .dir
         .map(|d| manifest_path.join(d))
         .unwrap_or(manifest_path);
-    let expanded_bi_txt = root.join("text/expanded_bi.txt");
-    let export_units_txt = root.join("text/export_units.txt");
+    let expanded_bi_path = root.join("text/expanded_bi.txt");
+    let export_units_path = root.join("text/export_units.txt");
+    let descr_mercenaries_path =
+        root.join("world/maps/campaign/imperial_campaign/descr_mercenaries.txt"); // TODO cascading to base, etc
+    let descr_regions_path = root.join("world/maps/base/descr_regions.txt"); // TODO cascading to base, etc
+    let descr_sm_factions_path = root.join("descr_sm_factions.txt");
+    let export_descr_unit_path = root.join("export_descr_unit.txt");
+    let export_descr_buildings_path = root.join("export_descr_buildings.txt");
 
-    let expanded_bi = tokio::spawn(parse_text_map(expanded_bi_txt));
-    let export_units = tokio::spawn(parse_text_map(export_units_txt));
+    let expanded_bi = tokio::spawn(parse_text(expanded_bi_path));
+    let export_units = tokio::spawn(parse_text(export_units_path));
+    let descr_mercenaries = tokio::spawn(parse_descr_mercenaries(descr_mercenaries_path));
+    let descr_regions = tokio::spawn(parse_descr_regions(descr_regions_path));
+    let descr_sm_factions = if manifest.mode == ParserMode::Original {
+        tokio::spawn(parse_descr_sm_factions_og(descr_sm_factions_path))
+    } else {
+        tokio::spawn(parse_descr_sm_factions_rr(descr_sm_factions_path))
+    };
+    let export_descr_unit = tokio::spawn(parse_export_descr_unit(export_descr_unit_path));
+    let export_descr_buildings = tokio::spawn(parse_export_descr_buildings(export_descr_buildings_path));
 
     let mut text = expanded_bi.await??;
     text.merge(export_units.await??);
+
+    let pools = descr_mercenaries.await??;
+    let regions = descr_regions.await??;
+    let factions = descr_sm_factions.await??;
+    let units = export_descr_unit.await??;
+    let buildings = export_descr_buildings.await??;
+
+    let _ = text;
+    let _ = pools;
+    let _ = regions;
+    let _ = factions;
+    let _ = units;
+    let _ = buildings;
+
+    println!("{:#?}", buildings);
     todo!()
 }
 
-async fn parse_text_map(path: PathBuf) -> io::Result<TextMap> {
+async fn parse_text(path: PathBuf) -> io::Result<TextMap> {
     let buf = fs::read(&path).await?;
-    let data = String::from_utf16le_lossy(&buf)
-        .replace(CRLF, LF)
-        .replace(BOM, "");
+    let data = String::from_utf16le_lossy(&buf).replace(BOM, "");
     let lex = text::Token::lexer(&data);
 
     let map = text::Parser::new().parse(lex).unwrap();
-    Ok(TextMap { map })
+    Ok(map)
 }
 
-struct TextMap {
-    map: HashMap<String, String>,
+async fn parse_descr_mercenaries(path: PathBuf) -> io::Result<Vec<Pool>> {
+    let data = fs::read_to_string(&path).await?;
+    let lex = descr_mercenaries::Token::lexer(&data);
+
+    let pools = descr_mercenaries::Parser::new().parse(lex).unwrap();
+    Ok(pools)
 }
 
-impl TextMap {
-    fn merge(&mut self, other: TextMap) {
-        self.map.extend(other.map)
-    }
+async fn parse_descr_regions(path: PathBuf) -> io::Result<Vec<Region>> {
+    let data = fs::read_to_string(&path).await?;
+    let lex = descr_regions::Token::lexer(&data);
+
+    let pools = descr_regions::Parser::new().parse(lex).unwrap();
+    Ok(pools)
 }
 
-// mod strings {
-//     use pest_derive::Parser as Pest;
+async fn parse_descr_sm_factions_og(path: PathBuf) -> io::Result<Vec<Faction>> {
+    let data = fs::read_to_string(&path).await?;
+    let lex = descr_sm_factions::og::Token::lexer(&data);
 
-//     #[derive(Pest)]
-//     #[grammar = "strings.pest"]
-//     pub struct Parser;
-// }
+    let factions = descr_sm_factions::og::Parser::new().parse(lex).unwrap();
+    Ok(factions)
+}
 
-// mod descr_mercenaries {
-//     use pest_derive::Parser as Pest;
+async fn parse_descr_sm_factions_rr(path: PathBuf) -> io::Result<Vec<Faction>> {
+    let data = fs::read_to_string(&path).await?;
+    let lex = descr_sm_factions::rr::Token::lexer(&data);
 
-//     #[derive(Pest)]
-//     #[grammar = "descr_mercenaries.pest"]
-//     pub struct Parser;
-// }
+    let factions = descr_sm_factions::rr::Parser::new().parse(lex).unwrap();
+    Ok(factions)
+}
 
-// mod descr_strat {
-//     use pest_derive::Parser as Pest;
+async fn parse_export_descr_unit(path: PathBuf) -> io::Result<Vec<Unit>> {
+    let data = fs::read_to_string(&path).await?;
+    let lex = export_descr_unit::Token::lexer(&data);
 
-//     #[derive(Pest)]
-//     #[grammar = "descr_strat.pest"]
-//     pub struct Parser;
-// }
+    let units = export_descr_unit::Parser::new().parse(lex).unwrap();
+    Ok(units)
+}
 
-// mod export_descr_buildings {
-//     use pest_derive::Parser as Pest;
+async fn parse_export_descr_buildings(path: PathBuf) -> io::Result<(HashMap<String, Requires>, Vec<Building>)> {
+    let data = fs::read_to_string(&path).await?;
+    let lex = export_descr_buildings::Token::lexer(&data);
 
-//     #[derive(Pest)]
-//     #[grammar = "export_descr_buildings.pest"]
-//     pub struct Parser;
-// }
+    let res = export_descr_buildings::Parser::new().parse(lex).unwrap();
+    Ok(res)
+}
 
-// mod descr_sm_factions {
-//     mod og {
-//         use pest_derive::Parser as Pest;
-
-//         #[derive(Pest)]
-//         #[grammar = "descr_sm_factions.og.pest"]
-//         pub struct Parser;
-//     }
-//     mod rr {
-//         use pest_derive::Parser as Pest;
-
-//         #[derive(Pest)]
-//         #[grammar = "descr_sm_factions.rr.pest"]
-//         pub struct Parser;
-//     }
-// }
-
-const CRLF: &str = "\r\n";
-const LF: &str = "\n";
 const BOM: &str = "\u{feff}";

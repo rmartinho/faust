@@ -27,7 +27,7 @@ fn default_banner() -> PathBuf {
     "faust/banner.png".into()
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ParserMode {
     #[serde(rename = "original")]
     Original,

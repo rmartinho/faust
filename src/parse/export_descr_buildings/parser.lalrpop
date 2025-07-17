@@ -1,0 +1,438 @@
+use std::collections::HashMap;
+
+use crate::parse::export_descr_buildings::{Token, Requires, Building, Cmp, RecruitOption, DipStatus};
+
+grammar<'source>;
+
+// TODO Newline-based insted of "safe" keyword system
+pub BuildingsFile: (HashMap<String, Requires>, Vec<Building>) =
+    Tags? <aliases:Alias*> HiddenResources? <buildings:Building*>
+    => (aliases.into_iter().collect(), buildings.into_iter().flatten().collect());
+
+Tags = "tags" "{" Ident+ "}";
+
+Alias = "alias" <Ident> "{"
+    <Requires>
+    DisplayString?
+"}";
+
+HiddenResources = "hidden_resources" HiddenResourceIdent+;
+
+DisplayString = "display_string" Ident;
+
+Building =
+    "building" Ident "{"
+        ("tag" Ident)?
+        ("icon" Ident)?
+        ("classification" Ident)? // TODO any order
+        "levels" Ident+ "{"
+            <Level*>
+        "}"
+        "plugins" "{" "}"
+    "}";
+
+Level: Building = Ident <req:Requires> "{"
+    ("ai_destruction_hint" Requires)? // TODO any order?
+    <caps:Capabilities>
+    "construction" int
+    "cost" int
+    "settlement_min" <min:Ident>
+    "upgrades" "{" Ident* "}"
+"}" => Building {<>};
+
+Capabilities: Vec<RecruitOption> =
+    "capability" "{"
+        <Capability*>
+    "}" => (<>).into_iter().flatten().collect();
+
+Capability: Option<RecruitOption> =
+    <mut cap:CapabilityCore> <req:Requires>
+        => {
+            match cap.take() {
+                Some(rec) => Some(RecruitOption { req, ..rec }),
+                cap => cap,
+            }
+        };
+
+CapabilityCore: Option<RecruitOption> = {
+    "population_growth_bonus" "bonus"? Bonus => None,
+    "population_loyalty_bonus" "bonus"? Bonus => None,
+    "population_health_bonus" "bonus"? Bonus => None,
+    "trade_base_income_bonus" "bonus"? Bonus => None,
+    "trade_level_bonus" "bonus"? Bonus => None,
+    "trade_fleet" "bonus"? int => None,
+    "taxable_income_bonus" "bonus"? Bonus => None,
+    "mine_resource" "bonus"? int => None,
+    "farming_level" "bonus"? Bonus => None,
+    "road_level" "bonus"? int => None,
+    "gate_strength" "bonus"? int => None,
+    "gate_defences" "bonus"? int => None,
+    "wall_level" "bonus"? int => None,
+    "tower_level" "bonus"? int => None,
+    "armour" "bonus"? int => None,
+    "stage_games" "bonus"? int => None,
+    "stage_races" "bonus"? int => None,
+    "fire_risk" "bonus"? int => None,
+    "weapon_simple" "bonus"? int => None,
+    "weapon_missile" "bonus"? int => None,
+    "weapon_bladed" "bonus"? int => None,
+    "weapon_siege" "bonus"? int => None,
+    "weapon_other" "bonus"? int => None,
+    "upgrade_bodyguard" => None,
+    "recruits_morale_bonus" "bonus"? int => None,
+    "recruits_exp_bonus" "bonus"? int => None,
+    "happiness_bonus" "bonus"? Bonus => None,
+    "law_bonus" "bonus"? Bonus => None,
+    "construction_cost_bonus_military" "bonus"? int => None,
+    "construction_cost_bonus_religious" "bonus"? int => None,
+    "construction_cost_bonus_defensive" "bonus"? int => None,
+    "construction_cost_bonus_other" "bonus"? int => None,
+    "extra_recruitment_points" "bonus"? int => None,
+    "extra_construction_points" "bonus"? int => None,
+    "recruit" <unit:String> <exp:int> => Some(RecruitOption { <>, req: Requires::None }),
+    "agent" Ident int => None,
+    "religious_belief" Ident "bonus"? int => None,
+    "religious_order" "bonus"? int => None,
+    "agent_limit_settlement" Ident "bonus"? int => None,
+    "dummy" Ident ("bonus"? int)? => None,
+};
+
+Bonus: i32 = {
+    "+"? <n:int> => n as i32,
+    "-" <n:int> => -(n as i32),
+}
+
+Requires: Requires = {
+    "requires" <ReqOr>,
+    => Requires::None,
+};
+
+ReqOr: Requires = {
+    BinOp<ReqAnd, "or"> => Requires::Or(<>.into_iter().map(Box::new).collect()),
+    ReqAnd,
+};
+
+ReqAnd: Requires = {
+    BinOp<ReqNot, "and"> => Requires::And(<>.into_iter().map(Box::new).collect()),
+    ReqNot,
+};
+
+ReqNot: Requires = {
+    "not" <ReqPrimary> => Requires::Not(Box::new(<>)),
+    ReqPrimary,
+};
+
+ReqPrimary: Requires = {
+    "resource" <id:Ident> <factionwide:"factionwide"?>
+        => Requires::Resource { id, factionwide: factionwide.is_some() },
+    "hidden_resource" <id:Ident> <factionwide:"factionwide"?>
+        => Requires::HiddenResource { id, factionwide: factionwide.is_some() },
+    "building_present" <id:Ident> <opts:Options<"queued", "factionwide">>
+        => Requires::BuildingPresent {
+            id,
+            level: None,
+            queued: opts.0.is_some(),
+            factionwide: opts.1.is_some(),
+        },
+    "building_present_min_level" <id:Ident> <level:Ident> <opts:Options<"queued", "factionwide">>
+        => Requires::BuildingPresent {
+            id,
+            level: Some(level),
+            queued: opts.0.is_some(),
+            factionwide: opts.1.is_some(),
+        },
+    "marian_reforms" => Requires::MajorEvent("marian_reforms".into()),
+    "major_event" <String> => Requires::MajorEvent(<>),
+    "factions" "{" <SepBy<Ident, ","+>> "}" => Requires::Factions(<>),
+    "building_factions" "{" <SepBy<Ident, ",">> "}" => Requires::BuildingFactions(<>),
+    "port" => Requires::Port,
+    "is_player" => Requires::IsPlayer,
+    "is_toggled" <String> => Requires::IsToggled(<>),
+    "diplomacy" <status:DipStatus> <faction:Ident> => Requires::Diplomacy {<>},
+    //"capability" <capability:CapabilityIdent> <amount:int> => Requires::Capability {<>},
+    "no_building_tagged" <tag:Ident> <opts:Options<"queued", "factionwide">>
+        => Requires::NoBuildingTagged {
+            tag,
+            queued: opts.0.is_some(),
+            factionwide: opts.1.is_some(),
+        },
+    "religion" <id:String> <cmp:Cmp> <amount:int> => Requires::Religion {<>},
+    "majority_religion" <String> => Requires::MajorityReligion(<>),
+    "official_religion" => Requires::OfficialReligion,
+    ReqSafeIdent => Requires::Alias(<>),
+};
+
+DipStatus: DipStatus = {
+    "allied" => DipStatus::Allied,
+    "protector" => DipStatus::Protector,
+    "protectorate" => DipStatus::Protectorate,
+    "same_superfaction" => DipStatus::SameSuperfaction,
+    "at_war" => DipStatus::AtWar,
+};
+
+Cmp: Cmp = {
+    "<" => Cmp::Lt,
+    "<=" => Cmp::Le,
+    ">" => Cmp::Gt,
+    ">=" => Cmp::Ge,
+};
+
+Ident: String = {
+    ReqSafeIdent,
+    CapabilityIdent,
+    ReqIdent,
+};
+
+ReqIdent: String = {
+    "requires" => "requires".into(),
+
+    "resource" => "resource".into(),
+    "hidden_resource" => "hidden_resource".into(),
+    "building_present" => "building_present".into(),
+    "building_present_min_level" => "building_present_min_level".into(),
+    "marian_reforms" => "marian_reforms".into(),
+    "major_event" => "major_event".into(),
+    "factions" => "factions".into(),
+    "building_factions" => "building_factions".into(),
+    "port" => "port".into(),
+    "is_player" => "is_player".into(),
+    "is_toggled" => "is_toggled".into(),
+    "diplomacy" => "diplomacy".into(),
+    "no_building_tagged" => "no_building_tagged".into(),
+    "religion" => "religion".into(),
+    "majority_religion" => "majority_religion".into(),
+    "official_religion" => "official_religion".into(),
+
+    "or" => "or".into(),
+    "and" => "and".into(),
+    "not" => "not".into(),
+};
+
+HiddenResourceIdent: String = {
+    ident => (<>).into(),
+    ReqIdent,
+    CapabilitiesIdent,
+    SafeKeyword,
+};
+
+ReqSafeIdent: String = {
+    ident => (<>).into(),
+    HiddenResourceSafeIdent,
+    CapabilitiesIdent,
+    SafeKeyword,
+};
+
+CapabilitiesIdent: String = {
+    "capability" => "capability".into(),
+};
+
+CapabilityIdent: String = {
+    "population_growth_bonus" => "population_growth_bonus".into(),
+    "population_loyalty_bonus" => "population_loyalty_bonus".into(),
+    "population_health_bonus" => "population_health_bonus".into(),
+    "trade_base_income_bonus" => "trade_base_income_bonus".into(),
+    "trade_level_bonus" => "trade_level_bonus".into(),
+    "trade_fleet" => "trade_fleet".into(),
+    "taxable_income_bonus" => "taxable_income_bonus".into(),
+    "mine_resource" => "mine_resource".into(),
+    "farming_level" => "farming_level".into(),
+    "road_level" => "road_level".into(),
+    "gate_strength" => "gate_strength".into(),
+    "gate_defences" => "gate_defences".into(),
+    "wall_level" => "wall_level".into(),
+    "tower_level" => "tower_level".into(),
+    "armour" => "armour".into(),
+    "stage_games" => "stage_games".into(),
+    "stage_races" => "stage_races".into(),
+    "fire_risk" => "fire_risk".into(),
+    "weapon_simple" => "weapon_simple".into(),
+    "weapon_missile" => "weapon_missile".into(),
+    "weapon_bladed" => "weapon_bladed".into(),
+    "weapon_siege" => "weapon_siege".into(),
+    "weapon_other" => "weapon_other".into(),
+    "upgrade_bodyguard" => "upgrade_bodyguard".into(),
+    "recruits_morale_bonus" => "recruits_morale_bonus".into(),
+    "recruits_exp_bonus" => "recruits_exp_bonus".into(),
+    "happiness_bonus" => "happiness_bonus".into(),
+    "law_bonus" => "law_bonus".into(),
+    "construction_cost_bonus_military" => "construction_cost_bonus_military".into(),
+    "construction_cost_bonus_religious" => "construction_cost_bonus_religious".into(),
+    "construction_cost_bonus_defensive" => "construction_cost_bonus_defensive".into(),
+    "construction_cost_bonus_other" => "construction_cost_bonus_other".into(),
+    "extra_recruitment_points" => "extra_recruitment_points".into(),
+    "extra_construction_points" => "extra_construction_points".into(),
+    "recruit" => "recruit".into(),
+    "agent" => "agent".into(),
+    "religious_belief" => "religious_belief".into(),
+    "religious_order" => "religious_order".into(),
+    "agent_limit_settlement" => "agent_limit_settlement".into(),
+    "dummy" => "dummy".into(),
+};
+
+SafeKeyword: String = {
+    "tags" => "tags".into(),
+    "alias" => "alias".into(),
+    "hidden_resources" => "hidden_resources".into(),
+
+    "tag" => "tag".into(),
+    "icon" => "icon".into(),
+    "classification" => "classification".into(),
+    "levels" => "levels".into(),
+    "plugins" => "plugins".into(),
+
+    "ai_destruction_hint" => "ai_destruction_hint".into(),
+    "construction" => "construction".into(),
+    "cost" => "cost".into(),
+    "settlement_min" => "settlement_min".into(),
+    "upgrades" => "upgrades".into(),
+
+    "display_string" => "display_string".into(),
+
+    "queued" => "queued".into(),
+    "factionwide" => "factionwide".into(),
+    "bonus" => "bonus".into(),
+    "allied" => "allied".into(),
+    "protector" => "protector".into(),
+    "protectorate" => "protectorate".into(),
+    "same_superfaction" => "same_superfaction".into(),
+    "at_war" => "at_war".into(),
+};
+
+HiddenResourceSafeIdent: String = {
+    "building" => "building".into(),
+};
+
+String: String = string => (<>).into();
+
+Options<A, B>: (Option<A>, Option<B>) = {
+    <a:A> <b:B?> => (Some(a), b),
+    <b:B> <a:A?> => (a, Some(b)),
+    => (None, None),
+};
+
+SepBy<T, Sep>: Vec<T> = <mut v:(<T> Sep)*> <e:T?>
+    => match e {
+        None => v,
+        Some(e) => {
+            v.push(e);
+            v
+        }
+    };
+
+BinOp<T, Sep>: Vec<T> = <mut v:(<T> Sep)+> <e:T>
+    => {
+        v.push(e);
+        v
+    };
+
+extern {
+    type Error = ();
+
+    enum Token<'source> {
+        "tags" => Token::Ident("tags"),
+        "alias" => Token::Ident("alias"),
+        "hidden_resources" => Token::Ident("hidden_resources"),
+        "building" => Token::Ident("building"),
+
+        "tag" => Token::Ident("tag"),
+        "icon" => Token::Ident("icon"),
+        "classification" => Token::Ident("classification"),
+        "levels" => Token::Ident("levels"),
+        "plugins" => Token::Ident("plugins"),
+
+        "ai_destruction_hint" => Token::Ident("ai_destruction_hint"),
+        "capability" => Token::Ident("capability"),
+		"construction" => Token::Ident("construction"),
+		"cost" => Token::Ident("cost"),
+		"settlement_min" => Token::Ident("settlement_min"),
+		"upgrades" => Token::Ident("upgrades"),
+
+        "population_growth_bonus" => Token::Ident("population_growth_bonus"),
+        "population_loyalty_bonus" => Token::Ident("population_loyalty_bonus"),
+        "population_health_bonus" => Token::Ident("population_health_bonus"),
+        "trade_base_income_bonus" => Token::Ident("trade_base_income_bonus"),
+        "trade_level_bonus" => Token::Ident("trade_level_bonus"),
+        "trade_fleet" => Token::Ident("trade_fleet"),
+        "taxable_income_bonus" => Token::Ident("taxable_income_bonus"),
+        "mine_resource" => Token::Ident("mine_resource"),
+        "farming_level" => Token::Ident("farming_level"),
+        "road_level" => Token::Ident("road_level"),
+        "gate_strength" => Token::Ident("gate_strength"),
+        "gate_defences" => Token::Ident("gate_defences"),
+        "wall_level" => Token::Ident("wall_level"),
+        "tower_level" => Token::Ident("tower_level"),
+        "armour" => Token::Ident("armour"),
+        "stage_games" => Token::Ident("stage_games"),
+        "stage_races" => Token::Ident("stage_races"),
+        "fire_risk" => Token::Ident("fire_risk"),
+        "weapon_simple" => Token::Ident("weapon_simple"),
+        "weapon_missile" => Token::Ident("weapon_missile"),
+        "weapon_bladed" => Token::Ident("weapon_bladed"),
+        "weapon_siege" => Token::Ident("weapon_siege"),
+        "weapon_other" => Token::Ident("weapon_other"),
+        "upgrade_bodyguard" => Token::Ident("upgrade_bodyguard"),
+        "recruits_morale_bonus" => Token::Ident("recruits_morale_bonus"),
+        "recruits_exp_bonus" => Token::Ident("recruits_exp_bonus"),
+        "happiness_bonus" => Token::Ident("happiness_bonus"),
+        "law_bonus" => Token::Ident("law_bonus"),
+        "construction_cost_bonus_military" => Token::Ident("construction_cost_bonus_military"),
+        "construction_cost_bonus_religious" => Token::Ident("construction_cost_bonus_religious"),
+        "construction_cost_bonus_defensive" => Token::Ident("construction_cost_bonus_defensive"),
+        "construction_cost_bonus_other" => Token::Ident("construction_cost_bonus_other"),
+        "extra_recruitment_points" => Token::Ident("extra_recruitment_points"),
+        "extra_construction_points" => Token::Ident("extra_construction_points"),
+        "recruit" => Token::Ident("recruit"),
+        "agent" => Token::Ident("agent"),
+        "religious_belief" => Token::Ident("religious_belief"),
+        "religious_order" => Token::Ident("religious_order"),
+        "agent_limit_settlement" => Token::Ident("agent_limit_settlement"),
+        "dummy" => Token::Ident("dummy"),
+
+        "requires" => Token::Ident("requires"),
+        "display_string" => Token::Ident("display_string"),
+
+        "resource" => Token::Ident("resource"),
+        "hidden_resource" => Token::Ident("hidden_resource"),
+        "building_present" => Token::Ident("building_present"),
+        "building_present_min_level" => Token::Ident("building_present_min_level"),
+        "marian_reforms" => Token::Ident("marian_reforms"),
+        "major_event" => Token::Ident("major_event"),
+        "factions" => Token::Ident("factions"),
+        "building_factions" => Token::Ident("building_factions"),
+        "port" => Token::Ident("port"),
+        "is_player" => Token::Ident("is_player"),
+        "is_toggled" => Token::Ident("is_toggled"),
+        "diplomacy" => Token::Ident("diplomacy"),
+        "capability" => Token::Ident("capability"),
+        "no_building_tagged" => Token::Ident("no_building_tagged"),
+        "religion" => Token::Ident("religion"),
+        "majority_religion" => Token::Ident("majority_religion"),
+        "official_religion" => Token::Ident("official_religion"),
+        "queued" => Token::Ident("queued"),
+        "factionwide" => Token::Ident("factionwide"),
+        "bonus" => Token::Ident("bonus"),
+        "allied" => Token::Ident("allied"),
+        "protector" => Token::Ident("protector"),
+        "protectorate" => Token::Ident("protectorate"),
+        "same_superfaction" => Token::Ident("same_superfaction"),
+        "at_war" => Token::Ident("at_war"),
+
+        "or" => Token::Ident("or"),
+        "and" => Token::Ident("and"),
+        "not" => Token::Ident("not"),
+
+        "<" => Token::LessThan,
+        "<=" => Token::LessOrEqual,
+        ">" => Token::GreaterThan,
+        ">=" => Token::GreaterOrEqual,
+        "{" => Token::OpenBrace,
+        "}" => Token::CloseBrace,
+        "," => Token::Comma,
+        "-" => Token::Minus,
+        "+" => Token::Plus,
+
+        ident => Token::Ident(<&'source str>),
+        string => Token::String(<&'source str>),
+        int => Token::Int(<u32>),
+    }
+}

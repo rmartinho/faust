@@ -1,0 +1,118 @@
+use std::path::PathBuf;
+
+use crate::parse::descr_sm_factions::{Faction, og::Token};
+
+grammar<'source>;
+
+pub Factions = "\n"* <Faction+>;
+
+Faction: Faction =
+    "faction" <id:Ident> ("," Shadows)? "\n"+
+    "culture" <culture:Ident> "\n"+
+    "symbol" path "\n"+
+    "rebel_symbol" path "\n"+
+    "primary_colour" Color "\n"+
+    "secondary_colour" Color "\n"+
+    "loading_logo" <logo:Path> "\n"+
+    "standard_index" int "\n"+
+    "logo_index" int "\n"+
+    "small_logo_index" int "\n"+
+    "triumph_value" int "\n"+
+    "intro_movie" path "\n"+
+    "victory_movie"  path "\n"+
+    "defeat_movie"  path "\n"+
+    "death_movie"  path "\n"+
+    "custom_battle_availability" YesNo "\n"+
+    "can_sap" YesNo "\n"+
+    "prefers_naval_invasions" YesNo "\n"+
+    => Faction { name: id.clone(), <> };
+
+Shadows = SepBy1<Shadow, ",">;
+
+Shadow = {
+    "shadowing" Ident,
+    "shadowed_by" Ident
+};
+
+Color = "red" <int> "," "green" <int> "," "blue" <int>;
+
+YesNo: bool = {
+    "yes" => true,
+    "no" => false,
+}
+
+Ident: String = {
+    ident => (<>).into(),
+    "faction" => "faction".into(),
+    "culture" => "culture".into(),
+    "symbol" => "symbol".into(),
+    "rebel_symbol" => "rebel_symbol".into(),
+    "primary_colour" => "primary_colour".into(),
+    "secondary_colour" => "secondary_colour".into(),
+    "loading_logo" => "loading_logo".into(),
+    "standard_index" => "standard_index".into(),
+    "logo_index" => "logo_index".into(),
+    "small_logo_index" => "small_logo_index".into(),
+    "triumph_value" => "triumph_value".into(),
+    "intro_movie" => "intro_movie".into(),
+    "victory_movie" => "victory_movie".into(),
+    "defeat_movie" => "defeat_movie".into(),
+    "death_movie" => "death_movie".into(),
+    "custom_battle_availability" => "custom_battle_availability".into(),
+    "can_sap" => "can_sap".into(),
+    "prefers_naval_invasions" => "prefers_naval_invasions".into(),
+    "shadowing" => "shadowing".into(),
+    "shadowed_by" => "shadowed_by".into(),
+    "red" => "red".into(),
+    "green" => "green".into(),
+    "blue" => "blue".into(),
+    "yes" => "yes".into(),
+    "no" => "no".into(),
+};
+Path: PathBuf = {
+    Ident => (<>).into(),
+    path => (<>).into(),
+};
+
+SepBy1<T, Sep>: Vec<T> = <mut v:(<T> Sep)*> <e:T> Sep?
+    => {
+        v.push(e);
+        v
+    };
+
+extern {
+    type Error = ();
+
+    enum Token<'source> {
+        "faction" => Token::Ident("faction"),
+        "culture" => Token::Ident("culture"),
+        "symbol" => Token::Ident("symbol"),
+        "rebel_symbol" => Token::Ident("rebel_symbol"),
+        "primary_colour" => Token::Ident("primary_colour"),
+        "secondary_colour" => Token::Ident("secondary_colour"),
+        "loading_logo" => Token::Ident("loading_logo"),
+        "standard_index" => Token::Ident("standard_index"),
+        "logo_index" => Token::Ident("logo_index"),
+        "small_logo_index" => Token::Ident("small_logo_index"),
+        "triumph_value" => Token::Ident("triumph_value"),
+        "intro_movie" => Token::Ident("intro_movie"),
+        "victory_movie" => Token::Ident("victory_movie"),
+        "defeat_movie" => Token::Ident("defeat_movie"),
+        "death_movie" => Token::Ident("death_movie"),
+        "custom_battle_availability" => Token::Ident("custom_battle_availability"),
+        "can_sap" => Token::Ident("can_sap"),
+        "prefers_naval_invasions" => Token::Ident("prefers_naval_invasions"),
+        "shadowing" => Token::Ident("shadowing"),
+        "shadowed_by" => Token::Ident("shadowed_by"),
+        "red" => Token::Ident("red"),
+        "green" => Token::Ident("green"),
+        "blue" => Token::Ident("blue"),
+        "yes" => Token::Ident("yes"),
+        "no" => Token::Ident("no"),
+        "\n" => Token::Newline,
+        "," => Token::Comma,
+        ident => Token::Ident(<&'source str>),
+        path => Token::Path(<&'source str>),
+        int => Token::Int(<u32>),
+    }
+}
