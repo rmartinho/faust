@@ -5,7 +5,7 @@ use yew_router::prelude::*;
 use crate::{
     AppContext,
     components::{BackLink, FactionRoster, Link},
-    modules::{Faction, Module},
+    model::{Faction, Module},
     routes::Route,
 };
 

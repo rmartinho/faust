@@ -1,7 +1,7 @@
 use crate::{
     AppContext,
     components::{BackLink, Link},
-    modules::{Faction, Module},
+    model::{Faction, Module},
     routes::Route,
 };
 use implicit_clone::unsync::IString;
@@ -58,7 +58,7 @@ fn faction_link(to: Faction) -> Html {
 fn module_header(module: Module) -> Html {
     html! {
       <div class="banner">
-        <img class="logo" src={module.logo} title={module.name} />
+        <img class="logo" src={module.banner} title={module.name} />
       </div>
     }
 }

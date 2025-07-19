@@ -108,12 +108,12 @@ Requires: Requires = {
 };
 
 ReqOr: Requires = {
-    BinOp<ReqAnd, "or"> => Requires::Or(<>.into_iter().map(Box::new).collect()),
+    BinOp<ReqAnd, "or"> => Requires::Or(<>),
     ReqAnd,
 };
 
 ReqAnd: Requires = {
-    BinOp<ReqNot, "and"> => Requires::And(<>.into_iter().map(Box::new).collect()),
+    BinOp<ReqNot, "and"> => Requires::And(<>),
     ReqNot,
 };
 

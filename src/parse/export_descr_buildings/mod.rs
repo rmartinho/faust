@@ -8,22 +8,23 @@ pub use parser::BuildingsFileParser as Parser;
 
 #[derive(Debug)]
 pub struct Building {
-    req: Requires,
-    caps: Vec<RecruitOption>,
-    min: String,
+    pub req: Requires,
+    pub caps: Vec<RecruitOption>,
+    pub min: String,
 }
 
 #[derive(Debug)]
 pub struct RecruitOption {
-    unit: String,
-    exp: u32,
-    req: Requires,
+    pub unit: String,
+    pub exp: u32,
+    pub req: Requires,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub enum Requires {
     #[default]
     None,
+    False,
     Resource {
         id: String,
         factionwide: bool,
@@ -62,16 +63,16 @@ pub enum Requires {
     Alias(String),
 
     Not(Box<Requires>),
-    And(Vec<Box<Requires>>),
-    Or(Vec<Box<Requires>>),
+    And(Vec<Requires>),
+    Or(Vec<Requires>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Cmp {
     Lt, Le, Gt, Ge,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum DipStatus {
 	Allied,
 	Protector,

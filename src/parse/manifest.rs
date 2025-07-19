@@ -27,18 +27,13 @@ fn default_banner() -> PathBuf {
     "faust/banner.png".into()
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ParserMode {
     #[serde(rename = "original")]
     Original,
     #[serde(rename = "remastered")]
+    #[default]
     Remastered,
-}
-
-impl Default for ParserMode {
-    fn default() -> Self {
-        Self::Remastered
-    }
 }
 
 impl Manifest {

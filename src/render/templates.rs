@@ -70,9 +70,6 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
         path: "fonts/blinker-bold.woff",
         contents: include_bytes!("../../dist/fonts/blinker-bold.woff"),
     },
-    //     Dir(
-    //         "icons",
-    //         &[
     StaticFile {
         path: "icons/ability/amok.svg",
         contents: include_bytes!("../../dist/icons/ability/amok.svg"),

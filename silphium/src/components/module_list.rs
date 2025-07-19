@@ -1,4 +1,4 @@
-use crate::{AppContext, modules::Module, routes::Route};
+use crate::{model::Module, routes::Route, AppContext};
 use yew::prelude::*;
 use yew_router::components::Link;
 
@@ -21,7 +21,7 @@ fn module_link(m: Module) -> Html {
     let route = Route::Module { module: m.id };
     html! {
       <Link<Route> to={route}>
-        <img class="logo" src={ m.logo } title={ m.name } />
+        <img class="logo" src={ m.banner } title={ m.name } />
       </Link<Route>>
     }
 }

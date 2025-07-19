@@ -17,6 +17,12 @@ pub struct Unit {
     pub rebalanced_stats: Option<StatBlock>,
 }
 
+impl Unit {
+    pub fn stats(&self) -> &StatBlock {
+        self.rebalanced_stats.as_ref().unwrap_or(&self.stats)
+    }
+}
+
 #[derive(Debug)]
 pub struct StatBlock {
     pub soldiers: u32,
@@ -49,22 +55,11 @@ pub struct Weapon {
     pub attributes: Vec<WeaponAttr>,
 }
 
-#[derive(Debug)]
-pub struct GroundBonus {
-    pub scrub: i32,
-    pub sand: i32,
-    pub forest: i32,
-    pub snow: i32,
-}
+pub type GroundBonus = silphium::model::GroundBonus;
 
-#[derive(Debug)]
-pub struct Defense {
-    pub armor: u32,
-    pub skill: u32,
-    pub shield: u32,
-}
+pub type Defense = silphium::model::Defense;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Attr {
     SeaFaring,
     HideForest,
@@ -97,25 +92,8 @@ pub enum Attr {
     NonScaling,
 }
 
-#[derive(Debug)]
-pub enum Formation {
-    Square,
-    Horde,
-    Phalanx,
-    Testudo,
-    Wedge,
-    Schiltrom,
-    ShieldWall,
-}
-
-#[derive(Debug)]
-pub enum Discipline {
-    Low,
-    Normal,
-    Disciplined,
-    Impetuous,
-    Berserker,
-}
+pub type Formation = silphium::model::Formation;
+pub type Discipline = silphium::model::Discipline;
 
 #[derive(Debug)]
 pub enum WeaponAttr {

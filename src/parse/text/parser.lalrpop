@@ -1,13 +1,10 @@
-use std::iter::Iterator;
+use std::{collections::HashMap, iter::Iterator};
 
-use crate::parse::text::{TextMap, Token};
+use crate::parse::text::Token;
 
 grammar<'source>;
 
-pub TextMap: TextMap = <(Key Value)*>
-    => TextMap {
-        map: (<>).into_iter().collect()
-    };
+pub TextMap: HashMap<String, String> = <(Key Value)*> => (<>).into_iter().collect();
 
 Key: String = key => (<>).into();
 Value: String = value => (<>).to_string()

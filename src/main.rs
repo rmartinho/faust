@@ -22,6 +22,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let manifest = Manifest::from_yaml(File::open(&manifest_path)?)?;
     let modules = parse::parse_folder(&args, manifest).await?;
 
+    let out_dir = args.out_dir.as_ref().cloned().unwrap_or(".".into());
+    let mut file = std::fs::File::create(out_dir.join("mods.json"))?;
+    serde_json::to_writer_pretty(&mut file, &modules)?;
+
     let renderer = Renderer::new(&args, modules);
     renderer.render().await?;
     Ok(())

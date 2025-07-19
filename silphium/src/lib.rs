@@ -1,3 +1,4 @@
+use crate::model::Module;
 use crate::routes::switch;
 use gloo::history::{AnyHistory, MemoryHistory};
 use gloo::net::http::Request;
@@ -11,10 +12,9 @@ use yew_autoprops::autoprops;
 use yew_router::prelude::*;
 
 mod components;
-mod modules;
+pub mod model;
 mod routes;
 
-pub use modules::Module;
 pub use routes::Route;
 pub type ModuleMap = IndexMap<IString, Module>;
 

@@ -1,44 +1,27 @@
-use implicit_clone::unsync::{IArray, IString};
-use indexmap::IndexMap;
+use implicit_clone::unsync::IArray;
 use yew::prelude::*;
 use yew_autoprops::autoprops;
 
-use crate::modules::Unit;
+use crate::model::Unit;
 
 #[autoprops]
 #[function_component(FactionRoster)]
-pub fn faction_roster(roster: &IndexMap<IString, IArray<Unit>>) -> Html {
-    let groups = roster.iter().map(|(group, units)| {
-        html! {
-          if units.len() > 0 {
-            <RosterGroup {group} {units} />
-          }
-        }
-    });
-
-    html! {
-      <div class="roster">
-        {for groups}
-      </div>
-    }
-}
-
-#[autoprops]
-#[function_component(RosterGroup)]
-pub fn roster_group(group: IString, units: IArray<Unit>) -> Html {
-    let cards = units.iter().map(|unit| {
+pub fn faction_roster(roster: IArray<Unit>) -> Html {
+    let cards = roster.iter().map(|unit| {
         html! {
           <UnitCard {unit}/>
         }
     });
 
     html! {
-      <div class="roster-group">
-        <div class="legend">
-          <img class="group" src={format!("/icons/class/{group}.svg")} />
-        </div>
-        <div class="unit-cards">
-          {for cards}
+      <div class="roster">
+        <div class="roster-group">
+          <div class="legend">
+            <img class="group" src="/icons/class/swords.svg" />
+          </div>
+          <div class="unit-cards">
+            {for cards}
+          </div>
         </div>
       </div>
     }
