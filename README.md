@@ -2,9 +2,11 @@
 
 Silphium is a tool that generates static sites visualizing the unit stats for Rome: Total War mods (for both the remastered and the original game).
 
-![Terminal demo](demo.gif)
+[![Site demo](site-demo.gif)](https://faust.rmf.io)
 
 # how
+
+![Terminal demo](terminal-demo.gif)
 
 Start by creating a subfolder called `faust` inside your mod's folder (alongside the `data`, not inside). In there you should create a couple of files before generating anything.
 
