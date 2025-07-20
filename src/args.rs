@@ -9,7 +9,7 @@ use crate::parse::Manifest;
 pub struct Args {
     #[arg(default_value = "faust/faust.yml")]
     pub manifest: Option<PathBuf>,
-    #[arg(short, long, default_value = "faust/dist")]
+    #[arg(short, long, default_value = "site")]
     pub out_dir: Option<PathBuf>,
 }
 
@@ -37,7 +37,6 @@ impl Config {
             .map(|d| manifest_dir.join(d))
             .or_else(|| manifest_dir.parent().map(|p| p.to_path_buf()))
             .unwrap_or(manifest_dir);
-        println!("{}", src_dir.display());
         let out_dir = args
             .out_dir
             .unwrap_or_else(|| env::current_dir().unwrap().join("faust"));
