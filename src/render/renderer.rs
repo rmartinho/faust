@@ -1,6 +1,7 @@
 use std::{
+    fmt::Write as _,
     io::Cursor,
-    path::{Path, PathBuf},
+    path::{Component, Path, PathBuf},
 };
 
 use askama::Template as _;
@@ -53,14 +54,14 @@ impl Renderer {
             let src = self.cfg.src_dir.join(m.banner.as_ref());
             let banner_path = Self::module_banner_path(m);
             let dst = self.cfg.out_dir.join(&banner_path);
-            println!("\t/{}", banner_path.display());
+            println!("\t{}", web_path(&banner_path));
             Self::render_image(&src, &dst, MOD_BANNER_SIZE).await?;
 
             for f in m.factions.values_mut() {
                 let src = self.cfg.src_dir.join(f.image.as_ref());
                 let symbol_path = Self::faction_symbol_path(&m.id, f);
                 let dst = self.cfg.out_dir.join(&symbol_path);
-                println!("\t/{}", symbol_path.display());
+                println!("\t{}", web_path(&symbol_path));
                 Self::render_image(&src, &dst, FACTION_SYMBOL_SIZE).await?;
 
                 let mut roster: Vec<_> = f.roster.iter().collect();
@@ -68,7 +69,7 @@ impl Renderer {
                     let src = self.cfg.src_dir.join(u.image.as_ref());
                     let portrait_path = Self::unit_portrait_path(&m.id, &f.id, u);
                     let dst = self.cfg.out_dir.join(&portrait_path);
-                    println!("\t/{}", portrait_path.display());
+                    println!("\t{}", web_path(&portrait_path));
                     Self::render_image(&src, &dst, UNIT_PORTRAIT_SIZE).await?;
                 }
                 f.roster = roster.into();
@@ -81,7 +82,7 @@ impl Renderer {
         let path = PathBuf::from("images")
             .join(module.id.as_ref())
             .join("banner.webp");
-        module.banner = format!("/{}", path.display()).into();
+        module.banner = web_path(&path).into();
         path
     }
 
@@ -91,7 +92,7 @@ impl Renderer {
             .join("factions")
             .join(faction.id.as_ref())
             .with_extension("webp");
-        faction.image = format!("/{}", path.display()).into();
+        faction.image = web_path(&path).into();
         path
     }
 
@@ -102,7 +103,7 @@ impl Renderer {
             .join(faction_id.as_ref())
             .join(unit.key.as_ref())
             .with_extension("webp");
-        unit.image = format!("/{}", path.display()).into();
+        unit.image = web_path(&path).into();
         path
     }
 
@@ -179,6 +180,18 @@ impl Renderer {
 
 fn from_image_error(e: ImageError) -> io::Error {
     io::Error::new(io::ErrorKind::Other, e)
+}
+
+fn web_path(p: &Path) -> String {
+    p.components().fold(String::new(), |mut s, c| {
+        match c {
+            Component::Normal(cmp) => {
+                write!(&mut s, "/{}", cmp.to_str().unwrap()).unwrap();
+            }
+            _ => panic!("bad path"),
+        }
+        s
+    })
 }
 
 #[derive(Clone)]

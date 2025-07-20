@@ -103,7 +103,7 @@ fn build_model(
                 silphium::model::Faction {
                     id: f.id.clone().into(),
                     name: text.get(&f.name).cloned().unwrap_or(f.name.clone()).into(),
-                    image: format!("{}", f.logo.display()).into(), // TODO
+                    image: format!("{}", f.logo.to_str().unwrap()).into(), // TODO
                     alias: None,                                   // TODO
                     eras: vec![].into(),                           // TODO
                     is_horde: false,                               // TODO
