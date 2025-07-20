@@ -4,20 +4,21 @@ Silphium is a tool that generates static sites visualizing the unit stats for Ro
 
 # how
 
-Start by creating a subfolder called `faust` inside your mod's folder. In there you should create a couple of files before generating anything.
-(These are optional, but you will probably want them anyway. If you're in a hurry to see results, you can skip this and move on to obtaining a release.)
-Create an image file named `banner.png`, with dimensions 512x256 pixels; that will be used as the banner for the mod on the generated site.
-Then create a text file name `faust.yml` and enter the following as the contents:
+Start by creating a subfolder called `faust` inside your mod's folder (alongside the `data`, not inside). In there you should create a couple of files before generating anything.
 
-```yaml
-id: mod_id
-name: The Name of the Mod
-```
+- Create an image file named `banner.png`. The dimensions should be 512x256 pixels. This file will be used as the banner for the mod on the generated site.
+- Create a text file named `faust.yml` and enter the following as the contents:
 
-You can replace `mod_id` with whatever you want to be used in the site URLs to identify the mod, and `The Name of the Mod` with whatever text you want
-to be used to identify the mod in the site's contents.
+    ```yaml
+    id: mod_id
+    name: The Name of the Mod
+    ```
 
-(Once a release is available) Grab a release build from the releases page. (Until then, you will have to clone this repo and run `cargo build` to build the binary yourself.) Then, open a terminal in the mod folder and run `faust`. This will parse the mod folder and output all of the site files into the `faust/dist` folder.
+    You can replace `mod_id` with whatever you want to be used in the site URLs to identify the mod, and `The Name of the Mod` with whatever text you want
+    to be used to identify the mod in the site's pages.
+
+(Once a release is available) Grab a release build from the releases page. (Until then, you will have to clone this repo and run `cargo build` to build the binary yourself; obviously, this means you need a Rust dev environment setup) Then, run `faust path/to/faust.yml` in a terminal (obviously replace that with the correct path to the `faust.yml` file). This will parse the mod folder and output all of the site files into a folder named `site` next to the `faust.yml` file.
+(If you're not keen on messing with the terminal, you can also drag-and-drop the `faust.yml` file onto the release executable file.)
 
 You can now upload the contents of that folder to your favourite static site hoster (e.g. GitHub Pages) and visit the site in your browser.
 
