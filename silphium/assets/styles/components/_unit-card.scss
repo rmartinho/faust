@@ -1,0 +1,286 @@
+@scope (.unit-card) {
+  :scope {
+    display: grid;
+    margin: 2px;
+    width: min-content;
+    font-size: 14pt;
+    grid:
+      'name' 3rem
+      'card' min-content
+      'pool' min-content
+      / 1fr;
+    cursor: default;
+
+    .name {
+      grid-area: name;
+      font-size: smaller;
+      align-self: end;
+    }
+
+    $gap: 2px;
+    $icon-size: 24px;
+    $strength-size: 1em;
+    $row-height: 28px;
+    $image-height: 112px;
+    $image-width: 82px;
+    $frame-columns: // padding icon leftover image+ability+ability padding
+      0px $icon-size 1fr calc($image-width - 2 * $icon-size - 2 * $gap)
+      $icon-size $icon-size 0px;
+
+    .frame {
+      grid-area: card;
+      display: grid;
+      gap: $gap;
+      width: 190px;
+      border: 1px solid black;
+      border-radius: 2px;
+      align-items: center;
+      grid:
+        '. size     size     image    image     image     image' $row-height
+        '. cost     cost     image    image     image     image' $row-height
+        '. upkeep   upkeep   image    image     image     image' $row-height
+        '. mental   mental   image    image     image     image' $row-height
+        '. terrain  terrain  .        abilities abilities .    ' $row-height
+        '. weapon1  weapon1  weapon1  abilities abilities .    ' $row-height
+        '. weapon2  weapon2  weapon2  abilities abilities .    ' $row-height
+        '. defense1 defense1 defense1 defense1  defense1  .    ' $row-height
+        '. defense2 defense2 defense2 defense2  defense2  .    ' minmax(0, 1fr)
+        / $frame-columns;
+      user-select: none;
+
+      .image {
+        grid-area: image;
+        width: $image-width;
+        height: $image-height;
+        place-self: start right;
+      }
+
+      %stat-icon {
+        width: $icon-size;
+      }
+
+      %stat-row {
+        display: grid;
+        gap: $gap;
+        place-self: stretch;
+        align-items: center;
+
+        .icon {
+          @extend %stat-icon;
+          grid-area: icon;
+        }
+      }
+      %stats {
+        align-self: center;
+      }
+      %combat-stats {
+        align-self: baseline;
+      }
+      %icon {
+        justify-self: end;
+      }
+
+      .size-row {
+        @extend %stat-row;
+        grid-area: size;
+        grid: 'icon size' 1fr / #{$icon-size} 1fr;
+
+        .size {
+          @extend %stats;
+          display: flex;
+          grid-area: size;
+
+          .soldiers,
+          .officers {
+            align-self: baseline;
+          }
+          .officers {
+            font-size: x-small;
+          }
+        }
+        .formations {
+          display: flex;
+          align-items: center;
+          justify-content: right;
+          margin-left: calc(2 * $gap);
+
+          img {
+            width: 20px;
+            height: 20px;
+          }
+        }
+      }
+
+      .cost-row {
+        @extend %stat-row;
+        grid-area: cost;
+        grid: 'icon cost' 1fr / #{$icon-size} 1fr;
+
+        .cost {
+          @extend %stats;
+          grid-area: cost;
+          display: flex;
+          align-items: center;
+
+          .turns {
+            display: flex;
+            align-items: center;
+            font-size: smaller;
+
+            .attribute {
+              margin-left: $gap;
+              height: 1em;
+            }
+          }
+        }
+      }
+      .upkeep-row {
+        @extend %stat-row;
+        grid-area: upkeep;
+        grid: 'icon upkeep' 1fr / #{$icon-size} 1fr;
+
+        .upkeep {
+          @extend %stats;
+          grid-area: upkeep;
+        }
+      }
+      .mental-row {
+        @extend %stat-row;
+        grid-area: mental;
+        grid: 'icon mental' 1fr / #{$icon-size} 1fr;
+
+        .mental {
+          grid-area: mental;
+          display: flex;
+          gap: $gap;
+          align-items: center;
+
+          .morale {
+            @extend %stats;
+          }
+        }
+        .stamina {
+          display: flex;
+          font-size: smaller;
+          justify-self: start;
+          align-items: center;
+
+          .attribute {
+            margin-left: 2px;
+            height: 1em;
+          }
+        }
+      }
+      .terrain {
+        @extend %stat-row;
+        grid-area: terrain;
+        display: grid;
+        grid:
+          'scrub forest sand snow' 1fr
+          / 32px 32px 32px 32px;
+        align-self: center;
+        align-items: center;
+        justify-items: center;
+
+        .scrub,
+        .forest,
+        .sand,
+        .snow {
+          display: flex;
+          align-items: center;
+        }
+
+        .scrub {
+          grid-area: scrub;
+        }
+        .forest {
+          grid-area: forest;
+        }
+        .sand {
+          grid-area: sand;
+        }
+        .snow {
+          grid-area: snow;
+        }
+
+        .attribute {
+          height: 20px;
+        }
+
+        span {
+          font-size: small;
+          justify-self: left;
+        }
+      }
+
+      .weapon1-row,
+      .weapon2-row,
+      .defense1-row,
+      .defense2-row {
+        @extend %stat-row;
+
+        &.weapon1-row,
+        &.weapon2-row {
+          grid: 'icon strength details' 1fr / #{$icon-size} $strength-size 1fr;
+        }
+        &.defense1-row,
+        &.defense2-row {
+          grid: 'icon strength details hp' 1fr / #{$icon-size} $strength-size 1fr $icon-size;
+
+          .hp {
+            @extend %stats;
+            @extend %icon;
+            grid-area: hp;
+          }
+        }
+
+        .lethality {
+          grid-area: icon;
+          align-self: end;
+          justify-self: end;
+          margin-right: -2px;
+          font-size: xx-small;
+        }
+
+        .strength {
+          @extend %combat-stats;
+          grid-area: strength;
+        }
+        .details {
+          @extend %combat-stats;
+          grid-area: details;
+        }
+      }
+      .weapon1-row {
+        grid-area: weapon1;
+      }
+      .weapon2-row {
+        grid-area: weapon2;
+      }
+      .defense1-row {
+        grid-area: defense1;
+      }
+      .defense2-row {
+        grid-area: defense2;
+      }
+      .abilities {
+        grid-area: abilities;
+        align-self: start;
+        display: flex;
+        flex-flow: row wrap;
+        align-items: center;
+        justify-content: right;
+
+        .ability {
+          @extend %stats;
+          width: $icon-size;
+          height: $icon-size;
+        }
+      }
+    }
+
+    .pool {
+      align-self: start;
+    }
+  }
+}

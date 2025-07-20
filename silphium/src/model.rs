@@ -1,4 +1,7 @@
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    fmt::{self, Display, Formatter},
+};
 
 use implicit_clone::{
     ImplicitClone,
@@ -47,17 +50,17 @@ impl Faction {
 
 #[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
 pub struct Era {
-	pub id: IString,
+    pub id: IString,
     pub icon: IString,
     pub name: IString,
 }
 
 #[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
 pub struct Unit {
-	pub id: IString,
+    pub id: IString,
     pub name: IString,
     pub key: IString,
-	pub image: IString,
+    pub image: IString,
     pub soldiers: u32,
     pub officers: u32,
     pub attributes: IArray<Attr>,
@@ -78,6 +81,15 @@ pub struct Unit {
     pub eras: IArray<IString>,
 }
 
+impl Unit {
+    pub fn stamina(&self) -> u32 {
+        match self.attributes.iter().find(|a| matches!(a, Attr::Stamina(_))) {
+            Some(Attr::Stamina(s)) => s,
+            _ => 0,
+        }
+    }
+}
+
 #[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
 pub struct Weapon {
     pub factor: u32,
@@ -92,10 +104,10 @@ pub struct Weapon {
 #[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Copy, Debug)]
 #[serde(rename_all = "snake_case")]
 pub enum WeaponType {
-	Melee,
-	Spear,
-	Missile,
-	Thrown,
+    Melee,
+    Spear,
+    Missile,
+    Thrown,
 }
 
 #[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Copy, Debug)]
@@ -148,6 +160,20 @@ pub enum Formation {
     ShieldWall,
 }
 
+impl Display for Formation {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Square => write!(f, "square"),
+            Self::Horde => write!(f, "horde"),
+            Self::Phalanx => write!(f, "phalanx"),
+            Self::Testudo => write!(f, "testudo"),
+            Self::Wedge => write!(f, "wedge"),
+            Self::Schiltrom => write!(f, "schiltrom"),
+            Self::ShieldWall => write!(f, "shield_wall"),
+        }
+    }
+}
+
 #[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Copy, Debug)]
 #[serde(rename_all = "snake_case")]
 pub enum Discipline {
@@ -156,6 +182,18 @@ pub enum Discipline {
     Disciplined,
     Impetuous,
     Berserker,
+}
+
+impl Display for Discipline {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Low => write!(f, "low"),
+            Self::Normal => write!(f, "normal"),
+            Self::Disciplined => write!(f, "disciplined"),
+            Self::Impetuous => write!(f, "impetuous"),
+            Self::Berserker => write!(f, "berserker"),
+        }
+    }
 }
 
 #[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Copy, Debug)]
