@@ -27,5 +27,5 @@ pub async fn read_file(path: impl AsRef<Path>) -> io::Result<Vec<u8>> {
 pub fn progress_style() -> ProgressStyle {
     ProgressStyle::with_template("{prefix:.bold.dim} {spinner} {wide_msg}")
         .unwrap()
-        .tick_chars("⠁⠂⠄⡀⢀⠠⠐⠈ ")
+        .tick_chars("⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏ ")
 }
