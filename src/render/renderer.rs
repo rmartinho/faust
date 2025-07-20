@@ -7,6 +7,7 @@ use std::{
 use askama::Template as _;
 use image::{ImageError, ImageFormat, ImageReader, imageops::FilterType};
 use implicit_clone::unsync::IString;
+use indicatif::{HumanBytes, MultiProgress, ProgressBar};
 use silphium::{
     ModuleMap, Route, StaticApp, StaticAppProps,
     model::{Faction, Module, Unit},
@@ -17,7 +18,7 @@ use yew_router::Routable as _;
 use crate::{
     args::Config,
     render::templates::{FILESYSTEM_STATIC, IndexHtml, RedirectHtml},
-    utils::{read_file, write_file},
+    utils::{FOLDER, LINK, PAPER, PICTURE, progress_style, read_file, write_file},
 };
 
 #[derive(Clone)]
@@ -40,28 +41,36 @@ impl Renderer {
     }
 
     pub async fn render(&mut self) -> io::Result<()> {
-        self.create_directory().await?;
-        self.create_static_files().await?;
-        self.render_images().await?;
-        self.render_data().await?;
-        self.render_routes().await?;
+        let m = MultiProgress::new();
+        self.create_directory(m.clone()).await?;
+        self.create_static_files(m.clone()).await?;
+        self.render_images(m.clone()).await?;
+        self.render_data(m.clone()).await?;
+        self.render_routes(m.clone()).await?;
+        let _ = m.clear();
         Ok(())
     }
 
-    async fn render_images(&mut self) -> io::Result<()> {
-        println!("Rendering images...");
+    async fn render_images(&mut self, m: MultiProgress) -> io::Result<()> {
+        let pb = m.add(ProgressBar::new_spinner());
+        pb.set_style(progress_style());
+        pb.set_prefix("[3/5]");
+        pb.tick();
+        pb.set_message(format!("{PICTURE}rendering images"));
         for m in self.modules.values_mut() {
             let src = self.cfg.src_dir.join(m.banner.as_ref());
             let banner_path = Self::module_banner_path(m);
             let dst = self.cfg.out_dir.join(&banner_path);
-            println!("\t{}", web_path(&banner_path));
+            pb.tick();
+            pb.set_message(format!("{PICTURE}rendering {}", web_path(&banner_path)));
             Self::render_image(&src, &dst, MOD_BANNER_SIZE).await?;
 
             for f in m.factions.values_mut() {
                 let src = self.cfg.src_dir.join(f.image.as_ref());
                 let symbol_path = Self::faction_symbol_path(&m.id, f);
                 let dst = self.cfg.out_dir.join(&symbol_path);
-                println!("\t{}", web_path(&symbol_path));
+                pb.tick();
+                pb.set_message(format!("{PICTURE}rendering {}", web_path(&symbol_path)));
                 Self::render_image(&src, &dst, FACTION_SYMBOL_SIZE).await?;
 
                 let mut roster: Vec<_> = f.roster.iter().collect();
@@ -69,12 +78,14 @@ impl Renderer {
                     let src = self.cfg.src_dir.join(u.image.as_ref());
                     let portrait_path = Self::unit_portrait_path(&m.id, &f.id, u);
                     let dst = self.cfg.out_dir.join(&portrait_path);
-                    println!("\t{}", web_path(&portrait_path));
+                    pb.tick();
+                    pb.set_message(format!("{PICTURE}rendering {}", web_path(&portrait_path)));
                     Self::render_image(&src, &dst, UNIT_PORTRAIT_SIZE).await?;
                 }
                 f.roster = roster.into();
             }
         }
+        pb.finish_with_message(format!("{PICTURE}rendered images"));
         Ok(())
     }
 
@@ -121,18 +132,31 @@ impl Renderer {
         Ok(())
     }
 
-    async fn render_data(&mut self) -> io::Result<()> {
-        println!("Rendering mod data...");
+    async fn render_data(&mut self, m: MultiProgress) -> io::Result<()> {
+        let pb = m.add(ProgressBar::new_spinner());
+        pb.set_style(progress_style());
+        pb.set_prefix("[4/5]");
+        pb.tick();
+        pb.set_message(format!("{PAPER}rendering mod data"));
         let data = serde_json::to_string(&self.modules)?;
         self.data = data.clone();
         write_file(&self.cfg.out_dir.join("mods.json"), data).await?;
+        pb.finish_with_message(format!(
+            "{PAPER}rendered mods.json ({})",
+            HumanBytes(self.data.len() as u64)
+        ));
         Ok(())
     }
 
-    async fn render_routes(&self) -> io::Result<()> {
-        println!("Rendering routes...");
+    async fn render_routes(&self, m: MultiProgress) -> io::Result<()> {
+        let pb = m.add(ProgressBar::new_spinner());
+        pb.set_style(progress_style());
+        pb.set_prefix("[5/5]");
+        pb.tick();
+        pb.set_message(format!("{LINK}rendering routes"));
         for r in &self.routes {
-            println!("\t{}", r.route.to_path());
+            pb.tick();
+            pb.set_message(format!("{LINK}rendering {}", r.route.to_path()));
             if let Some(ref target) = r.redirect {
                 write_file(
                     &self.cfg.out_dir.join(&r.path),
@@ -148,6 +172,7 @@ impl Renderer {
                 .await?;
             }
         }
+        pb.finish_with_message(format!("{LINK}rendered {} routes", self.routes.len()));
         Ok(())
     }
 
@@ -160,20 +185,35 @@ impl Renderer {
         renderer.render().await
     }
 
-    async fn create_directory(&self) -> io::Result<()> {
+    async fn create_directory(&self, m: MultiProgress) -> io::Result<()> {
+        let pb = m.add(ProgressBar::new_spinner());
+        pb.set_style(progress_style());
+        pb.set_prefix("[1/5]");
         if self.cfg.out_dir.exists() {
-            println!("Clearing output directory...");
+            pb.tick();
+            pb.set_message(format!("{FOLDER}clearing output directory"));
             fs::remove_dir_all(&self.cfg.out_dir).await?;
         }
-        println!("Creating output directory...");
-        fs::create_dir_all(&self.cfg.out_dir).await
+        pb.tick();
+        pb.set_message(format!("{FOLDER}creating output directory"));
+        let res = fs::create_dir_all(&self.cfg.out_dir).await;
+        pb.finish_with_message(format!("{FOLDER}created {}", self.cfg.out_dir.display()));
+        res
     }
 
-    async fn create_static_files(&self) -> io::Result<()> {
-        println!("Creating static files...");
+    async fn create_static_files(&self, m: MultiProgress) -> io::Result<()> {
+        let pb = m.add(ProgressBar::new_spinner());
+        pb.set_style(progress_style());
+        pb.set_prefix("[2/5]");
         for file in FILESYSTEM_STATIC {
+            pb.tick();
+            pb.set_message(format!("{PAPER}creating {}", file.path));
             file.create(&self.cfg.out_dir).await?;
         }
+        pb.finish_with_message(format!(
+            "{PAPER}created styles and scripts ({} files)",
+            FILESYSTEM_STATIC.len()
+        ));
         Ok(())
     }
 }

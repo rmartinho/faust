@@ -1,7 +1,21 @@
 #![feature(str_from_utf16_endian)]
+#![feature(path_add_extension)]
 #![allow(dead_code)]
 
-use crate::{args::Config, render::Renderer};
+use std::{
+    fs::{File, metadata},
+    time::{Duration, Instant},
+};
+
+use console::style;
+use indicatif::{HumanBytes, HumanDuration, ProgressBar};
+use zip_dir::zip_dir;
+
+use crate::{
+    args::Config,
+    render::Renderer,
+    utils::{CLAMP, EARTH, LINK, LOOKING_GLASS, SPARKLE, progress_style},
+};
 
 mod args;
 mod parse;
@@ -10,11 +24,65 @@ mod utils;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let started = Instant::now();
     let cfg = Config::get()?;
-    let modules = parse::parse_folder(&cfg).await?;
 
+    let step = Instant::now();
+    let modules = parse::parse_folder(&cfg).await?;
+    println!(
+        "{} {LOOKING_GLASS}{}",
+        style("[1/3]").bold().dim(),
+        style(format!(
+            "parsed mod folder in {}",
+            HumanDuration(step.elapsed())
+        ))
+        .green()
+    );
+
+    let step = Instant::now();
     let mut renderer = Renderer::new(&cfg, modules);
     renderer.render().await?;
+    println!(
+        "{} {LINK}{}",
+        style("[2/3]").bold().dim(),
+        style(format!(
+            "rendered site in {}",
+            HumanDuration(step.elapsed())
+        ))
+        .green()
+    );
+
+    let step = Instant::now();
+    let zip_file = cfg.out_dir.with_added_extension("zip");
+    let pb = ProgressBar::new_spinner();
+    pb.enable_steady_tick(Duration::from_millis(200));
+    pb.set_message(format!("{CLAMP}zipping site"));
+    pb.set_style(progress_style());
+    zip_dir(&cfg.out_dir, File::create(&zip_file)?, None).unwrap();
+    pb.finish_and_clear();
+    println!(
+        "{} {CLAMP}{}",
+        style("[3/3]").bold().dim(),
+        style(format!(
+            "zipped site in {}",
+            HumanDuration(step.elapsed())
+        ))
+        .green()
+    );
+
+    println!(
+        " {SPARKLE}{}",
+        style(format!("Done in {}", HumanDuration(started.elapsed()))).bold()
+    );
+    println!(
+        " {EARTH}You can find your site at {} and {} ({})",
+        style(cfg.out_dir.display()).bold(),
+        style(zip_file.display()).bold(),
+        HumanBytes(metadata(&zip_file).unwrap().len())
+    );
+
+    #[cfg(windows)]
+    dont_disappear::enter_to_continue::default();
 
     Ok(())
 }

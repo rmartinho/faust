@@ -2,6 +2,7 @@ use std::{collections::HashMap, path::PathBuf};
 
 use implicit_clone::unsync::IString;
 use indexmap::IndexMap;
+use indicatif::{MultiProgress, ProgressBar};
 use logos::Logos as _;
 use silphium::{ModuleMap, model::Module};
 use tokio::{fs, io};
@@ -14,6 +15,7 @@ use crate::{
         export_descr_buildings::{Building, Requires},
         manifest::ParserMode,
     },
+    utils::{progress_style, LOOKING_GLASS},
 };
 pub use manifest::Manifest;
 
@@ -37,18 +39,58 @@ pub async fn parse_folder(cfg: &Config) -> io::Result<ModuleMap> {
     let export_descr_unit_path = root.join("export_descr_unit.txt");
     let export_descr_buildings_path = root.join("export_descr_buildings.txt");
 
-    let expanded_bi = tokio::spawn(parse_text(expanded_bi_path));
-    let export_units = tokio::spawn(parse_text(export_units_path));
-    let descr_mercenaries = tokio::spawn(parse_descr_mercenaries(descr_mercenaries_path));
-    let descr_regions = tokio::spawn(parse_descr_regions(descr_regions_path));
+    let m = MultiProgress::new();
+    let expanded_bi = tokio::spawn(parse_progress(
+        m.clone(),
+        1,
+        expanded_bi_path.clone(),
+        parse_text(expanded_bi_path),
+    ));
+    let export_units = tokio::spawn(parse_progress(
+        m.clone(),
+        2,
+        export_units_path.clone(),
+        parse_text(export_units_path),
+    ));
+    let descr_mercenaries = tokio::spawn(parse_progress(
+        m.clone(),
+        3,
+        descr_mercenaries_path.clone(),
+        parse_descr_mercenaries(descr_mercenaries_path),
+    ));
+    let descr_regions = tokio::spawn(parse_progress(
+        m.clone(),
+        4,
+        descr_regions_path.clone(),
+        parse_descr_regions(descr_regions_path),
+    ));
     let descr_sm_factions = if cfg.manifest.mode == ParserMode::Original {
-        tokio::spawn(parse_descr_sm_factions_og(descr_sm_factions_path))
+        tokio::spawn(parse_progress(
+            m.clone(),
+            5,
+            descr_sm_factions_path.clone(),
+            parse_descr_sm_factions_og(descr_sm_factions_path),
+        ))
     } else {
-        tokio::spawn(parse_descr_sm_factions_rr(descr_sm_factions_path))
+        tokio::spawn(parse_progress(
+            m.clone(),
+            5,
+            descr_sm_factions_path.clone(),
+            parse_descr_sm_factions_rr(descr_sm_factions_path),
+        ))
     };
-    let export_descr_unit = tokio::spawn(parse_export_descr_unit(export_descr_unit_path));
-    let export_descr_buildings =
-        tokio::spawn(parse_export_descr_buildings(export_descr_buildings_path));
+    let export_descr_unit = tokio::spawn(parse_progress(
+        m.clone(),
+        6,
+        export_descr_unit_path.clone(),
+        parse_export_descr_unit(export_descr_unit_path),
+    ));
+    let export_descr_buildings = tokio::spawn(parse_progress(
+        m.clone(),
+        7,
+        export_descr_buildings_path.clone(),
+        parse_export_descr_buildings(export_descr_buildings_path),
+    ));
 
     let mut text = expanded_bi.await??;
     text.extend(export_units.await??.into_iter());
@@ -58,6 +100,7 @@ pub async fn parse_folder(cfg: &Config) -> io::Result<ModuleMap> {
     let factions = descr_sm_factions.await??;
     let units = export_descr_unit.await??;
     let (require_aliases, buildings) = export_descr_buildings.await??;
+    let _ = m.clear();
 
     let model = build_model(
         units,
@@ -83,6 +126,27 @@ pub async fn parse_folder(cfg: &Config) -> io::Result<ModuleMap> {
     Ok(module_map)
 }
 
+fn parse_progress<'a, T>(
+    m: MultiProgress,
+    i: usize,
+    path: PathBuf,
+    fut: impl Future<Output = T> + 'a,
+) -> impl Future<Output = T> + 'a {
+    let pb = m.add(ProgressBar::new_spinner());
+    pb.set_style(progress_style());
+    pb.set_prefix(format!("[{}/7]", i));
+    pb.set_message(format!("{LOOKING_GLASS}parsing {}...", path.display()));
+
+    async move {
+        let res = fut.await;
+        pb.finish_with_message(format!(
+            "{LOOKING_GLASS}parsing {}... done.",
+            path.display()
+        ));
+        res
+    }
+}
+
 fn build_model(
     raw_units: Vec<export_descr_unit::Unit>,
     raw_factions: Vec<descr_sm_factions::Faction>,
@@ -104,9 +168,9 @@ fn build_model(
                     id: f.id.clone().into(),
                     name: text.get(&f.name).cloned().unwrap_or(f.name.clone()).into(),
                     image: format!("{}", f.logo.to_str().unwrap()).into(), // TODO
-                    alias: None,                                   // TODO
-                    eras: vec![].into(),                           // TODO
-                    is_horde: false,                               // TODO
+                    alias: None,                                           // TODO
+                    eras: vec![].into(),                                   // TODO
+                    is_horde: false,                                       // TODO
                     roster: unit_map
                         .values()
                         .filter(|u| {
@@ -120,7 +184,8 @@ fn build_model(
                             id: u.id.clone().into(),
                             key: u.key.clone().into(),
                             name: text.get(&u.key).cloned().unwrap_or(u.key.clone()).into(),
-                            image: format!("data/ui/units/{}/#{}.tga", f.id, u.key.to_lowercase()).into(), // TODO
+                            image: format!("data/ui/units/{}/#{}.tga", f.id, u.key.to_lowercase())
+                                .into(), // TODO
                             soldiers: u.stats().soldiers,
                             officers: u.stats().officers,
                             attributes: vec![].into(), // TODO

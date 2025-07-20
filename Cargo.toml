@@ -24,7 +24,12 @@ clap = { version = "4.5.41", features = ["derive"] }
 logos = "0.15.0"
 lalrpop-util = { version = "0.22.2", features = ["lexer"] }
 image = "0.25.6"
+indicatif = { version = "0.18.0", features = ["futures"] }
+console = "0.16.0"
+dont_disappear = "3.0.1"
+zip-dir = "0.1.0"
 
 [build-dependencies]
 cargo-emit = "0.2.1"
 lalrpop = "0.22.2"
+winresource = "0.1"
