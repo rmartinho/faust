@@ -3,7 +3,7 @@ use std::{io, path::PathBuf};
 use implicit_clone::unsync::IString;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Manifest {
     pub id: IString,
     pub name: IString,
@@ -27,11 +27,10 @@ fn default_banner() -> PathBuf {
     "faust/banner.png".into()
 }
 
-#[derive(Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
 pub enum ParserMode {
-    #[serde(rename = "original")]
     Original,
-    #[serde(rename = "remastered")]
     #[default]
     Remastered,
 }

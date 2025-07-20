@@ -1,53 +1,147 @@
-use std::path::PathBuf;
+use std::{
+    io::Cursor,
+    path::{Path, PathBuf},
+};
 
 use askama::Template as _;
-use silphium::{ModuleMap, Route, StaticApp, StaticAppProps};
+use image::{ImageError, ImageFormat, ImageReader, imageops::FilterType};
+use implicit_clone::unsync::IString;
+use silphium::{
+    ModuleMap, Route, StaticApp, StaticAppProps,
+    model::{Faction, Module, Unit},
+};
 use tokio::{fs, io};
 use yew_router::Routable as _;
 
 use crate::{
-    args::Args,
+    args::Config,
     render::templates::{FILESYSTEM_STATIC, IndexHtml, RedirectHtml},
-    utils::write_file,
+    utils::{read_file, write_file},
 };
 
 #[derive(Clone)]
 pub struct Renderer {
-    pub out_dir: PathBuf,
+    pub cfg: Config,
     pub routes: Vec<RenderRoute>,
     pub data: String,
+    pub modules: ModuleMap,
 }
 
 impl Renderer {
-    pub fn new(args: &Args, modules: ModuleMap) -> Self {
+    pub fn new(cfg: &Config, modules: ModuleMap) -> Self {
         let routes = collect_routes(&modules);
         Self {
             routes,
-            out_dir: args.out_dir.clone().unwrap_or_else(|| "faust".into()),
-            data: serde_json::to_string(&modules).unwrap(),
+            cfg: cfg.clone(),
+            data: String::new(),
+            modules,
         }
     }
 
-    pub async fn render(&self) -> io::Result<()> {
+    pub async fn render(&mut self) -> io::Result<()> {
         self.create_directory().await?;
         self.create_static_files().await?;
+        self.render_images().await?;
+        self.render_data().await?;
         self.render_routes().await?;
         Ok(())
     }
 
+    async fn render_images(&mut self) -> io::Result<()> {
+        println!("Rendering images...");
+        for m in self.modules.values_mut() {
+            let src = self.cfg.src_dir.join(m.banner.as_ref());
+            let banner_path = Self::module_banner_path(m);
+            let dst = self.cfg.out_dir.join(&banner_path);
+            println!("\t/{}", banner_path.display());
+            Self::render_image(&src, &dst, MOD_BANNER_SIZE).await?;
+
+            for f in m.factions.values_mut() {
+                let src = self.cfg.src_dir.join(f.image.as_ref());
+                let symbol_path = Self::faction_symbol_path(&m.id, f);
+                let dst = self.cfg.out_dir.join(&symbol_path);
+                println!("\t/{}", symbol_path.display());
+                Self::render_image(&src, &dst, FACTION_SYMBOL_SIZE).await?;
+
+                let mut roster: Vec<_> = f.roster.iter().collect();
+                for u in roster.iter_mut() {
+                    let src = self.cfg.src_dir.join(u.image.as_ref());
+                    let portrait_path = Self::unit_portrait_path(&m.id, &f.id, u);
+                    let dst = self.cfg.out_dir.join(&portrait_path);
+                    println!("\t/{}", portrait_path.display());
+                    Self::render_image(&src, &dst, UNIT_PORTRAIT_SIZE).await?;
+                }
+                f.roster = roster.into();
+            }
+        }
+        Ok(())
+    }
+
+    fn module_banner_path(module: &mut Module) -> PathBuf {
+        let path = PathBuf::from("images")
+            .join(module.id.as_ref())
+            .join("banner.webp");
+        module.banner = format!("/{}", path.display()).into();
+        path
+    }
+
+    fn faction_symbol_path(module_id: &IString, faction: &mut Faction) -> PathBuf {
+        let path = PathBuf::from("images")
+            .join(module_id.as_ref())
+            .join("factions")
+            .join(faction.id.as_ref())
+            .with_extension("webp");
+        faction.image = format!("/{}", path.display()).into();
+        path
+    }
+
+    fn unit_portrait_path(module_id: &IString, faction_id: &IString, unit: &mut Unit) -> PathBuf {
+        let path = PathBuf::from("images")
+            .join(module_id.as_ref())
+            .join("units")
+            .join(faction_id.as_ref())
+            .join(unit.key.as_ref())
+            .with_extension("webp");
+        unit.image = format!("/{}", path.display()).into();
+        path
+    }
+
+    async fn render_image(from: &Path, to: &Path, (height, width): (u32, u32)) -> io::Result<()> {
+        let buf = read_file(from).await?;
+        let format = ImageFormat::from_path(from).map_err(from_image_error)?;
+        let img = ImageReader::with_format(Cursor::new(buf), format)
+            .decode()
+            .map_err(from_image_error)?;
+        let img = img.resize(height, width, FilterType::Lanczos3);
+        let mut buf = vec![];
+        img.write_to(&mut Cursor::new(&mut buf), ImageFormat::WebP)
+            .map_err(from_image_error)?;
+        write_file(&to, buf).await?;
+        Ok(())
+    }
+
+    async fn render_data(&mut self) -> io::Result<()> {
+        println!("Rendering mod data...");
+        let data = serde_json::to_string(&self.modules)?;
+        self.data = data.clone();
+        write_file(&self.cfg.out_dir.join("mods.json"), data).await?;
+        Ok(())
+    }
+
     async fn render_routes(&self) -> io::Result<()> {
+        println!("Rendering routes...");
         for r in &self.routes {
-            println!("{}", r.route.to_path());
+            println!("\t{}", r.route.to_path());
             if let Some(ref target) = r.redirect {
                 write_file(
-                    &self.out_dir.join(&r.path),
+                    &self.cfg.out_dir.join(&r.path),
                     RedirectHtml { target }.render()?,
                 )
                 .await?;
             } else {
                 let body = &self.render_route(r.route.clone()).await;
                 write_file(
-                    &self.out_dir.join(&r.path),
+                    &self.cfg.out_dir.join(&r.path),
                     IndexHtml { head: "", body }.render()?,
                 )
                 .await?;
@@ -66,18 +160,25 @@ impl Renderer {
     }
 
     async fn create_directory(&self) -> io::Result<()> {
-        if self.out_dir.exists() {
-            fs::remove_dir_all(&self.out_dir).await?;
+        if self.cfg.out_dir.exists() {
+            println!("Clearing output directory...");
+            fs::remove_dir_all(&self.cfg.out_dir).await?;
         }
-        fs::create_dir_all(&self.out_dir).await
+        println!("Creating output directory...");
+        fs::create_dir_all(&self.cfg.out_dir).await
     }
 
     async fn create_static_files(&self) -> io::Result<()> {
+        println!("Creating static files...");
         for file in FILESYSTEM_STATIC {
-            file.create(&self.out_dir).await?;
+            file.create(&self.cfg.out_dir).await?;
         }
         Ok(())
     }
+}
+
+fn from_image_error(e: ImageError) -> io::Error {
+    io::Error::new(io::ErrorKind::Other, e)
 }
 
 #[derive(Clone)]
@@ -189,3 +290,7 @@ fn prepare_redirect(from: Route, to: Route) -> RenderRoute {
         redirect: Some(target),
     }
 }
+
+const MOD_BANNER_SIZE: (u32, u32) = (512, 256);
+const FACTION_SYMBOL_SIZE: (u32, u32) = (128, 128);
+const UNIT_PORTRAIT_SIZE: (u32, u32) = (82, 112);

@@ -23,6 +23,7 @@ serde_yml = "0.0.12"
 clap = { version = "4.5.41", features = ["derive"] }
 logos = "0.15.0"
 lalrpop-util = { version = "0.22.2", features = ["lexer"] }
+image = "0.25.6"
 
 [build-dependencies]
 cargo-emit = "0.2.1"

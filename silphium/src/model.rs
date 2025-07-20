@@ -56,6 +56,7 @@ pub struct Era {
 pub struct Unit {
 	pub id: IString,
     pub name: IString,
+    pub key: IString,
 	pub image: IString,
     pub soldiers: u32,
     pub officers: u32,

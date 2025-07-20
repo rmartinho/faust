@@ -1,11 +1,7 @@
 #![feature(str_from_utf16_endian)]
 #![allow(dead_code)]
 
-use std::fs::File;
-
-use clap::Parser;
-
-use crate::{args::Args, parse::Manifest, render::Renderer};
+use crate::{args::Config, render::Renderer};
 
 mod args;
 mod parse;
@@ -14,19 +10,11 @@ mod utils;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let args = Args::parse();
-    let manifest_path = args
-        .manifest
-        .clone()
-        .unwrap_or_else(|| "faust/faust.yml".into());
-    let manifest = Manifest::from_yaml(File::open(&manifest_path)?)?;
-    let modules = parse::parse_folder(&args, manifest).await?;
+    let cfg = Config::get()?;
+    let modules = parse::parse_folder(&cfg).await?;
 
-    let out_dir = args.out_dir.as_ref().cloned().unwrap_or(".".into());
-    let mut file = std::fs::File::create(out_dir.join("mods.json"))?;
-    serde_json::to_writer_pretty(&mut file, &modules)?;
-
-    let renderer = Renderer::new(&args, modules);
+    let mut renderer = Renderer::new(&cfg, modules);
     renderer.render().await?;
+
     Ok(())
 }

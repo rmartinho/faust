@@ -1,4 +1,4 @@
-use std::{collections::HashMap, env, path::PathBuf};
+use std::{collections::HashMap, path::PathBuf};
 
 use implicit_clone::unsync::IString;
 use indexmap::IndexMap;
@@ -7,7 +7,7 @@ use silphium::{ModuleMap, model::Module};
 use tokio::{fs, io};
 
 use crate::{
-    args::Args,
+    args::Config,
     parse::{
         descr_mercenaries::Pool,
         descr_regions::Region,
@@ -26,17 +26,8 @@ mod manifest;
 mod text;
 mod utils;
 
-pub async fn parse_folder(args: &Args, manifest: Manifest) -> io::Result<ModuleMap> {
-    let manifest_path = args
-        .manifest
-        .clone()
-        .map(|m| m.parent().map(|p| p.to_path_buf()))
-        .flatten()
-        .unwrap_or_else(|| env::current_dir().unwrap());
-    let root = manifest
-        .dir
-        .map(|d| manifest_path.join(d))
-        .unwrap_or(manifest_path);
+pub async fn parse_folder(cfg: &Config) -> io::Result<ModuleMap> {
+    let root = &cfg.src_dir.join("data");
     let expanded_bi_path = root.join("text/expanded_bi.txt");
     let export_units_path = root.join("text/export_units.txt");
     let descr_mercenaries_path =
@@ -50,7 +41,7 @@ pub async fn parse_folder(args: &Args, manifest: Manifest) -> io::Result<ModuleM
     let export_units = tokio::spawn(parse_text(export_units_path));
     let descr_mercenaries = tokio::spawn(parse_descr_mercenaries(descr_mercenaries_path));
     let descr_regions = tokio::spawn(parse_descr_regions(descr_regions_path));
-    let descr_sm_factions = if manifest.mode == ParserMode::Original {
+    let descr_sm_factions = if cfg.manifest.mode == ParserMode::Original {
         tokio::spawn(parse_descr_sm_factions_og(descr_sm_factions_path))
     } else {
         tokio::spawn(parse_descr_sm_factions_rr(descr_sm_factions_path))
@@ -83,7 +74,7 @@ pub async fn parse_folder(args: &Args, manifest: Manifest) -> io::Result<ModuleM
         Module {
             id: "rtw".into(),
             name: "Vanilla".into(),
-            banner: "banner.png".into(),
+            banner: "faust/banner.png".into(),
             factions: model,
             aliases: Default::default(),
             eras: Default::default(),
@@ -127,8 +118,9 @@ fn build_model(
                         })
                         .map(|u| silphium::model::Unit {
                             id: u.id.clone().into(),
+                            key: u.key.clone().into(),
                             name: text.get(&u.key).cloned().unwrap_or(u.key.clone()).into(),
-                            image: format!("units/{}/#{}.tga", f.id, u.key).into(), // TODO
+                            image: format!("data/ui/units/{}/#{}.tga", f.id, u.key.to_lowercase()).into(), // TODO
                             soldiers: u.stats().soldiers,
                             officers: u.stats().officers,
                             attributes: vec![].into(), // TODO
