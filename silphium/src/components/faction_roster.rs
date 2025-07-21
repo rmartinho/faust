@@ -200,7 +200,7 @@ pub fn unit_card(unit: Unit) -> Html {
         <div class="frame">
           <img class="image" title={&unit.name} src={&unit.image} />
           <div class="size-row">
-            <img class="icon" src="/icons/stat/soldiers.svg" title="Soldiers"            />
+            <img class="icon" src="/icons/stat/soldiers.svg" title="Soldiers" />
             <div class="size" title={soldiers_title}>
               <span class="soldiers">{ unit.soldiers }</span>
               if unit.officers > 0 {

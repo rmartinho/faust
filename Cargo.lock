@@ -693,7 +693,6 @@ dependencies = [
  "clap",
  "console",
  "dont_disappear",
- "gloo",
  "image",
  "implicit-clone",
  "indexmap",
@@ -708,7 +707,6 @@ dependencies = [
  "tokio",
  "winresource",
  "yew",
- "yew-autoprops",
  "yew-router",
  "zip-dir",
 ]
