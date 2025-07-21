@@ -63,7 +63,6 @@ pub struct Unit {
     pub image: IString,
     pub soldiers: u32,
     pub officers: u32,
-    pub attributes: IArray<Attr>,
     pub formations: IArray<Formation>,
     pub hp: u32,
     pub hp_mount: u32,
@@ -78,20 +77,68 @@ pub struct Unit {
     pub turns: u32,
     pub cost: u32,
     pub upkeep: u32,
+
+    pub stamina: u32,
+    pub inexhaustible: bool,
+    pub infinite_ammo: bool,
+    pub scaling: bool,
+    pub abilities: IArray<Ability>,
+
+    pub horde: bool,
+    pub general: bool,
+    pub mercenary: bool,
+    pub legionary_name: bool,
+
     pub eras: IArray<IString>,
 }
 
-impl Unit {
-    pub fn stamina(&self) -> u32 {
-        match self.attributes.iter().find(|a| matches!(a, Attr::Stamina(_))) {
-            Some(Attr::Stamina(s)) => s,
-            _ => 0,
+#[derive(
+    PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ImplicitClone, Clone, Copy, Debug,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum Ability {
+    CantHide,
+    HideImprovedForest,
+    HideLongGrass,
+    HideAnywhere,
+    FrightenFoot,
+    FrightenMounted,
+    FrightenAll,
+    CanRunAmok,
+    // GeneralUnit,
+    CantabrianCircle,
+    Command,
+    Warcry,
+    PowerCharge,
+    Chant,
+    // Horde,
+    // LegionaryName,
+}
+
+impl Display for Ability {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::CantHide => write!(f, "cant-hide"),
+            Self::HideImprovedForest => write!(f, "hide-forest"),
+            Self::HideLongGrass => write!(f, "hide-grass"),
+            Self::HideAnywhere => write!(f, "hide-anywhere"),
+            Self::FrightenFoot => write!(f, "frighten-foot"),
+            Self::FrightenMounted => write!(f, "frighten-mounted"),
+            Self::FrightenAll => write!(f, "frighten-all"),
+            Self::CanRunAmok => write!(f, "can-run-amok"),
+            Self::CantabrianCircle => write!(f, "cantabrian-circle"),
+            Self::Command => write!(f, "command"),
+            Self::Warcry => write!(f, "warcry"),
+            Self::PowerCharge => write!(f, "power-charge"),
+            Self::Chant => write!(f, "chant"),
         }
     }
 }
 
 #[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
 pub struct Weapon {
+    #[serde(rename = "type")]
+    pub class: WeaponType,
     pub factor: u32,
     pub is_missile: bool,
     pub charge: u32,
@@ -101,7 +148,9 @@ pub struct Weapon {
     pub attributes: IArray<WeaponAttr>,
 }
 
-#[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Copy, Debug)]
+#[derive(
+    PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ImplicitClone, Clone, Copy, Debug,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum WeaponType {
     Melee,
@@ -125,30 +174,9 @@ pub struct Defense {
     pub shield: u32,
 }
 
-#[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Copy, Debug)]
-#[serde(rename_all = "snake_case")]
-pub enum Attr {
-    NoHide,
-    HideImprovedForest,
-    HideLongGrass,
-    HideAnywhere,
-    FrightenFoot,
-    FrightenMounted,
-    CanRunAmok,
-    GeneralUnit,
-    CantabrianCircle,
-    Command,
-    Stamina(u32),
-    Inexhaustible,
-    Warcry,
-    Chant,
-    Horde,
-    LegionaryName,
-    InfiniteAmmo,
-    NonScaling,
-}
-
-#[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Copy, Debug)]
+#[derive(
+    PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ImplicitClone, Clone, Copy, Debug,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum Formation {
     Square,
@@ -174,7 +202,9 @@ impl Display for Formation {
     }
 }
 
-#[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Copy, Debug)]
+#[derive(
+    PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ImplicitClone, Clone, Copy, Debug,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum Discipline {
     Low,
@@ -196,7 +226,9 @@ impl Display for Discipline {
     }
 }
 
-#[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Copy, Debug)]
+#[derive(
+    PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ImplicitClone, Clone, Copy, Debug,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum WeaponAttr {
     ArmorPiercing,

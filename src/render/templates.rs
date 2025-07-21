@@ -71,20 +71,20 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
         contents: include_bytes!("../../dist/fonts/blinker-bold.woff"),
     },
     StaticFile {
-        path: "icons/ability/amok.svg",
-        contents: include_bytes!("../../dist/icons/ability/amok.svg"),
+        path: "icons/ability/can-run-amok.svg",
+        contents: include_bytes!("../../dist/icons/ability/can-run-amok.svg"),
     },
     StaticFile {
-        path: "icons/ability/chants.svg",
-        contents: include_bytes!("../../dist/icons/ability/chants.svg"),
+        path: "icons/ability/chant.svg",
+        contents: include_bytes!("../../dist/icons/ability/chant.svg"),
     },
     StaticFile {
-        path: "icons/ability/circle.svg",
-        contents: include_bytes!("../../dist/icons/ability/circle.svg"),
+        path: "icons/ability/cantabrian-circle.svg",
+        contents: include_bytes!("../../dist/icons/ability/cantabrian-circle.svg"),
     },
     StaticFile {
-        path: "icons/ability/eagle.svg",
-        contents: include_bytes!("../../dist/icons/ability/eagle.svg"),
+        path: "icons/ability/command.svg",
+        contents: include_bytes!("../../dist/icons/ability/command.svg"),
     },
     StaticFile {
         path: "icons/ability/frighten-all.svg",
@@ -99,8 +99,8 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
         contents: include_bytes!("../../dist/icons/ability/frighten-mounted.svg"),
     },
     StaticFile {
-        path: "icons/ability/hearts.svg",
-        contents: include_bytes!("../../dist/icons/ability/hearts.svg"),
+        path: "icons/ability/heart.svg",
+        contents: include_bytes!("../../dist/icons/ability/heart.svg"),
     },
     StaticFile {
         path: "icons/ability/hide-anywhere.svg",
@@ -115,8 +115,8 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
         contents: include_bytes!("../../dist/icons/ability/hide-grass.svg"),
     },
     StaticFile {
-        path: "icons/ability/no-hide.svg",
-        contents: include_bytes!("../../dist/icons/ability/no-hide.svg"),
+        path: "icons/ability/cant-hide.svg",
+        contents: include_bytes!("../../dist/icons/ability/cant-hide.svg"),
     },
     StaticFile {
         path: "icons/ability/warcry.svg",

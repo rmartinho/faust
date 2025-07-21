@@ -52,6 +52,7 @@ pub struct Weapon {
     pub range: u32,
     pub ammo: u32,
     pub lethality: f64,
+    pub weapon_type: String,
     pub attributes: Vec<WeaponAttr>,
 }
 

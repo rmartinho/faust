@@ -4,7 +4,10 @@ use implicit_clone::unsync::IString;
 use indexmap::IndexMap;
 use indicatif::{MultiProgress, ProgressBar};
 use logos::Logos as _;
-use silphium::{ModuleMap, model::Module};
+use silphium::{
+    ModuleMap,
+    model::{Ability, Module, WeaponType},
+};
 use tokio::{fs, io};
 
 use crate::{
@@ -13,9 +16,10 @@ use crate::{
         descr_mercenaries::Pool,
         descr_regions::Region,
         export_descr_buildings::{Building, Requires},
+        export_descr_unit::Attr,
         manifest::ParserMode,
     },
-    utils::{progress_style, LOOKING_GLASS},
+    utils::{LOOKING_GLASS, progress_style},
 };
 pub use manifest::Manifest;
 
@@ -180,30 +184,109 @@ fn build_model(
                                 &aliases,
                             )
                         })
-                        .map(|u| silphium::model::Unit {
-                            id: u.id.clone().into(),
-                            key: u.key.clone().into(),
-                            name: text.get(&u.key).cloned().unwrap_or(u.key.clone()).into(),
-                            image: format!("data/ui/units/{}/#{}.tga", f.id, u.key.to_lowercase())
-                                .into(), // TODO
-                            soldiers: u.stats().soldiers,
-                            officers: u.stats().officers,
-                            attributes: vec![].into(), // TODO
-                            formations: u.stats().formations.clone().into(), // TODO
-                            hp: u.stats().hp,
-                            hp_mount: u.stats().hp_mount,
-                            primary_weapon: None,   // TODO
-                            secondary_weapon: None, // TODO
-                            defense: Some(u.stats().defense),
-                            defense_mount: Some(u.stats().defense_mount),
-                            heat: u.stats().heat,
-                            ground_bonus: u.stats().ground_bonus,
-                            morale: u.stats().morale,
-                            discipline: u.stats().discipline,
-                            turns: u.stats().turns,
-                            cost: u.stats().cost,
-                            upkeep: u.stats().upkeep,
-                            eras: vec![].into(), // TODO
+                        .map(|u| {
+                            let mut inexhaustible = false;
+                            let mut stamina = 0;
+                            let mut abilities = vec![];
+                            let mut cant_hide = true;
+                            let mut frighten_foot = false;
+                            let mut frighten_mounted = false;
+                            let mut infinite_ammo = false;
+                            let mut non_scaling = false;
+                            let mut horde = false;
+                            let mut general = false;
+                            let mut mercenary = false;
+                            let mut legionary_name = false;
+                            for attr in u.stats().attributes.iter() {
+                                match attr {
+                                    Attr::HideForest => cant_hide = false,
+                                    Attr::HideImprovedForest => {
+                                        cant_hide = false;
+                                        abilities.push(Ability::HideImprovedForest)
+                                    }
+                                    Attr::HideLongGrass => {
+                                        cant_hide = false;
+                                        abilities.push(Ability::HideLongGrass)
+                                    }
+                                    Attr::HideAnywhere => {
+                                        cant_hide = false;
+                                        abilities.push(Ability::HideAnywhere)
+                                    }
+                                    Attr::FrightenFoot => frighten_foot = true,
+                                    Attr::FrightenMounted => frighten_mounted = true,
+                                    Attr::CanRunAmok => abilities.push(Ability::CanRunAmok),
+                                    Attr::GeneralUnit => general = true,
+                                    // Attr::GeneralUnitUpgrade(_) => todo!(),
+                                    Attr::CantabrianCircle => {
+                                        abilities.push(Ability::CantabrianCircle)
+                                    }
+                                    Attr::Command => abilities.push(Ability::Command),
+                                    Attr::Druid | Attr::ScreechingWomen => {
+                                        abilities.push(Ability::Chant)
+                                    }
+                                    Attr::MercenaryUnit => mercenary = true,
+                                    Attr::Hardy => stamina += 2,
+                                    Attr::VeryHardy => stamina += 4,
+                                    Attr::ExtremelyHardy => stamina += 8,
+                                    Attr::Inexhaustible => inexhaustible = true,
+                                    Attr::Warcry => abilities.push(Ability::Warcry),
+                                    Attr::PowerCharge => abilities.push(Ability::PowerCharge),
+                                    Attr::CanHorde => horde = true,
+                                    Attr::LegionaryName => legionary_name = true,
+                                    Attr::InfiniteAmmo => infinite_ammo = true,
+                                    Attr::NonScaling => non_scaling = true,
+                                    _ => {}
+                                }
+                            }
+                            if cant_hide {
+                                abilities.push(Ability::CantHide)
+                            }
+                            if frighten_foot && frighten_mounted {
+                                abilities.push(Ability::FrightenAll)
+                            } else if frighten_foot {
+                                abilities.push(Ability::FrightenFoot)
+                            } else if frighten_mounted {
+                                abilities.push(Ability::FrightenMounted)
+                            }
+                            silphium::model::Unit {
+                                id: u.id.clone().into(),
+                                key: u.key.clone().into(),
+                                name: text.get(&u.key).cloned().unwrap_or(u.key.clone()).into(),
+                                image: format!(
+                                    "data/ui/units/{}/#{}.tga",
+                                    f.id,
+                                    u.key.to_lowercase()
+                                )
+                                .into(),
+                                soldiers: u.stats().soldiers,
+                                officers: u.stats().officers,
+                                formations: u.stats().formations.clone().into(),
+                                hp: u.stats().hp,
+                                hp_mount: u.stats().hp_mount,
+                                primary_weapon: build_weapon(&u.stats().primary_weapon),
+                                secondary_weapon: build_weapon(&u.stats().secondary_weapon),
+                                defense: Some(u.stats().defense),
+                                defense_mount: Some(u.stats().defense_mount),
+                                heat: u.stats().heat,
+                                ground_bonus: u.stats().ground_bonus,
+                                morale: u.stats().morale,
+                                discipline: u.stats().discipline,
+                                turns: u.stats().turns,
+                                cost: u.stats().cost,
+                                upkeep: u.stats().upkeep,
+                                eras: vec![].into(), // TODO
+
+                                stamina,
+                                inexhaustible,
+                                infinite_ammo,
+                                scaling: !non_scaling,
+                                horde,
+                                general,
+                                mercenary,
+                                legionary_name,
+
+                                abilities: abilities.into(),
+                            }
                         })
                         .collect(),
                 },
@@ -214,12 +297,58 @@ fn build_model(
     factions
 }
 
+fn build_weapon(weapon: &export_descr_unit::Weapon) -> Option<silphium::model::Weapon> {
+    if weapon.weapon_type == "no" {
+        return None;
+    }
+
+    let mut attributes = vec![];
+    let mut class = if weapon.missile != "no" {
+        WeaponType::Missile
+    } else {
+        WeaponType::Melee
+    };
+    for attr in weapon.attributes.iter() {
+        match attr {
+            export_descr_unit::WeaponAttr::ArmorPiercing => {
+                attributes.push(silphium::model::WeaponAttr::ArmorPiercing)
+            }
+            export_descr_unit::WeaponAttr::BodyPiercing => {
+                attributes.push(silphium::model::WeaponAttr::BodyPiercing)
+            }
+            export_descr_unit::WeaponAttr::Spear
+            | export_descr_unit::WeaponAttr::LongPike
+            | export_descr_unit::WeaponAttr::ShortPike
+            | export_descr_unit::WeaponAttr::LightSpear => class = WeaponType::Spear,
+            export_descr_unit::WeaponAttr::Precharge => attributes.push(silphium::model::WeaponAttr::Precharge),
+            export_descr_unit::WeaponAttr::Thrown => class = WeaponType::Thrown,
+            export_descr_unit::WeaponAttr::Launching => attributes.push(silphium::model::WeaponAttr::Launching),
+            export_descr_unit::WeaponAttr::Area => attributes.push(silphium::model::WeaponAttr::Area),
+            export_descr_unit::WeaponAttr::SpearBonus(n) => {
+                attributes.push(silphium::model::WeaponAttr::SpearBonus(*n))
+            }
+            export_descr_unit::WeaponAttr::Fire => attributes.push(silphium::model::WeaponAttr::Fire),
+        }
+    }
+
+    Some(silphium::model::Weapon {
+        class,
+        factor: weapon.factor,
+        is_missile: weapon.missile != "no",
+        charge: weapon.charge,
+        range: weapon.range,
+        ammo: weapon.ammo,
+        lethality: weapon.lethality,
+        attributes: attributes.into(),
+    })
+}
+
 fn is_general(unit: &export_descr_unit::Unit) -> bool {
     unit.rebalanced_stats
         .as_ref()
         .unwrap_or(&unit.stats)
         .attributes
-        .contains(&export_descr_unit::Attr::GeneralUnit)
+        .contains(&Attr::GeneralUnit)
 }
 
 fn require_ownership(unit: &export_descr_unit::Unit) -> Requires {

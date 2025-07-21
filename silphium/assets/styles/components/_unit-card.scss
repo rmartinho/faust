@@ -19,6 +19,7 @@
 
     $gap: 2px;
     $icon-size: 24px;
+    $small-icon-size: 20px;
     $strength-size: 1em;
     $row-height: 28px;
     $image-height: 112px;
@@ -105,8 +106,8 @@
           margin-left: calc(2 * $gap);
 
           img {
-            width: 20px;
-            height: 20px;
+            width: $small-icon-size;
+            height: $small-icon-size;
           }
         }
       }
@@ -204,7 +205,7 @@
         }
 
         .attribute {
-          height: 20px;
+          height: $small-icon-size;
         }
 
         span {
@@ -231,6 +232,16 @@
             @extend %stats;
             @extend %icon;
             grid-area: hp;
+            position: relative;
+            text-align: center;
+
+            span {
+              position: absolute;
+              font-size: x-small;
+              top: 36%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+            }
           }
         }
 

@@ -2,7 +2,7 @@ use implicit_clone::unsync::IArray;
 use yew::prelude::*;
 use yew_autoprops::autoprops;
 
-use crate::model::{Discipline, Formation, Unit};
+use crate::model::{Ability, Discipline, Formation, Unit};
 
 #[autoprops]
 #[function_component(FactionRoster)]
@@ -32,26 +32,26 @@ pub fn faction_roster(roster: IArray<Unit>) -> Html {
 pub fn stamina_details(unit: Unit) -> Html {
     use std::fmt::Write as _;
 
-    let stamina = unit.stamina();
-    let mut title = if stamina == u32::MAX {
+    let title = if unit.inexhaustible {
         "Inexhaustible".into()
     } else {
-        format!("{} stamina", stamina)
+        let mut title = format!("{} stamina", unit.stamina);
+        if unit.heat != 0 {
+            let _ = write!(
+                title,
+                "\nHeat {}: {:+}",
+                if unit.heat > 0 { "penalty" } else { "bonus" },
+                -unit.heat,
+            );
+        }
+        title
     };
-    if unit.heat != 0 {
-        let _ = write!(
-            title,
-            "\nHeat {}: {:+}",
-            if unit.heat > 0 { "penalty" } else { "bonus" },
-            -unit.heat,
-        );
-    }
 
     html! {
       <div class="stamina" {title}>
-        if stamina > 0 {
+        if unit.stamina > 0 {
           <img src="/icons/attribute/stamina.svg" class="attribute" />
-          <span>{ stamina }</span>
+          <span>{ unit.stamina }</span>
           if unit.heat != 0 {
             <img src="/icons/attribute/heat.svg" class="attribute" />
             <span>{ format!("{:+}", -unit.heat) }</span>
@@ -173,6 +173,27 @@ pub fn unit_card(unit: Unit) -> Html {
         Discipline::Berserker => "Berserker",
     };
 
+    let abilities = unit.abilities.iter().map(|ab| {
+        let title = match ab {
+            Ability::CantHide => "Cannot hide",
+            Ability::HideImprovedForest => "Can hide well in forests",
+            Ability::HideLongGrass => "Can hide in long grass",
+            Ability::HideAnywhere => "Can hide anywhere",
+            Ability::FrightenFoot => "Frightens nearby infantry",
+            Ability::FrightenMounted => "Frightens nearby cavalry",
+            Ability::FrightenAll => "Frightens nearby units",
+            Ability::CanRunAmok => "Can run amok",
+            Ability::CantabrianCircle => "Can form Cantabrian circle",
+            Ability::Command => "Inspires nearby units",
+            Ability::Warcry => "Can perform warcry to increase attack",
+            Ability::PowerCharge => "Powerful charge",
+            Ability::Chant => "Can chant to affect morale",
+        };
+        html! {
+          <img class="ability" src={format!("/icons/ability/{}.svg", ab)} {title} />
+        }
+    });
+
     html! {
       <div class="unit-card">
         <div class="name">{ unit.name.clone() }</div>
@@ -212,12 +233,15 @@ pub fn unit_card(unit: Unit) -> Html {
             <img class="icon" src={format!("/icons/discipline/{}.svg", unit.discipline)} title={discipline_tooltip} />
             <div class="mental" title={format!("Morale: {}", unit.morale)}>
               <span class="morale">{ unit.morale }</span>
-              if unit.stamina() > 0 {
+              if unit.stamina > 0 || unit.inexhaustible {
                 <StaminaDetails unit={&unit} />
               }
             </div>
           </div>
           <TerrainDetails unit={&unit} />
+          <div class="abilities">
+            {for abilities}
+          </div>
         </div>
       </div>
     }

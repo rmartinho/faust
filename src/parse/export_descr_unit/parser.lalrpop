@@ -152,7 +152,7 @@ Weapon<StatKey, AttrKey>: Weapon =
         <missile:Ident> ","
         <range:int> ","
         <ammo:int> ","
-        Ident ","
+        <weapon_type:Ident> ","
         Ident ","
         Ident ","
         Ident ","
