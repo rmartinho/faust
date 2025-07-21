@@ -2,7 +2,7 @@ use implicit_clone::unsync::IArray;
 use yew::prelude::*;
 use yew_autoprops::autoprops;
 
-use crate::model::{Ability, Defense, Discipline, Formation, Unit};
+use crate::model::{Ability, Defense, Discipline, Formation, Unit, Weapon, WeaponType};
 
 #[autoprops]
 #[function_component(FactionRoster)]
@@ -135,8 +135,16 @@ pub fn unit_card(unit: Unit) -> Html {
             </div>
           </div>
           <TerrainDetails unit={&unit} />
+          if let Some(ref weapon) = unit.primary_weapon {
+            <WeaponRow class="weapon1-row" unit={&unit} {weapon} />
+          }
+          if let Some(ref weapon) = unit.secondary_weapon {
+            <WeaponRow class="weapon2-row" unit={&unit} {weapon} />
+          }
           <DefenseRow class="defense1-row" def={&unit.defense} hp={unit.hp} />
-          <DefenseRow class="defense2-row" mount={true} def={&unit.defense_mount} hp={unit.hp_mount} />
+          if unit.has_mount {
+            <DefenseRow class="defense2-row" mount={true} def={&unit.defense_mount} hp={unit.hp_mount} />
+          }
           <div class="abilities">
             {for abilities}
           </div>
@@ -250,6 +258,89 @@ pub fn stamina_details(unit: Unit) -> Html {
 }
 
 #[autoprops]
+#[function_component(WeaponRow)]
+pub fn weapon_row(#[prop_or_default] class: AttrValue, unit: Unit, weapon: Weapon) -> Html {
+    use std::fmt::Write as _;
+
+    let (icon, mut title) = match weapon.class {
+        WeaponType::Melee => ("/icons/weapon/blade.svg", "Melee weapon".to_string()),
+        WeaponType::Spear => ("/icons/weapon/spear.svg", "Spear".into()),
+        WeaponType::Missile => ("/icons/weapon/missile.svg", "Missile weapon".into()),
+        WeaponType::Thrown => ("/icons/weapon/thrown.svg", "Thrown weapon".into()),
+    };
+    let lethality = format!("{}%", (weapon.lethality * 100.0).round());
+    if weapon.lethality != 1.0 {
+        let _ = write!(title, "\n    {} lethal", lethality);
+    }
+    let title: AttrValue = title.into();
+
+    let strength = weapon.factor;
+    let mut details = format!("Strength: {strength}");
+    let extra = if weapon.is_missile {
+        weapon.range
+    } else {
+        weapon.charge
+    };
+    if extra > 0 {
+        let _ = write!(
+            details,
+            "\n{}: {extra}",
+            if weapon.is_missile {
+                "Range"
+            } else {
+                "Charge bonus"
+            }
+        );
+    }
+    if weapon.is_missile && !unit.infinite_ammo {
+        let _ = write!(details, "\nAmmo: {}", weapon.ammo);
+    }
+    if weapon.spear_bonus > 0 {
+        let _ = write!(details, "\nBonus against cavalry: {}", weapon.spear_bonus);
+    }
+    if weapon.armor_piercing {
+        let _ = write!(details, "\nArmor piercing");
+    }
+    if weapon.pre_charge {
+        let _ = write!(details, "\nThrown before charge");
+    }
+    let details: AttrValue = details.into();
+
+    html! {
+      <div {class}>
+        <img class="icon" src={icon} title={&title} />
+        if weapon.lethality != 1.0 {
+          <div class="lethality" title={&title}>{ lethality }</div>
+        }
+        <div class="strength" title={&details}>{ strength }</div>
+        <div class="details" title={&details}>
+          if weapon.is_missile {
+            <img src="/icons/attribute/range.svg" class="attribute" />
+            <span>{ weapon.range }</span>
+            if !unit.infinite_ammo {
+              <img src="/icons/attribute/ammo.svg" class="attribute" />
+              <span>{ weapon.ammo }</span>
+            }
+          } else if weapon.charge > 0 {
+            <img src="/icons/attribute/charge.svg" class="attribute" />
+            <span>{ weapon.charge }</span>
+          }
+          if weapon.spear_bonus > 0 {
+            <img src="/icons/attribute/against-cavalry.svg" class="attribute" />
+            <span>{ weapon.spear_bonus }</span>
+          }
+          if weapon.armor_piercing {
+            <img src="/icons/attribute/armor-piercing.svg" class="attribute" />
+          }
+          if weapon.pre_charge {
+            <img src="/icons/attribute/precharge.svg" class="attribute" />
+          }
+        </div>
+      </div>
+    }
+}
+
+#[autoprops]
 #[function_component(DefenseRow)]
 pub fn defense_row(
     #[prop_or_default] class: AttrValue,
@@ -269,24 +360,25 @@ pub fn defense_row(
     let strength = def.total();
     let mut details = format!("Defense: {strength}");
     if def.armor > 0 {
-      let _ = write!(details, "\n    Armor: {}", def.armor);
+        let _ = write!(details, "\n    Armor: {}", def.armor);
     }
     if def.skill > 0 {
-      let _ = write!(details, "\n    Skill: {}", def.skill);
+        let _ = write!(details, "\n    Skill: {}", def.skill);
     }
     if def.shield > 0 {
-      let _ = write!(details, "\n    Shield: {}", def.shield);
+        let _ = write!(details, "\n    Shield: {}", def.shield);
     }
+    let details: AttrValue = details.into();
 
-   html! {
+    html! {
       <>
         if strength > 0 || hp > 1 {
           <div {class}>
             <img class="icon" src={icon} {title} />
-            <div class="strength" title={details}>
+            <div class="strength" title={&details}>
               { if strength > 0 { strength } else { 0 } }
             </div>
-            <div class="details" {title}>
+            <div class="details" title={&details}>
               if def.armor > 0 {
                 <img src="/icons/attribute/armor.svg" class="attribute" />
                 <span>{ def.armor }</span>

@@ -27,6 +27,7 @@ impl Unit {
 pub struct StatBlock {
     pub soldiers: u32,
     pub officers: u32,
+    pub mount: Option<String>,
     pub attributes: Vec<Attr>,
     pub formations: Vec<Formation>,
     pub hp: u32,

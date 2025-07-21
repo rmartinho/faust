@@ -36,7 +36,7 @@ StatBlock: StatBlock =
         ("ship" Ident+ "\n"+)?
         ("engine" Ident+ "\n"+)?
         ("animal" Ident+ "\n"+)?
-        ("mount" Ident+ "\n"+)?
+        <mount:("mount" <Mount> "\n"+)?>
         ("mount_effect" SepBy<(Ident Bonus), ","> "\n"+)?
         "attributes" <attributes:SepBy<Attr, ",">> "\n"+
         "formation" Float "," Float "," Float "," Float "," int "," <formations:SepBy<Formation, ",">> "\n"+
@@ -53,6 +53,8 @@ StatBlock: StatBlock =
         "stat_food" int "," int "\n"+
         "stat_cost" <turns:int> "," <cost:int> "," <upkeep:int> "," int "," int "," int
     => StatBlock {<>};
+
+Mount: String = Ident+ => (<>).join(" ");
 
 Attr: Attr = {
     "sea_faring" => Attr::SeaFaring,

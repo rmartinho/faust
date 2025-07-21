@@ -167,7 +167,7 @@
           align-items: center;
 
           .attribute {
-            margin-left: 2px;
+            margin-left: $gap;
             height: 1em;
           }
         }
@@ -204,14 +204,14 @@
           grid-area: snow;
         }
 
-        .attribute {
-          height: $small-icon-size;
-        }
-
         span {
           font-size: small;
           justify-self: left;
         }
+      }
+
+      .attribute {
+        height: $small-icon-size;
       }
 
       .weapon1-row,
@@ -266,6 +266,15 @@
         .details {
           @extend %combat-stats;
           grid-area: details;
+          display: flex;
+          font-size: smaller;
+          justify-self: start;
+          align-items: center;
+
+          .attribute {
+            height: 1em;
+            margin-left: 1px;
+          }
         }
       }
       .weapon1-row {

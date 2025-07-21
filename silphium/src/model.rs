@@ -63,6 +63,7 @@ pub struct Unit {
     pub image: IString,
     pub soldiers: u32,
     pub officers: u32,
+    pub has_mount: bool,
     pub formations: IArray<Formation>,
     pub hp: u32,
     pub hp_mount: u32,
@@ -145,7 +146,13 @@ pub struct Weapon {
     pub range: u32,
     pub ammo: u32,
     pub lethality: f64,
-    pub attributes: IArray<WeaponAttr>,
+    pub armor_piercing: bool,
+    pub body_piercing: bool,
+    pub pre_charge: bool,
+    pub launching: bool,
+    pub area: bool,
+    pub fire: bool,
+    pub spear_bonus: u32,
 }
 
 #[derive(
@@ -230,19 +237,4 @@ impl Display for Discipline {
             Self::Berserker => write!(f, "berserker"),
         }
     }
-}
-
-#[derive(
-    PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ImplicitClone, Clone, Copy, Debug,
-)]
-#[serde(rename_all = "snake_case")]
-pub enum WeaponAttr {
-    ArmorPiercing,
-    BodyPiercing,
-    Precharge,
-    Thrown,
-    Launching,
-    Area,
-    SpearBonus(u32),
-    Fire,
 }

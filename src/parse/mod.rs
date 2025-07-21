@@ -160,7 +160,7 @@ fn build_model(
     aliases: HashMap<String, Requires>,
     text: HashMap<String, String>,
 ) -> IndexMap<IString, silphium::model::Faction> {
-    let unit_map = raw_units.into_iter().map(|u| (u.id.clone(), u)).collect();
+    let unit_map: IndexMap<_, _> = raw_units.into_iter().map(|u| (u.id.clone(), u)).collect();
     let requires = build_requires(raw_buildings, &unit_map);
 
     let factions = raw_factions
@@ -260,6 +260,12 @@ fn build_model(
                                 .into(),
                                 soldiers: u.stats().soldiers,
                                 officers: u.stats().officers,
+                                has_mount: u
+                                    .stats()
+                                    .mount
+                                    .as_ref()
+                                    .map(|m| !m.contains("horse"))
+                                    .unwrap_or(false),
                                 formations: u.stats().formations.clone().into(),
                                 hp: u.stats().hp,
                                 hp_mount: u.stats().hp_mount,
@@ -302,32 +308,32 @@ fn build_weapon(weapon: &export_descr_unit::Weapon) -> Option<silphium::model::W
         return None;
     }
 
-    let mut attributes = vec![];
     let mut class = if weapon.missile != "no" {
         WeaponType::Missile
     } else {
         WeaponType::Melee
     };
+    let mut armor_piercing = false;
+    let mut body_piercing = false;
+    let mut pre_charge = false;
+    let mut launching = false;
+    let mut area = false;
+    let mut fire = false;
+    let mut spear_bonus = 0;
     for attr in weapon.attributes.iter() {
         match attr {
-            export_descr_unit::WeaponAttr::ArmorPiercing => {
-                attributes.push(silphium::model::WeaponAttr::ArmorPiercing)
-            }
-            export_descr_unit::WeaponAttr::BodyPiercing => {
-                attributes.push(silphium::model::WeaponAttr::BodyPiercing)
-            }
+            export_descr_unit::WeaponAttr::ArmorPiercing => armor_piercing = true,
+            export_descr_unit::WeaponAttr::BodyPiercing => body_piercing = true,
             export_descr_unit::WeaponAttr::Spear
             | export_descr_unit::WeaponAttr::LongPike
             | export_descr_unit::WeaponAttr::ShortPike
             | export_descr_unit::WeaponAttr::LightSpear => class = WeaponType::Spear,
-            export_descr_unit::WeaponAttr::Precharge => attributes.push(silphium::model::WeaponAttr::Precharge),
+            export_descr_unit::WeaponAttr::Precharge => pre_charge = true,
             export_descr_unit::WeaponAttr::Thrown => class = WeaponType::Thrown,
-            export_descr_unit::WeaponAttr::Launching => attributes.push(silphium::model::WeaponAttr::Launching),
-            export_descr_unit::WeaponAttr::Area => attributes.push(silphium::model::WeaponAttr::Area),
-            export_descr_unit::WeaponAttr::SpearBonus(n) => {
-                attributes.push(silphium::model::WeaponAttr::SpearBonus(*n))
-            }
-            export_descr_unit::WeaponAttr::Fire => attributes.push(silphium::model::WeaponAttr::Fire),
+            export_descr_unit::WeaponAttr::Launching => launching = true,
+            export_descr_unit::WeaponAttr::Area => area = true,
+            export_descr_unit::WeaponAttr::SpearBonus(n) => spear_bonus = *n,
+            export_descr_unit::WeaponAttr::Fire => fire = true,
         }
     }
 
@@ -339,7 +345,13 @@ fn build_weapon(weapon: &export_descr_unit::Weapon) -> Option<silphium::model::W
         range: weapon.range,
         ammo: weapon.ammo,
         lethality: weapon.lethality,
-        attributes: attributes.into(),
+        armor_piercing,
+        body_piercing,
+        pre_charge,
+        launching,
+        area,
+        fire,
+        spear_bonus,
     })
 }
 
@@ -357,7 +369,7 @@ fn require_ownership(unit: &export_descr_unit::Unit) -> Requires {
 
 fn build_requires(
     raw_buildings: Vec<Building>,
-    unit_map: &HashMap<String, export_descr_unit::Unit>,
+    unit_map: &IndexMap<String, export_descr_unit::Unit>,
 ) -> HashMap<String, Requires> {
     raw_buildings
         .into_iter()
