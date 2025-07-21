@@ -17,8 +17,8 @@ use yew_router::Routable as _;
 
 use crate::{
     args::Config,
-    render::templates::{FILESYSTEM_STATIC, IndexHtml, RedirectHtml},
-    utils::{FOLDER, LINK, PAPER, PICTURE, progress_style, read_file, write_file},
+    render::templates::{IndexHtml, RedirectHtml, FILESYSTEM_STATIC},
+    utils::{path_fallback, progress_style, read_file, write_file, FOLDER, LINK, PAPER, PICTURE},
 };
 
 #[derive(Clone)]
@@ -58,7 +58,7 @@ impl Renderer {
         pb.tick();
         pb.set_message(format!("{PICTURE}rendering images"));
         for m in self.modules.values_mut() {
-            let src = self.cfg.src_dir.join(m.banner.as_ref());
+            let src = path_fallback(&self.cfg, m.banner.as_ref());
             let banner_path = Self::module_banner_path(m);
             let dst = self.cfg.out_dir.join(&banner_path);
             pb.tick();
@@ -66,7 +66,7 @@ impl Renderer {
             Self::render_image(&src, &dst, MOD_BANNER_SIZE).await?;
 
             for f in m.factions.values_mut() {
-                let src = self.cfg.src_dir.join(f.image.as_ref());
+                let src = path_fallback(&self.cfg, f.image.as_ref());
                 let symbol_path = Self::faction_symbol_path(&m.id, f);
                 let dst = self.cfg.out_dir.join(&symbol_path);
                 pb.tick();
@@ -75,7 +75,7 @@ impl Renderer {
 
                 let mut roster: Vec<_> = f.roster.iter().collect();
                 for u in roster.iter_mut() {
-                    let src = self.cfg.src_dir.join(u.image.as_ref());
+                    let src = path_fallback(&self.cfg, u.image.as_ref());
                     let portrait_path = Self::unit_portrait_path(&m.id, &f.id, u);
                     let dst = self.cfg.out_dir.join(&portrait_path);
                     pb.tick();
@@ -119,10 +119,6 @@ impl Renderer {
     }
 
     async fn render_image(from: &Path, to: &Path, (height, width): (u32, u32)) -> io::Result<()> {
-        if !from.exists() {
-            // TODO 
-            return Ok(())
-        }
         let buf = read_file(from).await?;
         let format = ImageFormat::from_path(from).map_err(from_image_error)?;
         let img = ImageReader::with_format(Cursor::new(buf), format)

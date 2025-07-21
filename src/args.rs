@@ -20,6 +20,8 @@ pub struct GenerateArgs {
     pub manifest: Option<PathBuf>,
     #[arg(short, long, help = "where to output the site")]
     pub out_dir: Option<PathBuf>,
+    #[arg(short, long, help = "base game path (for fallbacks)")]
+    pub base_game_path: Option<PathBuf>,
 }
 
 #[derive(Subcommand, Debug)]
@@ -35,6 +37,7 @@ pub struct Config {
     pub manifest: Manifest,
     pub src_dir: PathBuf,
     pub out_dir: PathBuf,
+    pub fallback_dir: PathBuf,
 }
 
 impl Config {
@@ -58,11 +61,13 @@ impl Config {
             .or_else(|| manifest_dir.parent().map(|p| p.to_path_buf()))
             .unwrap_or_else(|| manifest_dir.clone());
         let out_dir = args.out_dir.unwrap_or_else(|| manifest_dir.join("site"));
+        let fallback_dir = args.base_game_path.unwrap_or_else(|| src_dir.join(".."));
 
         Ok(Self {
             manifest,
             out_dir,
             src_dir,
+            fallback_dir,
         })
     }
 }

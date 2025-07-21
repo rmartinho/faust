@@ -1,6 +1,7 @@
 use std::{
     collections::HashMap,
     path::{Path, PathBuf},
+    time::Duration,
 };
 
 use implicit_clone::unsync::IString;
@@ -21,7 +22,7 @@ use crate::{
         export_descr_unit::Attr,
         manifest::ParserMode,
     },
-    utils::{LOOKING_GLASS, progress_style},
+    utils::{LOOKING_GLASS, THINKING, path_fallback, progress_style},
 };
 pub use manifest::Manifest;
 
@@ -34,7 +35,7 @@ mod manifest;
 mod text;
 mod utils;
 
-fn try_paths<'a>(root: &Path, paths: impl AsRef<[&'a str]>) -> PathBuf {
+fn do_try_paths<'a>(root: &Path, paths: &[&'a str]) -> PathBuf {
     for path in paths.as_ref().iter() {
         let file = root.join(path);
         if file.exists() {
@@ -44,33 +45,41 @@ fn try_paths<'a>(root: &Path, paths: impl AsRef<[&'a str]>) -> PathBuf {
     return paths.as_ref()[0].into();
 }
 
+fn try_paths<'a>(cfg: &Config, paths: impl AsRef<[&'a str]>) -> PathBuf {
+    let first = do_try_paths(&cfg.src_dir, paths.as_ref());
+    if first.exists() {
+        first
+    } else {
+        do_try_paths(&cfg.fallback_dir, paths.as_ref())
+    }
+}
+
 pub async fn parse_folder(cfg: &Config) -> io::Result<ModuleMap> {
-    let root = &cfg.src_dir.join("data");
-    let expanded_bi_path = root.join("text/expanded_bi.txt");
-    let export_units_path = root.join("text/export_units.txt");
+    let expanded_bi_path = path_fallback(cfg, "data/text/expanded_bi.txt");
+    let export_units_path = path_fallback(cfg, "data/text/export_units.txt");
     let descr_mercenaries_path = try_paths(
-        root,
+        cfg,
         [
             &format!(
-                "world/maps/campaign/{}/descr_mercenaries.txt",
+                "data/world/maps/campaign/{}/descr_mercenaries.txt",
                 cfg.manifest.campaign
             ),
-            "world/maps/base/descr_mercenaries.txt",
+            "data/world/maps/base/descr_mercenaries.txt",
         ],
     );
     let descr_regions_path = try_paths(
-        root,
+        cfg,
         [
             &format!(
-                "world/maps/campaign/{}/descr_regions.txt",
+                "data/world/maps/campaign/{}/descr_regions.txt",
                 cfg.manifest.campaign
             ),
-            "world/maps/base/descr_regions.txt",
+            "data/world/maps/base/descr_regions.txt",
         ],
     );
-    let descr_sm_factions_path = root.join("descr_sm_factions.txt");
-    let export_descr_unit_path = root.join("export_descr_unit.txt");
-    let export_descr_buildings_path = root.join("export_descr_buildings.txt");
+    let descr_sm_factions_path = path_fallback(cfg, "data/descr_sm_factions.txt");
+    let export_descr_unit_path = path_fallback(cfg, "data/export_descr_unit.txt");
+    let export_descr_buildings_path = path_fallback(cfg, "data/export_descr_buildings.txt");
 
     let m = MultiProgress::new();
     let mut text = parse_progress(
@@ -135,8 +144,11 @@ pub async fn parse_folder(cfg: &Config) -> io::Result<ModuleMap> {
     )
     .await?;
 
-    let _ = m.clear();
-
+    let pb = m.add(ProgressBar::new_spinner());
+    pb.set_style(progress_style());
+    pb.set_prefix("[8/8]");
+    pb.set_message(format!("{THINKING}processing mod data..."));
+    pb.enable_steady_tick(Duration::from_millis(200));
     let model = build_model(
         units,
         factions,
@@ -146,12 +158,13 @@ pub async fn parse_folder(cfg: &Config) -> io::Result<ModuleMap> {
         require_aliases,
         text,
     );
+    let _ = m.clear();
 
     let module_map = ModuleMap::from([(
-        IString::from("rtw"),
+        IString::from(&cfg.manifest.id),
         Module {
-            id: "rtw".into(),
-            name: "Vanilla".into(),
+            id: cfg.manifest.id.clone().into(),
+            name: cfg.manifest.name.clone().into(),
             banner: "faust/banner.png".into(),
             factions: model,
             aliases: Default::default(),
@@ -202,10 +215,10 @@ fn build_model(
                 silphium::model::Faction {
                     id: f.id.clone().into(),
                     name: text.get(&f.name).cloned().unwrap_or(f.name.clone()).into(),
-                    image: format!("{}", f.logo.to_str().unwrap()).into(), // TODO
-                    alias: None,                                           // TODO
-                    eras: vec![].into(),                                   // TODO
-                    is_horde: false,                                       // TODO
+                    image: format!("{}", f.logo.to_str().unwrap()).into(),
+                    alias: None,         // TODO
+                    eras: vec![].into(), // TODO
+                    is_horde: false,     // TODO
                     roster: unit_map
                         .values()
                         .filter(|u| {
