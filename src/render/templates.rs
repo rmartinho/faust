@@ -119,6 +119,10 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
         contents: include_bytes!("../../dist/icons/ability/cant-hide.svg"),
     },
     StaticFile {
+        path: "icons/ability/power-charge.svg",
+        contents: include_bytes!("../../dist/icons/ability/power-charge.svg"),
+    },
+    StaticFile {
         path: "icons/ability/warcry.svg",
         contents: include_bytes!("../../dist/icons/ability/warcry.svg"),
     },
