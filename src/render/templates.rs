@@ -35,16 +35,16 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
         contents: include_bytes!("../../dist/favicon.png"),
     },
     StaticFile {
-        path: "main.css",
-        contents: include_bytes!("../../dist/main.css"),
+        path: "styles/main.css",
+        contents: include_bytes!("../../dist/styles/main.css"),
     },
     StaticFile {
-        path: "silphium.js",
-        contents: include_bytes!("../../dist/silphium.js"),
+        path: "scripts/silphium.js",
+        contents: include_bytes!("../../dist/scripts/silphium.js"),
     },
     StaticFile {
-        path: "silphium_bg.wasm",
-        contents: include_bytes!("../../dist/silphium_bg.wasm"),
+        path: "scripts/silphium_bg.wasm",
+        contents: include_bytes!("../../dist/scripts/silphium_bg.wasm"),
     },
     StaticFile {
         path: "fonts/blinker-regular-1.woff2",
