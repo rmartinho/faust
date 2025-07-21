@@ -31,7 +31,7 @@ Unit: Unit =
     => Unit {<>};
 
 StatBlock: StatBlock =
-        "soldier" Ident "," <soldiers:int> "," int "," Float ("," Float "," Float)?"\n"+
+        <soldiers:Soldiers>
         <officers:Officers>
         ("ship" Ident+ "\n"+)?
         ("engine" Ident+ "\n"+)?
@@ -39,7 +39,7 @@ StatBlock: StatBlock =
         <mount:("mount" <Mount> "\n"+)?>
         ("mount_effect" SepBy<(Ident Bonus), ","> "\n"+)?
         "attributes" <attributes:SepBy<Attr, ",">> "\n"+
-        "formation" Float "," Float "," Float "," Float "," int "," <formations:SepBy<Formation, ",">> "\n"+
+        "formation" Float "," Float "," Float "," Float ","? int "," <formations:SepBy<Formation, ",">> "\n"+
         "stat_health" <hp:int> "," <hp_mount:int> "\n"+
         <primary_weapon:Weapon<"stat_pri", "stat_pri_attr">>
         <secondary_weapon:Weapon<"stat_sec", "stat_sec_attr">>
@@ -53,6 +53,17 @@ StatBlock: StatBlock =
         "stat_food" int "," int "\n"+
         "stat_cost" <turns:int> "," <cost:int> "," <upkeep:int> "," int "," int "," int
     => StatBlock {<>};
+
+Soldiers: u32 = {
+    "soldier" Ident "," <int> "," int "," Float ("," Float "," Float)? "\n"+,
+    "soldiers" <int> "," int "," Float ("," Float "," Float)? "\n"+
+    "{" "\n"+
+        Ident "\n"+
+        "{" "\n"+
+            (Ident "\n"+)+
+        "}" "\n"+
+    "}" "\n"+
+};
 
 Mount: String = Ident+ => (<>).join(" ");
 
@@ -137,10 +148,7 @@ WeaponAttr: UpToTwo<WeaponAttr> = {
 }
 
 Officers: u32 = {
-    Officer Officer Officer => 3,
-    Officer Officer => 2,
-    Officer => 1,
-    => 0,
+    <Officer*> => (<>).len() as _,
 };
 Officer: () = "officer" Ident "\n"+ => ();
 
@@ -186,6 +194,7 @@ Ident: String = {
     "voice_type" => "voice_type".into(),
     "voice_indexes" => "voice_indexes".into(),
     "soldier" => "soldier".into(),
+    "soldiers" => "soldiers".into(),
     "officer" => "officer".into(),
     "ship" => "ship".into(),
     "engine" => "engine".into(),
@@ -317,6 +326,7 @@ extern {
         "voice_type" => Token::Ident("voice_type"),
         "voice_indexes" => Token::Ident("voice_indexes"),
         "soldier" => Token::Ident("soldier"),
+        "soldiers" => Token::Ident("soldiers"),
         "officer" => Token::Ident("officer"),
         "ship" => Token::Ident("ship"),
         "engine" => Token::Ident("engine"),
@@ -415,6 +425,8 @@ extern {
         "+" => Token::Plus,
         "-" => Token::Minus,
         "," => Token::Comma,
+        "{" => Token::OpenBrace,
+        "}" => Token::CloseBrace,
         string => Token::String(<&'source str>),
         ident => Token::Ident(<&'source str>),
         int => Token::Int(<u32>),

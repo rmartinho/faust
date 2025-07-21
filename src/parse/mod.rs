@@ -73,66 +73,68 @@ pub async fn parse_folder(cfg: &Config) -> io::Result<ModuleMap> {
     let export_descr_buildings_path = root.join("export_descr_buildings.txt");
 
     let m = MultiProgress::new();
-    let expanded_bi = tokio::spawn(parse_progress(
+    let mut text = parse_progress(
         m.clone(),
         1,
         expanded_bi_path.clone(),
         parse_text(expanded_bi_path),
-    ));
-    let export_units = tokio::spawn(parse_progress(
+    )
+    .await?;
+    let export_units = parse_progress(
         m.clone(),
         2,
         export_units_path.clone(),
         parse_text(export_units_path),
-    ));
-    let descr_mercenaries = tokio::spawn(parse_progress(
+    )
+    .await?;
+    text.extend(export_units.into_iter());
+
+    let pools = parse_progress(
         m.clone(),
         3,
         descr_mercenaries_path.clone(),
         parse_descr_mercenaries(descr_mercenaries_path),
-    ));
-    let descr_regions = tokio::spawn(parse_progress(
+    )
+    .await?;
+    let regions = parse_progress(
         m.clone(),
         4,
         descr_regions_path.clone(),
         parse_descr_regions(descr_regions_path),
-    ));
-    let descr_sm_factions = if cfg.manifest.mode == ParserMode::Original {
-        tokio::spawn(parse_progress(
+    )
+    .await?;
+    let factions = if cfg.manifest.mode == ParserMode::Original {
+        parse_progress(
             m.clone(),
             5,
             descr_sm_factions_path.clone(),
             parse_descr_sm_factions_og(descr_sm_factions_path),
-        ))
+        )
+        .await?
     } else {
-        tokio::spawn(parse_progress(
+        parse_progress(
             m.clone(),
             5,
             descr_sm_factions_path.clone(),
             parse_descr_sm_factions_rr(descr_sm_factions_path),
-        ))
+        )
+        .await?
     };
-    let export_descr_unit = tokio::spawn(parse_progress(
+    let units = parse_progress(
         m.clone(),
         6,
         export_descr_unit_path.clone(),
         parse_export_descr_unit(export_descr_unit_path),
-    ));
-    let export_descr_buildings = tokio::spawn(parse_progress(
+    )
+    .await?;
+    let (require_aliases, buildings) = parse_progress(
         m.clone(),
         7,
         export_descr_buildings_path.clone(),
         parse_export_descr_buildings(export_descr_buildings_path),
-    ));
+    )
+    .await?;
 
-    let mut text = expanded_bi.await??;
-    text.extend(export_units.await??.into_iter());
-
-    let pools = descr_mercenaries.await??;
-    let regions = descr_regions.await??;
-    let factions = descr_sm_factions.await??;
-    let units = export_descr_unit.await??;
-    let (require_aliases, buildings) = export_descr_buildings.await??;
     let _ = m.clear();
 
     let model = build_model(

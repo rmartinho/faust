@@ -71,7 +71,7 @@ pub mod rr {
         #[regex(";[^\n]*", skip)]
         Comment,
 
-        #[regex("[ \t\n]+", skip)]
+        #[regex("[ \t\r\n]+", skip)]
         Whitespace,
     }
 }

@@ -28,6 +28,11 @@ pub enum Token<'source> {
     #[token(",")]
     Comma,
 
+    #[token("{")]
+    OpenBrace,
+    #[token("}")]
+    CloseBrace,
+
     #[regex(";[^\n]*", skip)]
     Comment,
 

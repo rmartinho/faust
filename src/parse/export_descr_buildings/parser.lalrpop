@@ -22,14 +22,18 @@ DisplayString = "display_string" Ident;
 
 Building =
     "building" Ident "{"
-        ("tag" Ident)?
-        ("icon" Ident)?
-        ("classification" Ident)? // TODO any order
+        PreLevelEntry*
         "levels" Ident+ "{"
             <Level*>
         "}"
         "plugins" "{" "}"
     "}";
+
+PreLevelEntry: () = {
+    "tag" Ident => (),
+    "icon" Ident => (),
+    "classification" Ident => (),
+};
 
 Level: Building = Ident <req:Requires> "{"
     ("ai_destruction_hint" Requires)? // TODO any order?
@@ -37,8 +41,12 @@ Level: Building = Ident <req:Requires> "{"
     "construction" int
     "cost" int
     "settlement_min" <min:Ident>
-    "upgrades" "{" Ident* "}"
+    "upgrades" "{"
+        Upgrade*
+    "}"
 "}" => Building {<>};
+
+Upgrade: () = ReqSafeIdent Requires => ();
 
 Capabilities: Vec<RecruitOption> =
     "capability" "{"
@@ -60,41 +68,41 @@ CapabilityCore: Option<RecruitOption> = {
     "population_health_bonus" "bonus"? Bonus => None,
     "trade_base_income_bonus" "bonus"? Bonus => None,
     "trade_level_bonus" "bonus"? Bonus => None,
-    "trade_fleet" "bonus"? int => None,
+    "trade_fleet" "bonus"? Bonus => None,
     "taxable_income_bonus" "bonus"? Bonus => None,
-    "mine_resource" "bonus"? int => None,
+    "mine_resource" "bonus"? Bonus => None,
     "farming_level" "bonus"? Bonus => None,
-    "road_level" "bonus"? int => None,
-    "gate_strength" "bonus"? int => None,
-    "gate_defences" "bonus"? int => None,
-    "wall_level" "bonus"? int => None,
-    "tower_level" "bonus"? int => None,
-    "armour" "bonus"? int => None,
-    "stage_games" "bonus"? int => None,
-    "stage_races" "bonus"? int => None,
-    "fire_risk" "bonus"? int => None,
-    "weapon_simple" "bonus"? int => None,
-    "weapon_missile" "bonus"? int => None,
-    "weapon_bladed" "bonus"? int => None,
-    "weapon_siege" "bonus"? int => None,
-    "weapon_other" "bonus"? int => None,
+    "road_level" "bonus"? Bonus => None,
+    "gate_strength" "bonus"? Bonus => None,
+    "gate_defences" "bonus"? Bonus => None,
+    "wall_level" "bonus"? Bonus => None,
+    "tower_level" "bonus"? Bonus => None,
+    "armour" "bonus"? Bonus => None,
+    "stage_games" "bonus"? Bonus => None,
+    "stage_races" "bonus"? Bonus => None,
+    "fire_risk" "bonus"? Bonus => None,
+    "weapon_simple" "bonus"? Bonus => None,
+    "weapon_missile" "bonus"? Bonus => None,
+    "weapon_bladed" "bonus"? Bonus => None,
+    "weapon_siege" "bonus"? Bonus => None,
+    "weapon_other" "bonus"? Bonus => None,
     "upgrade_bodyguard" => None,
-    "recruits_morale_bonus" "bonus"? int => None,
-    "recruits_exp_bonus" "bonus"? int => None,
+    "recruits_morale_bonus" "bonus"? Bonus => None,
+    "recruits_exp_bonus" "bonus"? Bonus => None,
     "happiness_bonus" "bonus"? Bonus => None,
     "law_bonus" "bonus"? Bonus => None,
-    "construction_cost_bonus_military" "bonus"? int => None,
-    "construction_cost_bonus_religious" "bonus"? int => None,
-    "construction_cost_bonus_defensive" "bonus"? int => None,
-    "construction_cost_bonus_other" "bonus"? int => None,
-    "extra_recruitment_points" "bonus"? int => None,
-    "extra_construction_points" "bonus"? int => None,
+    "construction_cost_bonus_military" "bonus"? Bonus => None,
+    "construction_cost_bonus_religious" "bonus"? Bonus => None,
+    "construction_cost_bonus_defensive" "bonus"? Bonus => None,
+    "construction_cost_bonus_other" "bonus"? Bonus => None,
+    "extra_recruitment_points" "bonus"? Bonus => None,
+    "extra_construction_points" "bonus"? Bonus => None,
     "recruit" <unit:String> <exp:int> => Some(RecruitOption { <>, req: Requires::None }),
     "agent" Ident int => None,
-    "religious_belief" Ident "bonus"? int => None,
-    "religious_order" "bonus"? int => None,
-    "agent_limit_settlement" Ident "bonus"? int => None,
-    "dummy" Ident ("bonus"? int)? => None,
+    "religious_belief" Ident "bonus"? Bonus => None,
+    "religious_order" "bonus"? Bonus => None,
+    "agent_limit_settlement" Ident "bonus"? Bonus => None,
+    "dummy" Ident ("bonus"? Bonus)? => None,
 };
 
 Bonus: i32 = {
@@ -202,6 +210,13 @@ ReqIdent: String = {
     "religion" => "religion".into(),
     "majority_religion" => "majority_religion".into(),
     "official_religion" => "official_religion".into(),
+    "queued" => "queued".into(),
+    "factionwide" => "factionwide".into(),
+    "allied" => "allied".into(),
+    "protector" => "protector".into(),
+    "protectorate" => "protectorate".into(),
+    "same_superfaction" => "same_superfaction".into(),
+    "at_war" => "at_war".into(),
 
     "or" => "or".into(),
     "and" => "and".into(),
@@ -288,14 +303,7 @@ SafeKeyword: String = {
 
     "display_string" => "display_string".into(),
 
-    "queued" => "queued".into(),
-    "factionwide" => "factionwide".into(),
     "bonus" => "bonus".into(),
-    "allied" => "allied".into(),
-    "protector" => "protector".into(),
-    "protectorate" => "protectorate".into(),
-    "same_superfaction" => "same_superfaction".into(),
-    "at_war" => "at_war".into(),
 };
 
 HiddenResourceSafeIdent: String = {

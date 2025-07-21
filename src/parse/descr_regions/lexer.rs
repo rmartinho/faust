@@ -28,4 +28,7 @@ pub enum Token<'source> {
 
     #[regex(" +", skip)]
     Whitespace,
+
+    #[regex("\t[ \t]*\r?\n", skip)]
+    EmptyLine,
 }
