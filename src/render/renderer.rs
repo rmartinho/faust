@@ -119,6 +119,10 @@ impl Renderer {
     }
 
     async fn render_image(from: &Path, to: &Path, (height, width): (u32, u32)) -> io::Result<()> {
+        if !from.exists() {
+            // TODO 
+            return Ok(())
+        }
         let buf = read_file(from).await?;
         let format = ImageFormat::from_path(from).map_err(from_image_error)?;
         let img = ImageReader::with_format(Cursor::new(buf), format)

@@ -210,7 +210,7 @@ impl Display for Formation {
             Self::Testudo => write!(f, "testudo"),
             Self::Wedge => write!(f, "wedge"),
             Self::Schiltrom => write!(f, "schiltrom"),
-            Self::ShieldWall => write!(f, "shield_wall"),
+            Self::ShieldWall => write!(f, "shield-wall"),
         }
     }
 }
