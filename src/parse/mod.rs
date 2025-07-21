@@ -325,6 +325,7 @@ fn build_model(
                                 abilities: abilities.into(),
                             }
                         })
+                        .filter(|u| !u.mercenary)
                         .collect(),
                 },
             )
