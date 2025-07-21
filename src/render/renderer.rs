@@ -211,7 +211,7 @@ impl Renderer {
             file.create(&self.cfg.out_dir).await?;
         }
         pb.finish_with_message(format!(
-            "{PAPER}created styles and scripts ({} files)",
+            "{PAPER}created icons, styles, and scripts ({} files)",
             FILESYSTEM_STATIC.len()
         ));
         Ok(())
