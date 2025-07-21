@@ -7,12 +7,13 @@ use std::{
     time::{Duration, Instant},
 };
 
+use clap::Parser as _;
 use console::style;
 use indicatif::{HumanBytes, HumanDuration, ProgressBar};
 use zip_dir::zip_dir;
 
 use crate::{
-    args::Config,
+    args::{Args, Command, Config},
     render::Renderer,
     utils::{CLAMP, EARTH, LINK, LOOKING_GLASS, SPARKLE, progress_style},
 };
@@ -21,11 +22,19 @@ mod args;
 mod parse;
 mod render;
 mod utils;
+mod pack;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let args = Args::parse();
+    match args.command {
+        Some(Command::Pack) => {
+            return Ok(pack::pack().await?);
+        }
+        _ => {}
+    }
     let started = Instant::now();
-    let cfg = Config::get()?;
+    let cfg = Config::get(args)?;
 
     let step = Instant::now();
     let modules = parse::parse_folder(&cfg).await?;
@@ -63,11 +72,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!(
         "{} {CLAMP}{}",
         style("[3/3]").bold().dim(),
-        style(format!(
-            "zipped site in {}",
-            HumanDuration(step.elapsed())
-        ))
-        .green()
+        style(format!("zipped site in {}", HumanDuration(step.elapsed()))).green()
     );
 
     println!(

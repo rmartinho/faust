@@ -1,15 +1,33 @@
 use std::{env, fs::File, io, path::PathBuf};
 
-use clap::Parser;
+use clap::{Parser, Subcommand};
 
 use crate::parse::Manifest;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 pub struct Args {
+    #[command(flatten)]
+    generate: GenerateArgs,
+
+    #[command(subcommand)]
+    pub command: Option<Command>,
+}
+
+#[derive(clap::Args, Debug)]
+pub struct GenerateArgs {
+    #[arg(help = "the manifest file")]
     pub manifest: Option<PathBuf>,
-    #[arg(short, long)]
+    #[arg(short, long, help = "where to output the site")]
     pub out_dir: Option<PathBuf>,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum Command {
+    #[command(about = "Generates a FAUST website")]
+    Generate(GenerateArgs),
+    #[command(about = "Packs all the mod files used (generally useful for bug reports)")]
+    Pack,
 }
 
 #[derive(Debug, Clone)]
@@ -20,8 +38,11 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn get() -> io::Result<Self> {
-        let args = Args::parse();
+    pub fn get(args: Args) -> io::Result<Self> {
+        let args = match args.command {
+            Some(Command::Generate(a)) => a,
+            _ => args.generate,
+        };
         let manifest_path = args
             .manifest
             .unwrap_or_else(|| env::current_dir().unwrap().join("faust/faust.yml"));
