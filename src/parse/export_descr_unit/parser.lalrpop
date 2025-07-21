@@ -31,7 +31,7 @@ Unit: Unit =
     => Unit {<>};
 
 StatBlock: StatBlock =
-        "soldier" Ident "," <soldiers:int> "," int "," Float "\n"+
+        "soldier" Ident "," <soldiers:int> "," int "," Float ("," Float "," Float)?"\n"+
         <officers:Officers>
         ("ship" Ident+ "\n"+)?
         ("engine" Ident+ "\n"+)?
@@ -280,7 +280,13 @@ Ident: String = {
 
     "no" => "no".into(),
 };
-IdentSpace: String = Ident+
+
+IdentOrNum: String = {
+    Ident => <>,
+    int => format!("{}", <>),
+};
+
+IdentSpace: String = IdentOrNum+
     => (<>).into_iter()
         .fold(String::new(), |a, x| a + " " + &x)
         .trim().into();
@@ -300,6 +306,7 @@ SepBy<T, Sep>: Vec<T> =
     };
 
 extern {
+    type Location = usize;
     type Error = ();
 
     enum Token<'source> {

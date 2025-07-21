@@ -46,6 +46,9 @@ pub mod rr {
         #[token(",")]
         Comma,
 
+        #[token("-")]
+        Minus,
+
         #[token("[")]
         OpenBracket,
         #[token("]")]
@@ -61,6 +64,9 @@ pub mod rr {
 
         #[regex("[0-9]+", |lex| lex.slice().parse().map_err(|_| ()))]
         Int(u32),
+
+        #[regex(r"[0-9]+\.[0-9]+", |lex| lex.slice().parse().map_err(|_| ()))]
+        Float(f64),
 
         #[regex(";[^\n]*", skip)]
         Comment,

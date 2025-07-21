@@ -1,9 +1,11 @@
-use std::{collections::HashMap, path::PathBuf};
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+};
 
 use implicit_clone::unsync::IString;
 use indexmap::IndexMap;
 use indicatif::{MultiProgress, ProgressBar};
-use logos::Logos as _;
 use silphium::{
     ModuleMap,
     model::{Ability, Module, WeaponType},
@@ -32,13 +34,40 @@ mod manifest;
 mod text;
 mod utils;
 
+fn try_paths<'a>(root: &Path, paths: impl AsRef<[&'a str]>) -> PathBuf {
+    for path in paths.as_ref().iter() {
+        let file = root.join(path);
+        if file.exists() {
+            return file;
+        }
+    }
+    return paths.as_ref()[0].into();
+}
+
 pub async fn parse_folder(cfg: &Config) -> io::Result<ModuleMap> {
     let root = &cfg.src_dir.join("data");
     let expanded_bi_path = root.join("text/expanded_bi.txt");
     let export_units_path = root.join("text/export_units.txt");
-    let descr_mercenaries_path =
-        root.join("world/maps/campaign/imperial_campaign/descr_mercenaries.txt"); // TODO cascading to base, etc
-    let descr_regions_path = root.join("world/maps/base/descr_regions.txt"); // TODO cascading to base, etc
+    let descr_mercenaries_path = try_paths(
+        root,
+        [
+            &format!(
+                "world/maps/campaign/{}/descr_mercenaries.txt",
+                cfg.manifest.campaign
+            ),
+            "world/maps/base/descr_mercenaries.txt",
+        ],
+    );
+    let descr_regions_path = try_paths(
+        root,
+        [
+            &format!(
+                "world/maps/campaign/{}/descr_regions.txt",
+                cfg.manifest.campaign
+            ),
+            "world/maps/base/descr_regions.txt",
+        ],
+    );
     let descr_sm_factions_path = root.join("descr_sm_factions.txt");
     let export_descr_unit_path = root.join("export_descr_unit.txt");
     let export_descr_buildings_path = root.join("export_descr_buildings.txt");
@@ -526,48 +555,54 @@ fn do_evaluate(
 
 async fn parse_text(path: PathBuf) -> io::Result<HashMap<String, String>> {
     let buf = fs::read(&path).await?;
-    let data = String::from_utf16le_lossy(&buf).replace(BOM, "");
-    let lex = text::Token::lexer(&data);
+    let mut data = String::from_utf16le_lossy(&buf).replace(BOM, "");
+    data += "\n";
+    let lex = utils::spanned_lexer::<text::Token>(&data);
 
     let map = text::Parser::new().parse(lex).unwrap();
     Ok(map)
 }
 
 async fn parse_descr_mercenaries(path: PathBuf) -> io::Result<Vec<Pool>> {
-    let data = fs::read_to_string(&path).await?;
-    let lex = descr_mercenaries::Token::lexer(&data);
+    let mut data = fs::read_to_string(&path).await?;
+    data += "\n";
+    let lex = utils::spanned_lexer::<descr_mercenaries::Token>(&data);
 
     let pools = descr_mercenaries::Parser::new().parse(lex).unwrap();
     Ok(pools)
 }
 
 async fn parse_descr_regions(path: PathBuf) -> io::Result<Vec<Region>> {
-    let data = fs::read_to_string(&path).await?;
-    let lex = descr_regions::Token::lexer(&data);
+    let mut data = fs::read_to_string(&path).await?;
+    data += "\n";
+    let lex = utils::spanned_lexer::<descr_regions::Token>(&data);
 
     let pools = descr_regions::Parser::new().parse(lex).unwrap();
     Ok(pools)
 }
 
 async fn parse_descr_sm_factions_og(path: PathBuf) -> io::Result<Vec<descr_sm_factions::Faction>> {
-    let data = fs::read_to_string(&path).await?;
-    let lex = descr_sm_factions::og::Token::lexer(&data);
+    let mut data = fs::read_to_string(&path).await?;
+    data += "\n";
+    let lex = utils::spanned_lexer::<descr_sm_factions::og::Token>(&data);
 
     let factions = descr_sm_factions::og::Parser::new().parse(lex).unwrap();
     Ok(factions)
 }
 
 async fn parse_descr_sm_factions_rr(path: PathBuf) -> io::Result<Vec<descr_sm_factions::Faction>> {
-    let data = fs::read_to_string(&path).await?;
-    let lex = descr_sm_factions::rr::Token::lexer(&data);
+    let mut data = fs::read_to_string(&path).await?;
+    data += "\n";
+    let lex = utils::spanned_lexer::<descr_sm_factions::rr::Token>(&data);
 
     let factions = descr_sm_factions::rr::Parser::new().parse(lex).unwrap();
     Ok(factions)
 }
 
 async fn parse_export_descr_unit(path: PathBuf) -> io::Result<Vec<export_descr_unit::Unit>> {
-    let data = fs::read_to_string(&path).await?;
-    let lex = export_descr_unit::Token::lexer(&data);
+    let mut data = fs::read_to_string(&path).await?;
+    data += "\n";
+    let lex = utils::spanned_lexer::<export_descr_unit::Token>(&data);
 
     let units = export_descr_unit::Parser::new().parse(lex).unwrap();
     Ok(units)
@@ -576,8 +611,9 @@ async fn parse_export_descr_unit(path: PathBuf) -> io::Result<Vec<export_descr_u
 async fn parse_export_descr_buildings(
     path: PathBuf,
 ) -> io::Result<(HashMap<String, Requires>, Vec<Building>)> {
-    let data = fs::read_to_string(&path).await?;
-    let lex = export_descr_buildings::Token::lexer(&data);
+    let mut data = fs::read_to_string(&path).await?;
+    data += "\n";
+    let lex = utils::spanned_lexer::<export_descr_buildings::Token>(&data);
 
     let res = export_descr_buildings::Parser::new().parse(lex).unwrap();
     Ok(res)

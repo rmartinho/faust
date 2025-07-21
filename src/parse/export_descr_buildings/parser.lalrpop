@@ -326,6 +326,7 @@ BinOp<T, Sep>: Vec<T> = <mut v:(<T> Sep)+> <e:T>
     };
 
 extern {
+    type Location = usize;
     type Error = ();
 
     enum Token<'source> {

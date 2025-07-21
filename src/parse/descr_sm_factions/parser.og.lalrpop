@@ -81,6 +81,7 @@ SepBy1<T, Sep>: Vec<T> = <mut v:(<T> Sep)*> <e:T> Sep?
     };
 
 extern {
+    type Location = usize;
     type Error = ();
 
     enum Token<'source> {

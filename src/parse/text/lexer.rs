@@ -8,7 +8,7 @@ pub enum Token<'source> {
     #[regex(r"\{[^}]+\}", without_delimiters)]
     Key(&'source str),
 
-    #[regex("[^¬{ \t\r\n][^\r\n]*", Lexer::slice)]
+    #[regex("[^¬{ \t\r\n][^¬{]*", Lexer::slice)]
     Value(&'source str),
     
     #[regex("¬[^\n]*", skip)]
