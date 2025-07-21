@@ -26,12 +26,9 @@ fn build_parsers() {
 
 fn build_site_template() {
     rerun_if_changed!("./silphium");
-    let mut cmd = Command::new("trunk");
-    cmd.arg("build");
-    if env::var("PROFILE").unwrap() == "release" {
-        cmd.arg("--release");
-    }
-    let _ = cmd
+    let _ = Command::new("trunk")
+        .arg("build")
+        .arg("--release")
         .args(["--features", "hydration"])
         .current_dir("./silphium")
         .env("TRUNK_BUILD_DIST", "../dist")

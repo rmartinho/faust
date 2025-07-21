@@ -234,7 +234,10 @@
             grid-area: hp;
             position: relative;
             text-align: center;
-
+            img {
+              width: $icon-size;
+              height: $icon-size;
+            }
             span {
               position: absolute;
               font-size: x-small;
@@ -256,6 +259,9 @@
         .strength {
           @extend %combat-stats;
           grid-area: strength;
+          font-weight: bold;
+          font-size: larger;
+          justify-self: end;
         }
         .details {
           @extend %combat-stats;

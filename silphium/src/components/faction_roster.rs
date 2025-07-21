@@ -2,7 +2,7 @@ use implicit_clone::unsync::IArray;
 use yew::prelude::*;
 use yew_autoprops::autoprops;
 
-use crate::model::{Ability, Discipline, Formation, Unit};
+use crate::model::{Ability, Defense, Discipline, Formation, Unit};
 
 #[autoprops]
 #[function_component(FactionRoster)]
@@ -23,110 +23,6 @@ pub fn faction_roster(roster: IArray<Unit>) -> Html {
             {for cards}
           </div>
         </div>
-      </div>
-    }
-}
-
-#[autoprops]
-#[function_component(StaminaDetails)]
-pub fn stamina_details(unit: Unit) -> Html {
-    use std::fmt::Write as _;
-
-    let title = if unit.inexhaustible {
-        "Inexhaustible".into()
-    } else {
-        let mut title = format!("{} stamina", unit.stamina);
-        if unit.heat != 0 {
-            let _ = write!(
-                title,
-                "\nHeat {}: {:+}",
-                if unit.heat > 0 { "penalty" } else { "bonus" },
-                -unit.heat,
-            );
-        }
-        title
-    };
-
-    html! {
-      <div class="stamina" {title}>
-        if unit.stamina > 0 {
-          <img src="/icons/attribute/stamina.svg" class="attribute" />
-          <span>{ unit.stamina }</span>
-          if unit.heat != 0 {
-            <img src="/icons/attribute/heat.svg" class="attribute" />
-            <span>{ format!("{:+}", -unit.heat) }</span>
-          }
-        } else {
-          <img src="/icons/attribute/inexhaustible.svg" class="attribute" />
-        }
-      </div>
-    }
-}
-
-#[autoprops]
-#[function_component(TerrainDetails)]
-pub fn terrain_details(unit: Unit) -> Html {
-    use std::fmt::Write as _;
-
-    let mut title = "".to_string();
-    if unit.ground_bonus.scrub != 0 {
-        let _ = write!(title, "\n{:+}", unit.ground_bonus.scrub);
-    }
-    if unit.ground_bonus.forest != 0 {
-        let _ = write!(title, "\n{:+}", unit.ground_bonus.forest);
-    }
-    if unit.ground_bonus.sand != 0 {
-        let _ = write!(title, "\n{:+}", unit.ground_bonus.sand);
-    }
-    if unit.ground_bonus.snow != 0 {
-        let _ = write!(title, "\n{:+}", unit.ground_bonus.snow);
-    }
-    if title.len() > 0 {
-        title.remove(0);
-    }
-
-    html! {
-      <div class="terrain" {title}>
-        if unit.ground_bonus.scrub != 0 {
-          <div class="scrub">
-            if unit.ground_bonus.scrub > 0 {
-              <img class="attribute" src="/icons/terrain/scrub-down.svg" />
-            } else {
-              <img class="attribute" src="/icons/terrain/scrub-up.svg" />
-            }
-            <span>{ format!("{:+}", unit.ground_bonus.scrub) }</span>
-          </div>
-        }
-        if unit.ground_bonus.forest != 0 {
-          <div class="forest">
-            if unit.ground_bonus.forest > 0 {
-              <img class="attribute" src="/icons/terrain/forest-down.svg" />
-            } else {
-              <img class="attribute" src="/icons/terrain/forest-up.svg" />
-            }
-            <span>{ format!("{:+}", unit.ground_bonus.forest) }</span>
-          </div>
-        }
-        if unit.ground_bonus.sand != 0 {
-          <div class="sand">
-            if unit.ground_bonus.sand > 0 {
-              <img class="attribute" src="/icons/terrain/sand-down.svg" />
-            } else {
-              <img class="attribute" src="/icons/terrain/sand-up.svg" />
-            }
-            <span>{ format!("{:+}", unit.ground_bonus.sand) }</span>
-          </div>
-        }
-        if unit.ground_bonus.snow != 0 {
-          <div class="snow">
-            if unit.ground_bonus.snow > 0 {
-              <img class="attribute" src="/icons/terrain/snow-down.svg" />
-            } else {
-              <img class="attribute" src="/icons/terrain/snow-up.svg" />
-            }
-            <span>{ format!("{:+}", unit.ground_bonus.snow) }</span>
-          </div>
-        }
       </div>
     }
 }
@@ -239,10 +135,179 @@ pub fn unit_card(unit: Unit) -> Html {
             </div>
           </div>
           <TerrainDetails unit={&unit} />
+          <DefenseRow class="defense1-row" def={&unit.defense} hp={unit.hp} />
+          <DefenseRow class="defense2-row" mount={true} def={&unit.defense_mount} hp={unit.hp_mount} />
           <div class="abilities">
             {for abilities}
           </div>
         </div>
       </div>
+    }
+}
+
+#[autoprops]
+#[function_component(TerrainDetails)]
+pub fn terrain_details(unit: Unit) -> Html {
+    use std::fmt::Write as _;
+
+    let mut title = "".to_string();
+    if unit.ground_bonus.scrub != 0 {
+        let _ = write!(title, "\n{:+}", unit.ground_bonus.scrub);
+    }
+    if unit.ground_bonus.forest != 0 {
+        let _ = write!(title, "\n{:+}", unit.ground_bonus.forest);
+    }
+    if unit.ground_bonus.sand != 0 {
+        let _ = write!(title, "\n{:+}", unit.ground_bonus.sand);
+    }
+    if unit.ground_bonus.snow != 0 {
+        let _ = write!(title, "\n{:+}", unit.ground_bonus.snow);
+    }
+    if title.len() > 0 {
+        title.remove(0);
+    }
+
+    html! {
+      <div class="terrain" {title}>
+        if unit.ground_bonus.scrub != 0 {
+          <div class="scrub">
+            if unit.ground_bonus.scrub > 0 {
+              <img class="attribute" src="/icons/terrain/scrub-down.svg" />
+            } else {
+              <img class="attribute" src="/icons/terrain/scrub-up.svg" />
+            }
+            <span>{ format!("{:+}", unit.ground_bonus.scrub) }</span>
+          </div>
+        }
+        if unit.ground_bonus.forest != 0 {
+          <div class="forest">
+            if unit.ground_bonus.forest > 0 {
+              <img class="attribute" src="/icons/terrain/forest-down.svg" />
+            } else {
+              <img class="attribute" src="/icons/terrain/forest-up.svg" />
+            }
+            <span>{ format!("{:+}", unit.ground_bonus.forest) }</span>
+          </div>
+        }
+        if unit.ground_bonus.sand != 0 {
+          <div class="sand">
+            if unit.ground_bonus.sand > 0 {
+              <img class="attribute" src="/icons/terrain/sand-down.svg" />
+            } else {
+              <img class="attribute" src="/icons/terrain/sand-up.svg" />
+            }
+            <span>{ format!("{:+}", unit.ground_bonus.sand) }</span>
+          </div>
+        }
+        if unit.ground_bonus.snow != 0 {
+          <div class="snow">
+            if unit.ground_bonus.snow > 0 {
+              <img class="attribute" src="/icons/terrain/snow-down.svg" />
+            } else {
+              <img class="attribute" src="/icons/terrain/snow-up.svg" />
+            }
+            <span>{ format!("{:+}", unit.ground_bonus.snow) }</span>
+          </div>
+        }
+      </div>
+    }
+}
+
+#[autoprops]
+#[function_component(StaminaDetails)]
+pub fn stamina_details(unit: Unit) -> Html {
+    use std::fmt::Write as _;
+
+    let title = if unit.inexhaustible {
+        "Inexhaustible".into()
+    } else {
+        let mut title = format!("{} stamina", unit.stamina);
+        if unit.heat != 0 {
+            let _ = write!(
+                title,
+                "\nHeat {}: {:+}",
+                if unit.heat > 0 { "penalty" } else { "bonus" },
+                -unit.heat,
+            );
+        }
+        title
+    };
+
+    html! {
+      <div class="stamina" {title}>
+        if unit.stamina > 0 {
+          <img src="/icons/attribute/stamina.svg" class="attribute" />
+          <span>{ unit.stamina }</span>
+          if unit.heat != 0 {
+            <img src="/icons/attribute/heat.svg" class="attribute" />
+            <span>{ format!("{:+}", -unit.heat) }</span>
+          }
+        } else {
+          <img src="/icons/attribute/inexhaustible.svg" class="attribute" />
+        }
+      </div>
+    }
+}
+
+#[autoprops]
+#[function_component(DefenseRow)]
+pub fn defense_row(
+    #[prop_or_default] class: AttrValue,
+    #[prop_or_default] mount: bool,
+    def: Defense,
+    hp: u32,
+) -> Html {
+    use std::fmt::Write as _;
+
+    let title = if mount { "Defense (mount)" } else { "Defense" };
+    let icon = if mount {
+        "/icons/stat/defense2.svg"
+    } else {
+        "/icons/stat/defense.svg"
+    };
+
+    let strength = def.total();
+    let mut details = format!("Defense: {strength}");
+    if def.armor > 0 {
+      let _ = write!(details, "\n    Armor: {}", def.armor);
+    }
+    if def.skill > 0 {
+      let _ = write!(details, "\n    Skill: {}", def.skill);
+    }
+    if def.shield > 0 {
+      let _ = write!(details, "\n    Shield: {}", def.shield);
+    }
+
+   html! {
+      <>
+        if strength > 0 || hp > 1 {
+          <div {class}>
+            <img class="icon" src={icon} {title} />
+            <div class="strength" title={details}>
+              { if strength > 0 { strength } else { 0 } }
+            </div>
+            <div class="details" {title}>
+              if def.armor > 0 {
+                <img src="/icons/attribute/armor.svg" class="attribute" />
+                <span>{ def.armor }</span>
+              }
+              if def.skill > 0 {
+                <img src="/icons/attribute/skill.svg" class="attribute" />
+                <span>{ def.skill }</span>
+              }
+              if def.shield > 0 {
+                <img src="/icons/attribute/shield.svg" class="attribute" />
+                <span>{ def.shield }</span>
+              }
+            </div>
+            if hp > 1 {
+              <div class="hp" title={format!("{hp} hit points")}>
+                <img src="/icons/ability/heart.svg" />
+                <span>{ hp }</span>
+              </div>
+            }
+          </div>
+        }
+      </>
     }
 }

@@ -68,8 +68,8 @@ pub struct Unit {
     pub hp_mount: u32,
     pub primary_weapon: Option<Weapon>,
     pub secondary_weapon: Option<Weapon>,
-    pub defense: Option<Defense>,
-    pub defense_mount: Option<Defense>,
+    pub defense: Defense,
+    pub defense_mount: Defense,
     pub heat: i32,
     pub ground_bonus: GroundBonus,
     pub morale: u32,
@@ -172,6 +172,12 @@ pub struct Defense {
     pub armor: u32,
     pub skill: u32,
     pub shield: u32,
+}
+
+impl Defense {
+    pub fn total(&self) -> u32 {
+        self.armor + self.skill + self.shield
+    }
 }
 
 #[derive(
