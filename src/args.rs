@@ -32,7 +32,12 @@ pub struct GenerateArgs {
     pub out_dir: Option<PathBuf>,
     #[arg(short, long, help = "base game path (for fallbacks)")]
     pub base_game_path: Option<PathBuf>,
-    #[arg(short, long, default_value_t = false, help = "serve the site after generation")]
+    #[arg(
+        short,
+        long,
+        default_value_t = false,
+        help = "serve the site after generation"
+    )]
     pub serve: bool,
 }
 
@@ -71,7 +76,10 @@ impl Config {
             .or_else(|| manifest_dir.parent().map(|p| p.to_path_buf()))
             .unwrap_or_else(|| manifest_dir.clone());
         let out_dir = args.out_dir.unwrap_or_else(|| manifest_dir.join("site"));
-        let fallback_dir = args.base_game_path.unwrap_or_else(|| src_dir.join(".."));
+        let fallback_dir = args
+            .base_game_path
+            .or_else(|| src_dir.parent().map(|p| p.to_path_buf()))
+            .unwrap_or_else(|| "..".into());
 
         Ok(Self {
             manifest,

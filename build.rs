@@ -30,7 +30,7 @@ fn build_site_template() {
         .arg("build")
         .arg("--release")
         .args(["--features", "hydration"])
-        .args(["--dist", "../../dist"])
+        .args(["--dist", "../dist"])
         .args(["--filehash", "false"])
         .current_dir("./silphium")
         .env("CARGO_TARGET_DIR", "target")
