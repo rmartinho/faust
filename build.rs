@@ -26,6 +26,13 @@ fn build_parsers() {
 
 fn build_site_template() {
     rerun_if_changed!("./silphium");
+    let _ = Command::new("cargo")
+        .args(["install", "trunk"])
+        .env("CARGO_TARGET_DIR", "temp")
+        .spawn()
+        .unwrap()
+        .wait()
+        .unwrap();
     let _ = Command::new("trunk")
         .arg("build")
         .arg("--release")
