@@ -11,9 +11,10 @@ pub const LINK: Emoji = Emoji("🔗 ", "");
 pub const SPARKLE: Emoji = Emoji("✨ ", ":) ");
 pub const FOLDER: Emoji = Emoji("📁 ", "");
 pub const PICTURE: Emoji = Emoji("🖼️  ", "");
-pub const EARTH: Emoji = Emoji("🌍 ", "");
+pub const EARTH: Emoji = Emoji("🌍 ", "(:)");
 pub const CLAMP: Emoji = Emoji("🗜️  ", "");
 pub const THINKING: Emoji = Emoji("💭  ", "");
+pub const PACKAGE: Emoji = Emoji("📦 ", "[+]");
 
 pub async fn write_file(path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> io::Result<()> {
     let dir = path.as_ref().parent();

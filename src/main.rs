@@ -1,5 +1,6 @@
 #![feature(str_from_utf16_endian)]
 #![feature(path_add_extension)]
+#![feature(panic_payload_as_str)]
 #![allow(dead_code)]
 
 use std::{
@@ -10,22 +11,71 @@ use std::{
 use clap::Parser as _;
 use console::style;
 use indicatif::{HumanBytes, HumanDuration, ProgressBar};
+#[cfg(windows)]
+use windows::{
+    Win32::UI::WindowsAndMessaging::{MB_ICONERROR, MB_OK, MessageBoxW},
+    core::w,
+};
+#[cfg(windows)]
+use windows_strings::HSTRING;
 use zip_dir::zip_dir;
 
 use crate::{
     args::{Args, Command, Config},
     render::Renderer,
-    utils::{CLAMP, EARTH, LINK, LOOKING_GLASS, SPARKLE, progress_style},
+    serve::serve,
+    utils::{CLAMP, LINK, LOOKING_GLASS, PACKAGE, SPARKLE, progress_style},
 };
 
 mod args;
+mod pack;
 mod parse;
 mod render;
+mod serve;
 mod utils;
-mod pack;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    #[cfg(windows)]
+    {
+        std::panic::set_hook(Box::new(move |info| {
+            use std::fmt::Write as _;
+            let mut message = String::from("An error has occurred.\n\n");
+            if let Some(s) = info.payload_as_str() {
+                let _ = write!(message, "{s:?}\n");
+            } else {
+                let _ = write!(message, "Panic occurred {info:?}.\n");
+            };
+            if let Some(loc) = info.location() {
+                let _ = write!(message, "\t@ {loc}");
+            }
+
+            unsafe {
+                MessageBoxW(
+                    None,
+                    &HSTRING::from(message),
+                    w!("Error"),
+                    MB_OK | MB_ICONERROR,
+                )
+            };
+            dont_disappear::enter_to_continue::default();
+        }));
+    }
+
+    let res = run().await;
+
+    #[cfg(windows)]
+    {
+        if let Err(ref e) = res {
+            eprintln!("{:?}", e);
+        }
+        dont_disappear::enter_to_continue::default();
+    }
+
+    res
+}
+
+async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
     match args.command {
         Some(Command::Pack) => {
@@ -76,18 +126,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     println!(
-        " {SPARKLE}{}",
+        "      {SPARKLE}{}",
         style(format!("Done in {}", HumanDuration(started.elapsed()))).bold()
     );
     println!(
-        " {EARTH}You can find your site at {} and {} ({})",
-        style(cfg.out_dir.display()).bold(),
+        "      {PACKAGE}Site files available at {} ({})",
         style(zip_file.display()).bold(),
         HumanBytes(metadata(&zip_file).unwrap().len())
     );
 
-    #[cfg(windows)]
-    dont_disappear::enter_to_continue::default();
+    if cfg.serve {
+        serve(&cfg).await;
+    }
 
     Ok(())
 }

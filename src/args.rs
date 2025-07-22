@@ -1,8 +1,18 @@
 use std::{env, fs::File, io, path::PathBuf};
 
+use crate::parse::Manifest;
 use clap::{Parser, Subcommand};
 
-use crate::parse::Manifest;
+#[cfg(windows)]
+use windows::{
+    Win32::{
+        Foundation::MAX_PATH,
+        UI::Controls::Dialogs::{GetOpenFileNameW, OPENFILENAMEW},
+    },
+    core::w,
+};
+#[cfg(windows)]
+use windows_strings::PWSTR;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -22,6 +32,8 @@ pub struct GenerateArgs {
     pub out_dir: Option<PathBuf>,
     #[arg(short, long, help = "base game path (for fallbacks)")]
     pub base_game_path: Option<PathBuf>,
+    #[arg(short, long, default_value_t = false, help = "serve the site after generation")]
+    pub serve: bool,
 }
 
 #[derive(Subcommand, Debug)]
@@ -38,18 +50,16 @@ pub struct Config {
     pub src_dir: PathBuf,
     pub out_dir: PathBuf,
     pub fallback_dir: PathBuf,
+    pub serve: bool,
 }
 
 impl Config {
     pub fn get(args: Args) -> io::Result<Self> {
-        let args = match args.command {
-            Some(Command::Generate(a)) => a,
-            _ => args.generate,
-        };
+        let args = gen_args(args);
         let manifest_path = args
             .manifest
             .unwrap_or_else(|| env::current_dir().unwrap().join("faust/faust.yml"));
-        let manifest = Manifest::from_yaml(File::open(&manifest_path)?)?;
+        let manifest = Manifest::from_yaml(File::open(&manifest_path).unwrap())?;
         let manifest_dir = manifest_path
             .parent()
             .map(|p| p.to_path_buf())
@@ -68,6 +78,50 @@ impl Config {
             out_dir,
             src_dir,
             fallback_dir,
+            serve: args.serve,
         })
     }
+}
+
+pub fn gen_args(args: Args) -> GenerateArgs {
+    if cfg!(not(windows)) || has_args() {
+        match args.command {
+            Some(Command::Generate(a)) => a,
+            _ => args.generate,
+        }
+    } else {
+        #[cfg(not(windows))]
+        {
+            unreachable!()
+        }
+        #[cfg(windows)]
+        {
+            let mut file = vec![0; MAX_PATH as _];
+            let mut ofn = OPENFILENAMEW {
+                lStructSize: std::mem::size_of::<OPENFILENAMEW>() as _,
+                lpstrFilter: w!("Manifest file\0faust.yml\0"),
+                lpstrTitle: w!("Select a manifest file"),
+                nMaxFile: file.len() as _,
+                lpstrFile: PWSTR(file.as_mut_ptr()),
+                ..Default::default()
+            };
+            let success: bool = unsafe { GetOpenFileNameW(&mut ofn) }.into();
+            if !success {
+                panic!("canceled open file dialog")
+            }
+            let n = file.iter().position(|c| *c == 0).unwrap();
+            file.truncate(n);
+            let path = String::from_utf16(&file).unwrap().into();
+            GenerateArgs {
+                manifest: Some(path),
+                out_dir: None,
+                base_game_path: None,
+                serve: true,
+            }
+        }
+    }
+}
+
+fn has_args() -> bool {
+    env::args().len() > 1
 }

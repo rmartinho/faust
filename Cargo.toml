@@ -24,10 +24,18 @@ lalrpop-util = { version = "0.22.2", features = ["lexer"] }
 image = "0.25.6"
 indicatif = { version = "0.18.0", features = ["futures"] }
 console = "0.16.0"
-dont_disappear = "3.0.1"
 zip-dir = "0.1.0"
 tempdir = "0.3.7"
 copy_dir = "0.1.3"
+axum = "0.8.4"
+tower-http = { version = "0.6.6", features = ["fs"] }
+clipboard-rs = "0.3.0"
+windows = { version = "0.61.3", features = ["Win32_UI_WindowsAndMessaging"] }
+
+[target.'cfg(windows)'.dependencies]
+dont_disappear = "3.0.1"
+windows = { version = "0.61.3", features = ["Win32_Foundation", "Win32_UI_Controls_Dialogs"] }
+windows-strings = "0.4.2"
 
 [build-dependencies]
 cargo-emit = "0.2.1"

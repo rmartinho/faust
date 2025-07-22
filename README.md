@@ -23,8 +23,12 @@ Start by creating a subfolder called `faust` inside your mod's folder (alongside
   to be used to identify the mod in the site's pages, and `campaign_folder` with the name of your mod's campaign folder. (At present, only one campaign
   is supported; support for mods with multiple campaigns will come later.)
 
-Grab a release build from the [releases](https://github.com/rmartinho/faust/releases) page. Then, run `faust path/to/faust.yml` in a terminal (obviously replace that with the correct path to the `faust.yml` file). This will parse the mod folder and output all of the site files into a folder named `site` next to the `faust.yml` file.
-If you're not keen on messing with the terminal, you can also just drag-and-drop the `faust.yml` file onto the `faust.exe` file.
+Grab a release build from the [releases](https://github.com/rmartinho/faust/releases) page. Then you can either:
+
+- on Windows you can just double-click the `faust.exe` file and it will ask you to find the `faust.yml` file with a file open dialog; or
+- run `faust path/to/faust.yml` in a terminal (obviously replace that with the correct path to the `faust.yml` file).
+
+This will parse the mod folder and output all of the site files into a folder named `site` next to the `faust.yml` file.
 
 You can now upload the contents of that folder to your favourite static site hoster (e.g. GitHub Pages) and visit the site in your browser.
 
