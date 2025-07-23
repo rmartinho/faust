@@ -1,5 +1,5 @@
 [general]
-dirs = ["templates", "dist"]
+dirs = ["templates"]
 default_syntax = "silphium"
 
 [[syntax]]

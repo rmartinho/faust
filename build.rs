@@ -1,4 +1,4 @@
-use std::{env, path::PathBuf};
+use std::{env, fs, path::PathBuf};
 
 use cargo_emit::rerun_if_changed;
 use winresource::WindowsResource;
@@ -51,4 +51,5 @@ async fn build_site_template() {
         unsafe { env::set_var("CARGO_TARGET_DIR", old_target) };
     }
     env::set_current_dir(old_cd).unwrap();
+    fs::copy(out_dir.join("silphium_template/index.html"), "templates/index.html").unwrap();
 }
