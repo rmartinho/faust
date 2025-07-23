@@ -5,10 +5,9 @@ use winresource::WindowsResource;
 
 #[tokio::main]
 async fn main() {
-    let join_handle = tokio::spawn(build_site_template());
     build_win_resources();
     build_parsers();
-    join_handle.await.unwrap();
+    build_site_template().await
 }
 
 fn build_win_resources() {
