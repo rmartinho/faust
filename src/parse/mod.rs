@@ -57,7 +57,7 @@ fn try_paths<'a>(cfg: &Config, paths: impl AsRef<[&'a str]>) -> PathBuf {
 pub async fn parse_folder(cfg: &Config) -> io::Result<ModuleMap> {
     let expanded_bi_path = path_fallback(cfg, "data/text/expanded_bi.txt");
     let export_units_path = path_fallback(cfg, "data/text/export_units.txt");
-    let descr_mercenaries_path = try_paths(
+    let _descr_mercenaries_path = try_paths(
         cfg,
         [
             &format!(
@@ -67,7 +67,7 @@ pub async fn parse_folder(cfg: &Config) -> io::Result<ModuleMap> {
             "data/world/maps/base/descr_mercenaries.txt",
         ],
     );
-    let descr_regions_path = try_paths(
+    let _descr_regions_path = try_paths(
         cfg,
         [
             &format!(
@@ -573,11 +573,8 @@ fn do_evaluate(
 
 async fn parse_text(path: PathBuf) -> io::Result<HashMap<String, String>> {
     let buf = fs::read(&path).await.unwrap();
-    let mut data = String::from_utf16le_lossy(&buf).replace(BOM, "");
-    data += "\n";
-    let lex = utils::spanned_lexer::<text::Token>(&data);
-
-    let map = text::Parser::new().parse(lex).unwrap();
+    let data = String::from_utf16le_lossy(&buf).replace(BOM, "");
+    let map = text::parse(data).unwrap();
     Ok(map)
 }
 
