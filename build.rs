@@ -1,11 +1,14 @@
+use std::env;
+
 use cargo_emit::rerun_if_changed;
-use std::{env, process::Command};
 use winresource::WindowsResource;
 
-fn main() {
+#[tokio::main]
+async fn main() {
+    let join_handle = tokio::spawn(build_site_template());
     build_win_resources();
-    build_site_template();
     build_parsers();
+    join_handle.await.unwrap();
 }
 
 fn build_win_resources() {
@@ -24,25 +27,28 @@ fn build_parsers() {
         .unwrap();
 }
 
-fn build_site_template() {
+async fn build_site_template() {
     rerun_if_changed!("./silphium");
-    let _ = Command::new("cargo")
-        .args(["install", "trunk"])
-        .env("CARGO_TARGET_DIR", "temp")
-        .spawn()
-        .unwrap()
-        .wait()
-        .unwrap();
-    let _ = Command::new("trunk")
-        .arg("build")
-        .arg("--release")
-        .args(["--features", "hydration"])
-        .args(["--dist", "../dist"])
-        .args(["--filehash", "false"])
-        .current_dir("./silphium")
-        .env("CARGO_TARGET_DIR", "target")
-        .spawn()
-        .unwrap()
-        .wait()
-        .unwrap();
+    let old_target = env::var("CARGO_TARGET_DIR").ok();
+    let old_cd = env::current_dir().unwrap();
+    unsafe { env::set_var("CARGO_TARGET_DIR", "target") };
+    env::set_current_dir("silphium").unwrap();
+
+    let cfg = trunk::Trunk {
+        action: trunk::TrunkSubcommands::Build(trunk::cmd::build::Build {
+            release: Some(true),
+            features: Some(vec!["hydration".into()]),
+            dist: Some("../dist".into()),
+            filehash: Some(false),
+            ..Default::default()
+        }),
+        verbose: 4,
+        ..Default::default()
+    };
+    trunk::go(cfg).await.unwrap();
+
+    if let Some(old_target) = old_target {
+        unsafe { env::set_var("CARGO_TARGET_DIR", old_target) };
+    }
+    env::set_current_dir(old_cd).unwrap();
 }

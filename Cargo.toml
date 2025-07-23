@@ -40,6 +40,8 @@ windows-strings = "0.4.2"
 cargo-emit = "0.2.1"
 lalrpop = "0.22.2"
 winresource = "0.1"
+trunk = { git = 'https://github.com/rmartinho/trunk-lib.git' }
+tokio = { version = "1" }
 
 [patch.crates-io]
 yew = { git = 'https://github.com/rmartinho/yew.git' }
