@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, path::PathBuf};
 
 use cargo_emit::rerun_if_changed;
 use winresource::WindowsResource;
@@ -32,12 +32,13 @@ async fn build_site_template() {
     let old_cd = env::current_dir().unwrap();
     unsafe { env::set_var("CARGO_TARGET_DIR", "target") };
     env::set_current_dir("silphium").unwrap();
+    let out_dir: PathBuf = env::var("OUT_DIR").unwrap().into();
 
     let cfg = trunk::Trunk {
         action: trunk::TrunkSubcommands::Build(trunk::cmd::build::Build {
             release: Some(true),
             features: Some(vec!["hydration".into()]),
-            dist: Some("../dist".into()),
+            dist: Some(out_dir.join("silphium_template")),
             filehash: Some(false),
             ..Default::default()
         }),
