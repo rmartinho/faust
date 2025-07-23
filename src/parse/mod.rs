@@ -98,20 +98,22 @@ pub async fn parse_folder(cfg: &Config) -> io::Result<ModuleMap> {
     .await?;
     text.extend(export_units.into_iter());
 
-    let pools = parse_progress(
-        m.clone(),
-        3,
-        descr_mercenaries_path.clone(),
-        parse_descr_mercenaries(descr_mercenaries_path),
-    )
-    .await?;
-    let regions = parse_progress(
-        m.clone(),
-        4,
-        descr_regions_path.clone(),
-        parse_descr_regions(descr_regions_path),
-    )
-    .await?;
+    let pools = vec![];
+    let regions = vec![];
+    // let pools = parse_progress(
+    //     m.clone(),
+    //     3,
+    //     descr_mercenaries_path.clone(),
+    //     parse_descr_mercenaries(descr_mercenaries_path),
+    // )
+    // .await?;
+    // let regions = parse_progress(
+    //     m.clone(),
+    //     4,
+    //     descr_regions_path.clone(),
+    //     parse_descr_regions(descr_regions_path),
+    // )
+    // .await?;
     let factions = if cfg.manifest.mode == ParserMode::Original {
         parse_progress(
             m.clone(),
