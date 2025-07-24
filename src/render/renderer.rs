@@ -226,7 +226,7 @@ fn web_path(p: &Path) -> String {
     p.components().fold(String::new(), |mut s, c| {
         match c {
             Component::Normal(cmp) => {
-                write!(&mut s, "/{}", cmp.to_str().unwrap()).unwrap();
+                let _ = write!(&mut s, "/{}", cmp.to_str().expect("invalid path"));
             }
             _ => panic!("bad path"),
         }

@@ -8,9 +8,9 @@ use tower_http::services::ServeDir;
 
 use crate::{args::Config, utils::EARTH};
 
-pub async fn serve(cfg: &Config) {
+pub async fn serve(cfg: &Config) -> anyhow::Result<()> {
     let addr = SocketAddr::from(([127, 0, 0, 1], PORT));
-    let listener = TcpListener::bind(addr).await.unwrap();
+    let listener = TcpListener::bind(addr).await?;
 
     let url = format!("http://localhost:{PORT}/");
     {
@@ -28,8 +28,8 @@ pub async fn serve(cfg: &Config) {
         listener,
         Router::new().fallback_service(ServeDir::new(&cfg.out_dir)),
     )
-    .await
-    .unwrap();
+    .await?;
+    Ok(())
 }
 
 const PORT: u16 = 7777;

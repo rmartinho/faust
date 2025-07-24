@@ -78,7 +78,7 @@ async fn run() -> anyhow::Result<()> {
     pb.enable_steady_tick(Duration::from_millis(200));
     pb.set_message(format!("{CLAMP}zipping site"));
     pb.set_style(progress_style());
-    zip_dir(&cfg.out_dir, File::create(&zip_file)?, None).unwrap();
+    zip_dir(&cfg.out_dir, File::create(&zip_file)?, None)?;
     pb.finish_and_clear();
     println!(
         "{} {CLAMP}{}",
@@ -93,11 +93,11 @@ async fn run() -> anyhow::Result<()> {
     println!(
         "      {PACKAGE}Site files available at {} ({})",
         style(zip_file.display()).bold(),
-        HumanBytes(metadata(&zip_file).unwrap().len())
+        HumanBytes(metadata(&zip_file)?.len())
     );
 
     if cfg.serve {
-        serve(&cfg).await;
+        serve(&cfg).await?;
     }
 
     Ok(())

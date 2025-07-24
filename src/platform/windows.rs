@@ -67,9 +67,9 @@ pub fn prepare_generation_arguments(args: Args) -> GenerateArgs {
         if !success {
             panic!("canceled open file dialog")
         }
-        let n = file.iter().position(|c| *c == 0).unwrap();
+        let n = file.iter().position(|c| *c == 0).expect("missing null terminator");
         file.truncate(n);
-        let path = String::from_utf16(&file).unwrap().into();
+        let path = String::from_utf16(&file).expect("invalid file name").into();
         GenerateArgs {
             manifest: Some(path),
             out_dir: None,

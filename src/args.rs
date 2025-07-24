@@ -52,12 +52,12 @@ impl Config {
         let args = gen_args(args);
         let manifest_path = args
             .manifest
-            .unwrap_or_else(|| env::current_dir().unwrap().join("faust/faust.yml"));
-        let manifest = Manifest::from_yaml(File::open(&manifest_path).unwrap())?;
+            .unwrap_or_else(|| env::current_dir().expect("current directory failed").join("faust/faust.yml"));
+        let manifest = Manifest::from_yaml(File::open(&manifest_path)?)?;
         let manifest_dir = manifest_path
             .parent()
             .map(|p| p.to_path_buf())
-            .unwrap_or_else(|| env::current_dir().unwrap());
+            .unwrap_or_else(|| env::current_dir().expect("current directory failed"));
         let src_dir = manifest
             .dir
             .clone()

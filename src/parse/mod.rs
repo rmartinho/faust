@@ -217,7 +217,7 @@ fn build_model(
                 silphium::model::Faction {
                     id: f.id.clone().into(),
                     name: text.get(&f.name).cloned().unwrap_or(f.name.clone()).into(),
-                    image: format!("{}", f.logo.to_str().unwrap()).into(),
+                    image: format!("{}", f.logo.to_str().expect("invalid file name")).into(),
                     alias: None,         // TODO
                     eras: vec![].into(), // TODO
                     is_horde: false,     // TODO
@@ -572,14 +572,14 @@ fn do_evaluate(
 }
 
 async fn parse_text(path: PathBuf) -> anyhow::Result<HashMap<String, String>> {
-    let buf = fs::read(&path).await.unwrap();
+    let buf = fs::read(&path).await?;
     let data = String::from_utf16le_lossy(&buf).replace(BOM, "");
-    let map = text::parse(data).unwrap();
+    let map = text::parse(data)?;
     Ok(map)
 }
 
 async fn parse_descr_mercenaries(path: PathBuf) -> anyhow::Result<Vec<Pool>> {
-    let mut data = fs::read_to_string(&path).await.unwrap();
+    let mut data = fs::read_to_string(&path).await?;
     data += "\n";
     let lex = utils::spanned_lexer::<descr_mercenaries::Token>(&data);
 
@@ -588,7 +588,7 @@ async fn parse_descr_mercenaries(path: PathBuf) -> anyhow::Result<Vec<Pool>> {
 }
 
 async fn parse_descr_regions(path: PathBuf) -> anyhow::Result<Vec<Region>> {
-    let mut data = fs::read_to_string(&path).await.unwrap();
+    let mut data = fs::read_to_string(&path).await?;
     data += "\n";
     let lex = utils::spanned_lexer::<descr_regions::Token>(&data);
 
@@ -597,7 +597,7 @@ async fn parse_descr_regions(path: PathBuf) -> anyhow::Result<Vec<Region>> {
 }
 
 async fn parse_descr_sm_factions_og(path: PathBuf) -> anyhow::Result<Vec<descr_sm_factions::Faction>> {
-    let mut data = fs::read_to_string(&path).await.unwrap();
+    let mut data = fs::read_to_string(&path).await?;
     data += "\n";
     let lex = utils::spanned_lexer::<descr_sm_factions::og::Token>(&data);
 
@@ -606,7 +606,7 @@ async fn parse_descr_sm_factions_og(path: PathBuf) -> anyhow::Result<Vec<descr_s
 }
 
 async fn parse_descr_sm_factions_rr(path: PathBuf) -> anyhow::Result<Vec<descr_sm_factions::Faction>> {
-    let mut data = fs::read_to_string(&path).await.unwrap();
+    let mut data = fs::read_to_string(&path).await?;
     data += "\n";
     let lex = utils::spanned_lexer::<descr_sm_factions::rr::Token>(&data);
 
@@ -615,7 +615,7 @@ async fn parse_descr_sm_factions_rr(path: PathBuf) -> anyhow::Result<Vec<descr_s
 }
 
 async fn parse_export_descr_unit(path: PathBuf) -> anyhow::Result<Vec<export_descr_unit::Unit>> {
-    let mut data = fs::read_to_string(&path).await.unwrap();
+    let mut data = fs::read_to_string(&path).await?;
     data += "\n";
     let lex = utils::spanned_lexer::<export_descr_unit::Token>(&data);
 
@@ -626,7 +626,7 @@ async fn parse_export_descr_unit(path: PathBuf) -> anyhow::Result<Vec<export_des
 async fn parse_export_descr_buildings(
     path: PathBuf,
 ) -> anyhow::Result<(HashMap<String, Requires>, Vec<Building>)> {
-    let mut data = fs::read_to_string(&path).await.unwrap();
+    let mut data = fs::read_to_string(&path).await?;
     data += "\n";
     let lex = utils::spanned_lexer::<export_descr_buildings::Token>(&data);
 

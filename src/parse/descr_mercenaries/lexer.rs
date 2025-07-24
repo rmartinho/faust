@@ -1,3 +1,5 @@
+use std::fmt::{self, Display, Formatter};
+
 use logos::Logos;
 
 use crate::parse::utils::skip;
@@ -27,4 +29,10 @@ pub enum Token<'source> {
 
     #[regex("[ \t]+", skip)]
     Whitespace,
+}
+
+impl Display for Token<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }

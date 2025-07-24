@@ -39,7 +39,7 @@ pub async fn pack_dir(src: &Path, dst: &Path, dir: &str) -> anyhow::Result<()> {
     println!("copying {dir}");
     let from = src.join(dir);
     let to = dst.join(dir);
-    fs::create_dir_all(to.parent().unwrap()).await?;
+    fs::create_dir_all(to.parent().expect("path is too short")).await?;
     copy_dir(from, to)?;
     Ok(())
 }
@@ -52,7 +52,7 @@ pub async fn pack_file(
     println!("copying {file}");
     let from = src.join(file);
     let to = dst.join(file);
-    fs::create_dir_all(to.parent().unwrap()).await?;
+    fs::create_dir_all(to.parent().expect("path is too short")).await?;
     fs::copy(from, to).await?;
     Ok(())
 }
