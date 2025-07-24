@@ -1,7 +1,8 @@
-use std::{io, path::{Path, PathBuf}};
+use std::path::{Path, PathBuf};
 
 use console::Emoji;
 use indicatif::ProgressStyle;
+use tokio::fs;
 
 use crate::args::Config;
 
@@ -16,16 +17,16 @@ pub const CLAMP: Emoji = Emoji("🗜️  ", "");
 pub const THINKING: Emoji = Emoji("💭  ", "");
 pub const PACKAGE: Emoji = Emoji("📦 ", "[+] ");
 
-pub async fn write_file(path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> io::Result<()> {
+pub async fn write_file(path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> anyhow::Result<()> {
     let dir = path.as_ref().parent();
     if let Some(dir) = dir {
-        tokio::fs::create_dir_all(dir).await?;
+        fs::create_dir_all(dir).await?;
     }
-    tokio::fs::write(path, contents).await
+    Ok(fs::write(path, contents).await?)
 }
 
-pub async fn read_file(path: impl AsRef<Path>) -> io::Result<Vec<u8>> {
-    tokio::fs::read(path).await
+pub async fn read_file(path: impl AsRef<Path>) -> anyhow::Result<Vec<u8>> {
+    Ok(fs::read(path).await?)
 }
 
 pub fn progress_style() -> ProgressStyle {

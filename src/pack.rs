@@ -5,7 +5,7 @@ use tempdir::TempDir;
 use tokio::fs;
 use zip_dir::zip_dir;
 
-pub async fn pack() -> Result<(), Box<dyn std::error::Error>> {
+pub async fn pack() -> anyhow::Result<()> {
     let src_dir = env::current_dir()?;
     let tmp_dir = TempDir::new("faust")?;
     let dst_dir = tmp_dir.path().join("files");
@@ -35,7 +35,7 @@ pub async fn pack() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-pub async fn pack_dir(src: &Path, dst: &Path, dir: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn pack_dir(src: &Path, dst: &Path, dir: &str) -> anyhow::Result<()> {
     println!("copying {dir}");
     let from = src.join(dir);
     let to = dst.join(dir);
@@ -48,7 +48,7 @@ pub async fn pack_file(
     src: &Path,
     dst: &Path,
     file: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> anyhow::Result<()> {
     println!("copying {file}");
     let from = src.join(file);
     let to = dst.join(file);

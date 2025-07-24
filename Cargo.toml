@@ -30,6 +30,7 @@ copy_dir = "0.1.3"
 axum = "0.8.4"
 tower-http = { version = "0.6.6", features = ["fs"] }
 clipboard-rs = "0.3.0"
+anyhow = { version = "1.0.98", features = ["backtrace"] }
 
 [target.'cfg(windows)'.dependencies]
 dont_disappear = "3.0.1"

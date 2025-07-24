@@ -36,7 +36,7 @@ pub enum ParserMode {
 }
 
 impl Manifest {
-    pub fn from_yaml(r: impl io::Read) -> io::Result<Manifest> {
-        serde_yml::from_reader(r).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    pub fn from_yaml(r: impl io::Read) -> anyhow::Result<Manifest> {
+        Ok(serde_yml::from_reader(r)?)
     }
 }

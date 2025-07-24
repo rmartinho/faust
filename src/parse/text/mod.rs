@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-pub fn parse(data: impl AsRef<str>) -> Result<HashMap<String, String>, ()> {
+pub fn parse(data: impl AsRef<str>) -> anyhow::Result<HashMap<String, String>> {
     use std::fmt::Write as _;
 
     Ok(data

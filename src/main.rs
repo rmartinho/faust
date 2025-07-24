@@ -30,13 +30,13 @@ mod utils;
 mod platform;
 
 #[tokio::main(flavor = "current_thread")]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> anyhow::Result<()> {
     platform::set_panic_hook();
 
     Ok(platform::finish(run().await)?)
 }
 
-async fn run() -> Result<(), Box<dyn std::error::Error>> {
+async fn run() -> anyhow::Result<()> {
     let args = Args::parse();
     match args.command {
         Some(Command::Pack) => {

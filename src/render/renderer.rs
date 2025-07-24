@@ -40,7 +40,7 @@ impl Renderer {
         }
     }
 
-    pub async fn render(&mut self) -> io::Result<()> {
+    pub async fn render(&mut self) -> anyhow::Result<()> {
         let m = MultiProgress::new();
         self.create_directory(m.clone()).await?;
         self.create_static_files(m.clone()).await?;
@@ -51,7 +51,7 @@ impl Renderer {
         Ok(())
     }
 
-    async fn render_images(&mut self, m: MultiProgress) -> io::Result<()> {
+    async fn render_images(&mut self, m: MultiProgress) -> anyhow::Result<()> {
         let pb = m.add(ProgressBar::new_spinner());
         pb.set_style(progress_style());
         pb.set_prefix("[3/5]");
@@ -118,7 +118,7 @@ impl Renderer {
         path
     }
 
-    async fn render_image(from: &Path, to: &Path, (height, width): (u32, u32)) -> io::Result<()> {
+    async fn render_image(from: &Path, to: &Path, (height, width): (u32, u32)) -> anyhow::Result<()> {
         let buf = read_file(from).await?;
         let format = ImageFormat::from_path(from).map_err(from_image_error)?;
         let img = ImageReader::with_format(Cursor::new(buf), format)
@@ -132,7 +132,7 @@ impl Renderer {
         Ok(())
     }
 
-    async fn render_data(&mut self, m: MultiProgress) -> io::Result<()> {
+    async fn render_data(&mut self, m: MultiProgress) -> anyhow::Result<()> {
         let pb = m.add(ProgressBar::new_spinner());
         pb.set_style(progress_style());
         pb.set_prefix("[4/5]");
@@ -148,7 +148,7 @@ impl Renderer {
         Ok(())
     }
 
-    async fn render_routes(&self, m: MultiProgress) -> io::Result<()> {
+    async fn render_routes(&self, m: MultiProgress) -> anyhow::Result<()> {
         let pb = m.add(ProgressBar::new_spinner());
         pb.set_style(progress_style());
         pb.set_prefix("[5/5]");
@@ -185,7 +185,7 @@ impl Renderer {
         renderer.render().await
     }
 
-    async fn create_directory(&self, m: MultiProgress) -> io::Result<()> {
+    async fn create_directory(&self, m: MultiProgress) -> anyhow::Result<()> {
         let pb = m.add(ProgressBar::new_spinner());
         pb.set_style(progress_style());
         pb.set_prefix("[1/5]");
@@ -198,10 +198,10 @@ impl Renderer {
         pb.set_message(format!("{FOLDER}creating output directory"));
         let res = fs::create_dir_all(&self.cfg.out_dir).await;
         pb.finish_with_message(format!("{FOLDER}created {}", self.cfg.out_dir.display()));
-        res
+        Ok(res?)
     }
 
-    async fn create_static_files(&self, m: MultiProgress) -> io::Result<()> {
+    async fn create_static_files(&self, m: MultiProgress) -> anyhow::Result<()> {
         let pb = m.add(ProgressBar::new_spinner());
         pb.set_style(progress_style());
         pb.set_prefix("[2/5]");

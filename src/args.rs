@@ -1,4 +1,4 @@
-use std::{env, fs::File, io, path::PathBuf};
+use std::{env, fs::File, path::PathBuf};
 
 use crate::{parse::Manifest, platform};
 use clap::{Parser, Subcommand};
@@ -48,7 +48,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn get(args: Args) -> io::Result<Self> {
+    pub fn get(args: Args) -> anyhow::Result<Self> {
         let args = gen_args(args);
         let manifest_path = args
             .manifest
