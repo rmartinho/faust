@@ -4,6 +4,7 @@ use std::{
     path::{Component, Path, PathBuf},
 };
 
+use anyhow::Context as _;
 use askama::Template as _;
 use image::{ImageError, ImageFormat, ImageReader, imageops::FilterType};
 use implicit_clone::unsync::IString;
@@ -17,8 +18,8 @@ use yew_router::Routable as _;
 
 use crate::{
     args::Config,
-    render::templates::{IndexHtml, RedirectHtml, FILESYSTEM_STATIC},
-    utils::{path_fallback, progress_style, read_file, write_file, FOLDER, LINK, PAPER, PICTURE},
+    render::templates::{FILESYSTEM_STATIC, IndexHtml, RedirectHtml},
+    utils::{FOLDER, LINK, PAPER, PICTURE, path_fallback, progress_style, read_file, write_file},
 };
 
 #[derive(Clone)]
@@ -118,17 +119,26 @@ impl Renderer {
         path
     }
 
-    async fn render_image(from: &Path, to: &Path, (height, width): (u32, u32)) -> anyhow::Result<()> {
-        let buf = read_file(from).await?;
-        let format = ImageFormat::from_path(from).map_err(from_image_error)?;
+    async fn render_image(
+        from: &Path,
+        to: &Path,
+        (height, width): (u32, u32),
+    ) -> anyhow::Result<()> {
+        let buf = read_file(from)
+            .await
+            .with_context(|| format!("failed to read image {}", from.display()))?;
+        let format = ImageFormat::from_path(from)
+            .with_context(|| format!("invalid image format for {}", from.display()))?;
         let img = ImageReader::with_format(Cursor::new(buf), format)
             .decode()
-            .map_err(from_image_error)?;
+            .with_context(|| format!("failed to read image {}", from.display()))?;
         let img = img.resize(height, width, FilterType::Lanczos3);
         let mut buf = vec![];
         img.write_to(&mut Cursor::new(&mut buf), ImageFormat::WebP)
-            .map_err(from_image_error)?;
-        write_file(&to, buf).await?;
+            .with_context(|| format!("failed to convert image {}", from.display()))?;
+        write_file(&to, buf)
+            .await
+            .with_context(|| format!("failed to write image {}", to.display()))?;
         Ok(())
     }
 
@@ -138,9 +148,11 @@ impl Renderer {
         pb.set_prefix("[4/5]");
         pb.tick();
         pb.set_message(format!("{PAPER}rendering mod data"));
-        let data = serde_json::to_string(&self.modules)?;
+        let data = serde_json::to_string(&self.modules).expect("failed to generate JSON file");
         self.data = data.clone();
-        write_file(&self.cfg.out_dir.join("mods.json"), data).await?;
+        write_file(&self.cfg.out_dir.join("mods.json"), data)
+            .await
+            .context("failed to generate mods.json")?;
         pb.finish_with_message(format!(
             "{PAPER}rendered mods.json ({})",
             HumanBytes(self.data.len() as u64)
@@ -160,16 +172,30 @@ impl Renderer {
             if let Some(ref target) = r.redirect {
                 write_file(
                     &self.cfg.out_dir.join(&r.path),
-                    RedirectHtml { target }.render()?,
+                    RedirectHtml { target }.render().with_context(|| {
+                        format!(
+                            "failed to render redirect {} -> {}",
+                            r.route.to_path(),
+                            target
+                        )
+                    })?,
                 )
-                .await?;
+                .await
+                .with_context(|| format!("failed to write file {}", r.path.display()))?;
             } else {
                 let body = &self.render_route(r.route.clone()).await;
                 write_file(
                     &self.cfg.out_dir.join(&r.path),
-                    IndexHtml { head: "", body }.render()?,
+                    IndexHtml { head: "", body }.render().with_context(|| {
+                        format!(
+                            "failed to render {} -> {}",
+                            r.route.to_path(),
+                            r.path.display()
+                        )
+                    })?,
                 )
-                .await?;
+                .await
+                .with_context(|| format!("failed to write file {}", r.path.display()))?;
             }
         }
         pb.finish_with_message(format!("{LINK}rendered {} routes", self.routes.len()));
@@ -192,13 +218,27 @@ impl Renderer {
         if self.cfg.out_dir.exists() {
             pb.tick();
             pb.set_message(format!("{FOLDER}clearing output directory"));
-            fs::remove_dir_all(&self.cfg.out_dir).await?;
+            fs::remove_dir_all(&self.cfg.out_dir)
+                .await
+                .with_context(|| {
+                    format!(
+                        "failed to clear output directory {}",
+                        self.cfg.out_dir.display()
+                    )
+                })?;
         }
         pb.tick();
         pb.set_message(format!("{FOLDER}creating output directory"));
-        let res = fs::create_dir_all(&self.cfg.out_dir).await;
+        fs::create_dir_all(&self.cfg.out_dir)
+            .await
+            .with_context(|| {
+                format!(
+                    "failed to create output directory {}",
+                    self.cfg.out_dir.display()
+                )
+            })?;
         pb.finish_with_message(format!("{FOLDER}created {}", self.cfg.out_dir.display()));
-        Ok(res?)
+        Ok(())
     }
 
     async fn create_static_files(&self, m: MultiProgress) -> anyhow::Result<()> {
@@ -208,7 +248,9 @@ impl Renderer {
         for file in FILESYSTEM_STATIC {
             pb.tick();
             pb.set_message(format!("{PAPER}creating {}", file.path));
-            file.create(&self.cfg.out_dir).await?;
+            file.create(&self.cfg.out_dir)
+                .await
+                .with_context(|| format!("failed to create {}", file.path))?;
         }
         pb.finish_with_message(format!(
             "{PAPER}created icons, styles, and scripts ({} files)",

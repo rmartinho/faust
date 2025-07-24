@@ -1,5 +1,6 @@
 use std::path::{Path, PathBuf};
 
+use anyhow::Context as _;
 use console::Emoji;
 use indicatif::ProgressStyle;
 use tokio::fs;
@@ -18,15 +19,23 @@ pub const THINKING: Emoji = Emoji("💭  ", "");
 pub const PACKAGE: Emoji = Emoji("📦 ", "[+] ");
 
 pub async fn write_file(path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> anyhow::Result<()> {
-    let dir = path.as_ref().parent();
+    let path = path.as_ref();
+    let dir = path.parent();
     if let Some(dir) = dir {
-        fs::create_dir_all(dir).await?;
+        fs::create_dir_all(dir)
+            .await
+            .with_context(|| format!("failed to create {}", dir.display()))?;
     }
-    Ok(fs::write(path, contents).await?)
+    Ok(fs::write(path, contents)
+        .await
+        .with_context(|| format!("failed to create {}", path.display()))?)
 }
 
 pub async fn read_file(path: impl AsRef<Path>) -> anyhow::Result<Vec<u8>> {
-    Ok(fs::read(path).await?)
+    let path = path.as_ref();
+    Ok(fs::read(path)
+        .await
+        .with_context(|| format!("failed to read {}", path.display()))?)
 }
 
 pub fn progress_style() -> ProgressStyle {
@@ -34,7 +43,7 @@ pub fn progress_style() -> ProgressStyle {
         .expect("invalid progress style")
         .tick_chars("⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏ ")
 }
- 
+
 pub fn path_fallback(cfg: &Config, path: &str) -> PathBuf {
     let first = cfg.src_dir.join(path);
     if first.exists() {

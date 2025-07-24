@@ -1,5 +1,6 @@
 use std::net::SocketAddr;
 
+use anyhow::Context as _;
 use axum::Router;
 use clipboard_rs::{Clipboard as _, ClipboardContext};
 use console::style;
@@ -10,7 +11,9 @@ use crate::{args::Config, utils::EARTH};
 
 pub async fn serve(cfg: &Config) -> anyhow::Result<()> {
     let addr = SocketAddr::from(([127, 0, 0, 1], PORT));
-    let listener = TcpListener::bind(addr).await?;
+    let listener = TcpListener::bind(addr)
+        .await
+        .with_context(|| format!("failed to bind {addr}"))?;
 
     let url = format!("http://localhost:{PORT}/");
     {
@@ -28,7 +31,7 @@ pub async fn serve(cfg: &Config) -> anyhow::Result<()> {
         listener,
         Router::new().fallback_service(ServeDir::new(&cfg.out_dir)),
     )
-    .await?;
+    .await.context("HTTP server failed")?;
     Ok(())
 }
 

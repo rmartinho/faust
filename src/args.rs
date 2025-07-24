@@ -1,6 +1,7 @@
 use std::{env, fs::File, path::PathBuf};
 
 use crate::{parse::Manifest, platform};
+use anyhow::Context as _;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser, Debug)]
@@ -50,10 +51,16 @@ pub struct Config {
 impl Config {
     pub fn get(args: Args) -> anyhow::Result<Self> {
         let args = gen_args(args);
-        let manifest_path = args
-            .manifest
-            .unwrap_or_else(|| env::current_dir().expect("current directory failed").join("faust/faust.yml"));
-        let manifest = Manifest::from_yaml(File::open(&manifest_path)?)?;
+        let manifest_path = args.manifest.unwrap_or_else(|| {
+            env::current_dir()
+                .expect("current directory failed")
+                .join("faust/faust.yml")
+        });
+        let manifest = Manifest::from_yaml(
+            File::open(&manifest_path)
+                .with_context(|| format!("failed to open manifest at {}", manifest_path.display()))?,
+        )
+        .with_context(|| format!("failed to parse manifest at {}", manifest_path.display()))?;
         let manifest_dir = manifest_path
             .parent()
             .map(|p| p.to_path_buf())
