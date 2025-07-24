@@ -12,13 +12,6 @@ use std::{
 use clap::Parser as _;
 use console::style;
 use indicatif::{HumanBytes, HumanDuration, ProgressBar};
-#[cfg(windows)]
-use windows::{
-    Win32::UI::WindowsAndMessaging::{MB_ICONERROR, MB_OK, MessageBoxW},
-    core::w,
-};
-#[cfg(windows)]
-use windows_strings::HSTRING;
 use zip_dir::zip_dir;
 
 use crate::{
@@ -34,46 +27,13 @@ mod parse;
 mod render;
 mod serve;
 mod utils;
+mod platform;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    #[cfg(windows)]
-    {
-        std::panic::set_hook(Box::new(move |info| {
-            use std::fmt::Write as _;
-            let mut message = String::from("An error has occurred.\n\n");
-            if let Some(s) = info.payload_as_str() {
-                let _ = write!(message, "{s:?}\n");
-            } else {
-                let _ = write!(message, "Panic occurred {info:?}.\n");
-            };
-            if let Some(loc) = info.location() {
-                let _ = write!(message, "\t@ {loc}");
-            }
+    platform::set_panic_hook();
 
-            unsafe {
-                MessageBoxW(
-                    None,
-                    &HSTRING::from(message),
-                    w!("Error"),
-                    MB_OK | MB_ICONERROR,
-                )
-            };
-            dont_disappear::enter_to_continue::default();
-        }));
-    }
-
-    let res = run().await;
-
-    #[cfg(windows)]
-    {
-        if let Err(ref e) = res {
-            eprintln!("{:?}", e);
-        }
-        dont_disappear::enter_to_continue::default();
-    }
-
-    res
+    Ok(platform::finish(run().await)?)
 }
 
 async fn run() -> Result<(), Box<dyn std::error::Error>> {
