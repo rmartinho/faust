@@ -22,7 +22,7 @@ use crate::{
         export_descr_unit::Attr,
         manifest::ParserMode,
     },
-    utils::{LOOKING_GLASS, THINKING, path_fallback, progress_style},
+    utils::{LOOKING_GLASS, THINKING, path_fallback, progress_style, read_file},
 };
 pub use manifest::Manifest;
 
@@ -572,7 +572,7 @@ fn do_evaluate(
 }
 
 async fn parse_text(path: PathBuf) -> anyhow::Result<HashMap<String, String>> {
-    let buf = fs::read(&path).await?;
+    let buf = read_file(&path).await?;
     let data = String::from_utf16le_lossy(&buf).replace(BOM, "");
     let map = text::parse(data)?;
     Ok(map)
@@ -596,21 +596,21 @@ async fn parse_descr_regions(path: PathBuf) -> anyhow::Result<Vec<Region>> {
     Ok(pools)
 }
 
-async fn parse_descr_sm_factions_og(path: PathBuf) -> anyhow::Result<Vec<descr_sm_factions::Faction>> {
-    let mut data = fs::read_to_string(&path).await?;
-    data += "\n";
-    let lex = utils::spanned_lexer::<descr_sm_factions::og::Token>(&data);
-
-    let factions = descr_sm_factions::og::Parser::new().parse(lex).unwrap();
+async fn parse_descr_sm_factions_og(
+    path: PathBuf,
+) -> anyhow::Result<Vec<descr_sm_factions::Faction>> {
+    let buf = read_file(&path).await?;
+    let data = String::from_utf8_lossy(&buf);
+    let factions = descr_sm_factions::og::parse(data)?;
     Ok(factions)
 }
 
-async fn parse_descr_sm_factions_rr(path: PathBuf) -> anyhow::Result<Vec<descr_sm_factions::Faction>> {
-    let mut data = fs::read_to_string(&path).await?;
-    data += "\n";
-    let lex = utils::spanned_lexer::<descr_sm_factions::rr::Token>(&data);
-
-    let factions = descr_sm_factions::rr::Parser::new().parse(lex).unwrap();
+async fn parse_descr_sm_factions_rr(
+    path: PathBuf,
+) -> anyhow::Result<Vec<descr_sm_factions::Faction>> {
+    let buf = read_file(&path).await?;
+    let data = String::from_utf8_lossy(&buf);
+    let factions = descr_sm_factions::rr::parse(data)?;
     Ok(factions)
 }
 

@@ -31,6 +31,8 @@ axum = "0.8.4"
 tower-http = { version = "0.6.6", features = ["fs"] }
 clipboard-rs = "0.3.0"
 anyhow = { version = "1.0.98", features = ["backtrace"] }
+serde_json5 = "0.2.1"
+itertools = "0.14.0"
 
 [target.'cfg(windows)'.dependencies]
 dont_disappear = "3.0.1"

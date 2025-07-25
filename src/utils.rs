@@ -24,18 +24,18 @@ pub async fn write_file(path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> a
     if let Some(dir) = dir {
         fs::create_dir_all(dir)
             .await
-            .with_context(|| format!("failed to create {}", dir.display()))?;
+            .with_context(|| format!("creating {}", dir.display()))?;
     }
     Ok(fs::write(path, contents)
         .await
-        .with_context(|| format!("failed to create {}", path.display()))?)
+        .with_context(|| format!("creating {}", path.display()))?)
 }
 
 pub async fn read_file(path: impl AsRef<Path>) -> anyhow::Result<Vec<u8>> {
     let path = path.as_ref();
     Ok(fs::read(path)
         .await
-        .with_context(|| format!("failed to read {}", path.display()))?)
+        .with_context(|| format!("reading {}", path.display()))?)
 }
 
 pub fn progress_style() -> ProgressStyle {

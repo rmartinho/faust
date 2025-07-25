@@ -56,11 +56,10 @@ impl Config {
                 .expect("current directory failed")
                 .join("faust/faust.yml")
         });
-        let manifest = Manifest::from_yaml(
-            File::open(&manifest_path)
-                .with_context(|| format!("failed to open manifest at {}", manifest_path.display()))?,
-        )
-        .with_context(|| format!("failed to parse manifest at {}", manifest_path.display()))?;
+        let manifest =
+            Manifest::from_yaml(File::open(&manifest_path).with_context(|| {
+                format!("opening manifest at {}", manifest_path.display())
+            })?)?;
         let manifest_dir = manifest_path
             .parent()
             .map(|p| p.to_path_buf())

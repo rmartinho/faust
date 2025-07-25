@@ -13,7 +13,7 @@ pub async fn serve(cfg: &Config) -> anyhow::Result<()> {
     let addr = SocketAddr::from(([127, 0, 0, 1], PORT));
     let listener = TcpListener::bind(addr)
         .await
-        .with_context(|| format!("failed to bind {addr}"))?;
+        .with_context(|| format!("binding socket to {addr}"))?;
 
     let url = format!("http://localhost:{PORT}/");
     {
@@ -31,7 +31,7 @@ pub async fn serve(cfg: &Config) -> anyhow::Result<()> {
         listener,
         Router::new().fallback_service(ServeDir::new(&cfg.out_dir)),
     )
-    .await.context("HTTP server failed")?;
+    .await.context("serving HTTP")?;
     Ok(())
 }
 

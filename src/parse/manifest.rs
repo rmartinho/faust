@@ -1,5 +1,6 @@
 use std::{io, path::PathBuf};
 
+use anyhow::Context as _;
 use implicit_clone::unsync::IString;
 use serde::{Deserialize, Serialize};
 
@@ -37,6 +38,6 @@ pub enum ParserMode {
 
 impl Manifest {
     pub fn from_yaml(r: impl io::Read) -> anyhow::Result<Manifest> {
-        Ok(serde_yml::from_reader(r)?)
+        Ok(serde_yml::from_reader(r).context("parsing manifest")?)
     }
 }

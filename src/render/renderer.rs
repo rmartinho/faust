@@ -126,19 +126,19 @@ impl Renderer {
     ) -> anyhow::Result<()> {
         let buf = read_file(from)
             .await
-            .with_context(|| format!("failed to read image {}", from.display()))?;
+            .with_context(|| format!("reading image {}", from.display()))?;
         let format = ImageFormat::from_path(from)
-            .with_context(|| format!("invalid image format for {}", from.display()))?;
+            .with_context(|| format!("selecting image format for {}", from.display()))?;
         let img = ImageReader::with_format(Cursor::new(buf), format)
             .decode()
-            .with_context(|| format!("failed to read image {}", from.display()))?;
+            .with_context(|| format!("reading image {}", from.display()))?;
         let img = img.resize(height, width, FilterType::Lanczos3);
         let mut buf = vec![];
         img.write_to(&mut Cursor::new(&mut buf), ImageFormat::WebP)
-            .with_context(|| format!("failed to convert image {}", from.display()))?;
+            .with_context(|| format!("converting image {}", from.display()))?;
         write_file(&to, buf)
             .await
-            .with_context(|| format!("failed to write image {}", to.display()))?;
+            .with_context(|| format!("writing image {}", to.display()))?;
         Ok(())
     }
 
@@ -148,11 +148,11 @@ impl Renderer {
         pb.set_prefix("[4/5]");
         pb.tick();
         pb.set_message(format!("{PAPER}rendering mod data"));
-        let data = serde_json::to_string(&self.modules).expect("failed to generate JSON file");
+        let data = serde_json::to_string(&self.modules).context("generating JSON file")?;
         self.data = data.clone();
         write_file(&self.cfg.out_dir.join("mods.json"), data)
             .await
-            .context("failed to generate mods.json")?;
+            .context("writing mods.json")?;
         pb.finish_with_message(format!(
             "{PAPER}rendered mods.json ({})",
             HumanBytes(self.data.len() as u64)
@@ -174,28 +174,28 @@ impl Renderer {
                     &self.cfg.out_dir.join(&r.path),
                     RedirectHtml { target }.render().with_context(|| {
                         format!(
-                            "failed to render redirect {} -> {}",
+                            "rendering redirect {} -> {}",
                             r.route.to_path(),
                             target
                         )
                     })?,
                 )
                 .await
-                .with_context(|| format!("failed to write file {}", r.path.display()))?;
+                .with_context(|| format!("writing file {}", r.path.display()))?;
             } else {
                 let body = &self.render_route(r.route.clone()).await;
                 write_file(
                     &self.cfg.out_dir.join(&r.path),
                     IndexHtml { head: "", body }.render().with_context(|| {
                         format!(
-                            "failed to render {} -> {}",
+                            "rendering {} -> {}",
                             r.route.to_path(),
                             r.path.display()
                         )
                     })?,
                 )
                 .await
-                .with_context(|| format!("failed to write file {}", r.path.display()))?;
+                .with_context(|| format!("writing file {}", r.path.display()))?;
             }
         }
         pb.finish_with_message(format!("{LINK}rendered {} routes", self.routes.len()));
@@ -222,7 +222,7 @@ impl Renderer {
                 .await
                 .with_context(|| {
                     format!(
-                        "failed to clear output directory {}",
+                        "clearing output directory {}",
                         self.cfg.out_dir.display()
                     )
                 })?;
@@ -233,7 +233,7 @@ impl Renderer {
             .await
             .with_context(|| {
                 format!(
-                    "failed to create output directory {}",
+                    "creating output directory {}",
                     self.cfg.out_dir.display()
                 )
             })?;
@@ -250,7 +250,7 @@ impl Renderer {
             pb.set_message(format!("{PAPER}creating {}", file.path));
             file.create(&self.cfg.out_dir)
                 .await
-                .with_context(|| format!("failed to create {}", file.path))?;
+                .with_context(|| format!("creating {}", file.path))?;
         }
         pb.finish_with_message(format!(
             "{PAPER}created icons, styles, and scripts ({} files)",

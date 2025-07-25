@@ -11,11 +11,11 @@ use zip_dir::zip_dir;
 
 pub async fn pack() -> anyhow::Result<()> {
     let src_dir = env::current_dir().expect("current dir failed");
-    let tmp_dir = TempDir::new("faust").context("failed to create temp dir")?;
+    let tmp_dir = TempDir::new("faust").context("creating temp dir")?;
     let dst_dir = tmp_dir.path().join("files");
     fs::create_dir_all(&dst_dir)
         .await
-        .with_context(|| format!("failed to create {}", dst_dir.display()))?;
+        .with_context(|| format!("creating {}", dst_dir.display()))?;
 
     pack_dir(&src_dir, &dst_dir, "data/ui/units")
         .await
@@ -54,7 +54,7 @@ pub async fn pack() -> anyhow::Result<()> {
     zip_dir(
         &PathBuf::from("."),
         std::fs::File::create(src_dir.join("faust-pack.zip"))
-            .context("failed to create zip file")?,
+            .context("creating zip file")?,
         None,
     )?;
 
@@ -67,9 +67,9 @@ pub async fn pack_dir(src: &Path, dst: &Path, dir: &str) -> anyhow::Result<()> {
     let to = dst.join(dir);
     fs::create_dir_all(to.parent().expect("path is too short"))
         .await
-        .with_context(|| format!("failed to create {}", to.display()))?;
+        .with_context(|| format!("creating {}", to.display()))?;
     copy_dir(&from, &to)
-        .with_context(|| format!("failed to copy from {} to {}", from.display(), to.display()))?;
+        .with_context(|| format!("copying from {} to {}", from.display(), to.display()))?;
     Ok(())
 }
 
@@ -79,9 +79,9 @@ pub async fn pack_file(src: &Path, dst: &Path, file: &str) -> anyhow::Result<()>
     let to = dst.join(file);
     fs::create_dir_all(to.parent().expect("path is too short"))
         .await
-        .with_context(|| format!("failed to create {}", to.display()))?;
+        .with_context(|| format!("creating {}", to.display()))?;
     fs::copy(&from, &to)
         .await
-        .with_context(|| format!("failed to copy from {} to {}", from.display(), to.display()))?;
+        .with_context(|| format!("copying from {} to {}", from.display(), to.display()))?;
     Ok(())
 }
