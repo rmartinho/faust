@@ -233,12 +233,12 @@ fn parse_defense(strings: &[&str]) -> Result<Defense> {
             .get(0)
             .copied()
             .ok_or_else(|| anyhow!("missing armor bonus"))
-            .and_then(|s| Ok(s.parse()?))?,
+            .map(|s| s.parse().unwrap_or(0))?,
         skill: strings
             .get(1)
             .copied()
             .ok_or_else(|| anyhow!("missing skill bonus"))
-            .and_then(|s| Ok(s.parse()?))?,
+            .map(|s| s.parse().unwrap_or(0))?,
         shield: strings
             .get(2)
             .copied()
