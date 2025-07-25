@@ -2,6 +2,8 @@
 #![feature(path_add_extension)]
 #![feature(panic_payload_as_str)]
 #![feature(str_split_remainder)]
+#![feature(str_split_whitespace_remainder)]
+#![feature(pattern)]
 #![allow(dead_code)]
 
 use std::{
@@ -9,6 +11,7 @@ use std::{
     time::{Duration, Instant},
 };
 
+use anyhow::Result;
 use clap::Parser as _;
 use console::style;
 use indicatif::{HumanBytes, HumanDuration, ProgressBar};
@@ -24,19 +27,19 @@ use crate::{
 mod args;
 mod pack;
 mod parse;
+mod platform;
 mod render;
 mod serve;
 mod utils;
-mod platform;
 
 #[tokio::main(flavor = "current_thread")]
-async fn main() -> anyhow::Result<()> {
+async fn main() -> Result<()> {
     platform::set_panic_hook();
 
     Ok(platform::finish(run().await)?)
 }
 
-async fn run() -> anyhow::Result<()> {
+async fn run() -> Result<()> {
     let args = Args::parse();
     match args.command {
         Some(Command::Pack) => {

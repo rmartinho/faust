@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 
-use anyhow::Context as _;
+use anyhow::{Context as _, Result, anyhow};
 use itertools::Itertools as _;
 use serde::{Deserialize, Serialize};
 
 use super::Faction;
 
-pub fn parse(data: impl AsRef<str>) -> anyhow::Result<Vec<Faction>> {
+pub fn parse(data: impl AsRef<str>) -> Result<Vec<Faction>> {
     let mut filtered = data
         .as_ref()
         .lines() // split lines
@@ -35,22 +35,20 @@ pub fn parse(data: impl AsRef<str>) -> anyhow::Result<Vec<Faction>> {
                     .get("string")
                     .and_then(|s| s.as_str())
                     .map(Into::into)
-                    .ok_or_else(|| anyhow::Error::msg(format!("no `string` found for {id}")))?,
+                    .ok_or_else(|| anyhow!("no `string` found for {id}"))?,
                 culture: m
                     .get("culture")
                     .and_then(|s| s.as_str())
                     .map(Into::into)
-                    .ok_or_else(|| anyhow::Error::msg(format!("no `culture` found for {id}")))?,
+                    .ok_or_else(|| anyhow!("no `culture` found for {id}"))?,
                 logo: m
                     .get("logos")
                     .and_then(|s| s.as_object())
                     .and_then(|l| l.get("loading screen icon"))
                     .and_then(|s| s.as_str())
                     .map(Into::into)
-                    .ok_or_else(|| {
-                        anyhow::Error::msg(format!("no `loading screen icon` found for {id}"))
-                    })?,
-                    id
+                    .ok_or_else(|| anyhow!("no `loading screen icon` found for {id}"))?,
+                id,
             })
         })
         .collect()

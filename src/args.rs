@@ -1,7 +1,7 @@
 use std::{env, fs::File, path::PathBuf};
 
 use crate::{parse::Manifest, platform};
-use anyhow::Context as _;
+use anyhow::{Context as _, Result};
 use clap::{Parser, Subcommand};
 
 #[derive(Parser, Debug)]
@@ -49,7 +49,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn get(args: Args) -> anyhow::Result<Self> {
+    pub fn get(args: Args) -> Result<Self> {
         let args = gen_args(args);
         let manifest_path = args.manifest.unwrap_or_else(|| {
             env::current_dir()

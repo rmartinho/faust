@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use anyhow::Context as _;
+use anyhow::{Context as _, Result};
 use console::Emoji;
 use indicatif::ProgressStyle;
 use tokio::fs;
@@ -18,7 +18,7 @@ pub const CLAMP: Emoji = Emoji("🗜️  ", "");
 pub const THINKING: Emoji = Emoji("💭  ", "");
 pub const PACKAGE: Emoji = Emoji("📦 ", "[+] ");
 
-pub async fn write_file(path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> anyhow::Result<()> {
+pub async fn write_file(path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> Result<()> {
     let path = path.as_ref();
     let dir = path.parent();
     if let Some(dir) = dir {
@@ -31,7 +31,7 @@ pub async fn write_file(path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> a
         .with_context(|| format!("creating {}", path.display()))?)
 }
 
-pub async fn read_file(path: impl AsRef<Path>) -> anyhow::Result<Vec<u8>> {
+pub async fn read_file(path: impl AsRef<Path>) -> Result<Vec<u8>> {
     let path = path.as_ref();
     Ok(fs::read(path)
         .await

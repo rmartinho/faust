@@ -3,13 +3,13 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use anyhow::Context as _;
+use anyhow::{Context as _, Result};
 use copy_dir::copy_dir;
 use tempdir::TempDir;
 use tokio::fs;
 use zip_dir::zip_dir;
 
-pub async fn pack() -> anyhow::Result<()> {
+pub async fn pack() -> Result<()> {
     let src_dir = env::current_dir().expect("current dir failed");
     let tmp_dir = TempDir::new("faust").context("creating temp dir")?;
     let dst_dir = tmp_dir.path().join("files");
@@ -17,51 +17,29 @@ pub async fn pack() -> anyhow::Result<()> {
         .await
         .with_context(|| format!("creating {}", dst_dir.display()))?;
 
-    pack_dir(&src_dir, &dst_dir, "data/ui/units")
-        .await
-        .expect("failed to pack data/ui/units");
-    pack_dir(&src_dir, &dst_dir, "data/ui/faction_icons")
-        .await
-        .expect("failed to pack data/ui/faction_icons");
-    pack_dir(&src_dir, &dst_dir, "data/loading_screen/symbols")
-        .await
-        .expect("failed to pack data/loading_screen/symbols");
-    pack_dir(&src_dir, &dst_dir, "data/world/maps/base")
-        .await
-        .expect("failed to pack data/world/maps/base");
-    pack_dir(&src_dir, &dst_dir, "data/world/maps/campaign")
-        .await
-        .expect("failed to pack data/world/maps/campaign");
-    pack_file(&src_dir, &dst_dir, "data/text/expanded_bi.txt")
-        .await
-        .expect("failed to pack data/text/expanded_bi.txt");
-    pack_file(&src_dir, &dst_dir, "data/text/export_units.txt")
-        .await
-        .expect("failed to pack data/text/export_units.txt");
-    pack_file(&src_dir, &dst_dir, "data/descr_sm_factions.txt")
-        .await
-        .expect("failed to pack data/descr_sm_factions.txt");
-    pack_file(&src_dir, &dst_dir, "data/export_descr_unit.txt")
-        .await
-        .expect("failed to pack data/export_descr_unit.txt");
-    pack_file(&src_dir, &dst_dir, "data/export_descr_buildings.txt")
-        .await
-        .expect("failed to pack data/export_descr_buildings.txt");
+    let _ = pack_dir(&src_dir, &dst_dir, "data/ui/units").await;
+    let _ = pack_dir(&src_dir, &dst_dir, "data/ui/faction_icons").await;
+    let _ = pack_dir(&src_dir, &dst_dir, "data/loading_screen/symbols").await;
+    let _ = pack_dir(&src_dir, &dst_dir, "data/world/maps/base").await;
+    let _ = pack_dir(&src_dir, &dst_dir, "data/world/maps/campaign").await;
+    let _ = pack_file(&src_dir, &dst_dir, "data/text/expanded_bi.txt").await;
+    let _ = pack_file(&src_dir, &dst_dir, "data/text/export_units.txt").await;
+    let _ = pack_file(&src_dir, &dst_dir, "data/descr_sm_factions.txt").await;
+    let _ = pack_file(&src_dir, &dst_dir, "data/export_descr_unit.txt").await;
+    let _ = pack_file(&src_dir, &dst_dir, "data/export_descr_buildings.txt").await;
 
     env::set_current_dir(&dst_dir).expect("failed to change current dir");
-
     println!("zipping");
     zip_dir(
         &PathBuf::from("."),
-        std::fs::File::create(src_dir.join("faust-pack.zip"))
-            .context("creating zip file")?,
+        std::fs::File::create(src_dir.join("faust-pack.zip")).context("creating zip file")?,
         None,
     )?;
 
     Ok(())
 }
 
-pub async fn pack_dir(src: &Path, dst: &Path, dir: &str) -> anyhow::Result<()> {
+pub async fn pack_dir(src: &Path, dst: &Path, dir: &str) -> Result<()> {
     println!("copying {dir}");
     let from = src.join(dir);
     let to = dst.join(dir);
@@ -73,7 +51,7 @@ pub async fn pack_dir(src: &Path, dst: &Path, dir: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub async fn pack_file(src: &Path, dst: &Path, file: &str) -> anyhow::Result<()> {
+pub async fn pack_file(src: &Path, dst: &Path, file: &str) -> Result<()> {
     println!("copying {file}");
     let from = src.join(file);
     let to = dst.join(file);

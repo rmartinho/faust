@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use anyhow::Context as _;
+use anyhow::{Context as _, Result, anyhow};
 
-pub fn parse(data: impl AsRef<str>) -> anyhow::Result<HashMap<String, String>> {
+pub fn parse(data: impl AsRef<str>) -> Result<HashMap<String, String>> {
     use std::fmt::Write as _;
 
     data.as_ref()
@@ -28,14 +28,10 @@ fn is_comment_char(c: char) -> bool {
     c == NOT_SIGN || c == SEMICOLON
 }
 
-fn parse_tag(str: &str) -> anyhow::Result<(String, String)> {
+fn parse_tag(str: &str) -> Result<(String, String)> {
     let mut split = str.split(CLOSE_BRACE);
-    let tag = split
-        .next()
-        .ok_or_else(|| anyhow::Error::msg("missing tag"))?;
-    let value = split
-        .remainder()
-        .ok_or_else(|| anyhow::Error::msg("missing value"))?;
+    let tag = split.next().ok_or_else(|| anyhow!("missing tag"))?;
+    let value = split.remainder().ok_or_else(|| anyhow!("missing value"))?;
     Ok((tag.into(), value.into()))
 }
 

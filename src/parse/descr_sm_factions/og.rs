@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 
-use anyhow::Context as _;
+use anyhow::{Context as _, Result, anyhow};
 
 use super::Faction;
 
-pub fn parse(data: impl AsRef<str>) -> anyhow::Result<Vec<Faction>> {
+pub fn parse(data: impl AsRef<str>) -> Result<Vec<Faction>> {
     data.as_ref()
         .lines() // split lines
         .filter_map(|l| l.split(';').nth(0)) // strip comments
@@ -24,7 +24,7 @@ pub fn parse(data: impl AsRef<str>) -> anyhow::Result<Vec<Faction>> {
         .collect()
 }
 
-fn parse_faction(lines: &[String]) -> anyhow::Result<Faction> {
+fn parse_faction(lines: &[String]) -> Result<Faction> {
     let mut id = String::new();
     let mut name = String::new();
     let mut culture = String::new();
@@ -33,28 +33,28 @@ fn parse_faction(lines: &[String]) -> anyhow::Result<Faction> {
         let mut split = line.split(char::is_whitespace);
         let keyword = split
             .next()
-            .ok_or_else(|| anyhow::Error::msg("line didn't start with keyword"))
+            .ok_or_else(|| anyhow!("line didn't start with keyword"))
             .with_context(|| format!("parsing line {line}"))?;
         let value = split.remainder().map(|s| s.trim());
         if keyword == "faction" {
             id = value
-                .ok_or_else(|| anyhow::Error::msg("no faction name found"))
+                .ok_or_else(|| anyhow!("no faction name found"))
                 .and_then(|s| {
                     s.split(',')
                         .nth(0)
-                        .ok_or_else(|| anyhow::Error::msg("no faction name found"))
+                        .ok_or_else(|| anyhow!("no faction name found"))
                 })
                 .with_context(|| format!("parsing line {line}"))?
                 .into();
             name = id.clone();
         } else if keyword == "culture" {
             culture = value
-                .ok_or_else(|| anyhow::Error::msg("line didn't have a value"))
+                .ok_or_else(|| anyhow!("line didn't have a value"))
                 .with_context(|| format!("parsing line {line}"))?
                 .into();
         } else if keyword == "loading_logo" {
             logo = value
-                .ok_or_else(|| anyhow::Error::msg("line didn't have a value"))
+                .ok_or_else(|| anyhow!("line didn't have a value"))
                 .with_context(|| format!("parsing line {line}"))?
                 .into();
         }

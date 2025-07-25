@@ -4,6 +4,7 @@ use std::{
     time::Duration,
 };
 
+use anyhow::Result;
 use implicit_clone::unsync::IString;
 use indexmap::IndexMap;
 use indicatif::{MultiProgress, ProgressBar};
@@ -54,7 +55,7 @@ fn try_paths<'a>(cfg: &Config, paths: impl AsRef<[&'a str]>) -> PathBuf {
     }
 }
 
-pub async fn parse_folder(cfg: &Config) -> anyhow::Result<ModuleMap> {
+pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     let expanded_bi_path = path_fallback(cfg, "data/text/expanded_bi.txt");
     let export_units_path = path_fallback(cfg, "data/text/export_units.txt");
     let _descr_mercenaries_path = try_paths(
@@ -243,7 +244,7 @@ fn build_model(
                             let mut general = false;
                             let mut mercenary = false;
                             let mut legionary_name = false;
-                            for attr in u.stats().attributes.iter() {
+                            for attr in u.stats.attributes.iter() {
                                 match attr {
                                     Attr::HideForest => cant_hide = false,
                                     Attr::HideImprovedForest => {
@@ -304,28 +305,32 @@ fn build_model(
                                     u.key.to_lowercase()
                                 )
                                 .into(),
-                                soldiers: u.stats().soldiers,
-                                officers: u.stats().officers,
+                                soldiers: u.stats.soldiers,
+                                officers: u.stats.officers,
                                 has_mount: u
-                                    .stats()
+                                    .stats
                                     .mount
                                     .as_ref()
                                     .map(|m| !m.contains("horse"))
                                     .unwrap_or(false),
-                                formations: u.stats().formations.clone().into(),
-                                hp: u.stats().hp,
-                                hp_mount: u.stats().hp_mount,
-                                primary_weapon: build_weapon(&u.stats().primary_weapon),
-                                secondary_weapon: build_weapon(&u.stats().secondary_weapon),
-                                defense: u.stats().defense,
-                                defense_mount: u.stats().defense_mount,
-                                heat: u.stats().heat,
-                                ground_bonus: u.stats().ground_bonus,
-                                morale: u.stats().morale,
-                                discipline: u.stats().discipline,
-                                turns: u.stats().turns,
-                                cost: u.stats().cost,
-                                upkeep: u.stats().upkeep,
+                                formations: u.stats.formations.clone().into(),
+                                hp: if u.stats.hp < 0 { 0 } else { u.stats.hp as u32 },
+                                hp_mount: if u.stats.hp_mount < 0 {
+                                    0
+                                } else {
+                                    u.stats.hp_mount as u32
+                                },
+                                primary_weapon: build_weapon(&u.stats.primary_weapon),
+                                secondary_weapon: build_weapon(&u.stats.secondary_weapon),
+                                defense: u.stats.defense,
+                                defense_mount: u.stats.defense_mount,
+                                heat: u.stats.heat,
+                                ground_bonus: u.stats.ground_bonus,
+                                morale: u.stats.morale,
+                                discipline: u.stats.discipline,
+                                turns: u.stats.turns,
+                                cost: u.stats.cost,
+                                upkeep: u.stats.upkeep,
                                 eras: vec![].into(), // TODO
 
                                 stamina,
@@ -381,6 +386,7 @@ fn build_weapon(weapon: &export_descr_unit::Weapon) -> Option<silphium::model::W
             export_descr_unit::WeaponAttr::Area => area = true,
             export_descr_unit::WeaponAttr::SpearBonus(n) => spear_bonus = *n,
             export_descr_unit::WeaponAttr::Fire => fire = true,
+            _ => {}
         }
     }
 
@@ -403,11 +409,7 @@ fn build_weapon(weapon: &export_descr_unit::Weapon) -> Option<silphium::model::W
 }
 
 fn is_general(unit: &export_descr_unit::Unit) -> bool {
-    unit.rebalanced_stats
-        .as_ref()
-        .unwrap_or(&unit.stats)
-        .attributes
-        .contains(&Attr::GeneralUnit)
+    unit.stats.attributes.contains(&Attr::GeneralUnit)
 }
 
 fn require_ownership(unit: &export_descr_unit::Unit) -> Requires {
@@ -571,14 +573,14 @@ fn do_evaluate(
     }
 }
 
-async fn parse_text(path: PathBuf) -> anyhow::Result<HashMap<String, String>> {
+async fn parse_text(path: PathBuf) -> Result<HashMap<String, String>> {
     let buf = read_file(&path).await?;
     let data = String::from_utf16le_lossy(&buf).replace(BOM, "");
     let map = text::parse(data)?;
     Ok(map)
 }
 
-async fn parse_descr_mercenaries(path: PathBuf) -> anyhow::Result<Vec<Pool>> {
+async fn parse_descr_mercenaries(path: PathBuf) -> Result<Vec<Pool>> {
     let mut data = fs::read_to_string(&path).await?;
     data += "\n";
     let lex = utils::spanned_lexer::<descr_mercenaries::Token>(&data);
@@ -587,7 +589,7 @@ async fn parse_descr_mercenaries(path: PathBuf) -> anyhow::Result<Vec<Pool>> {
     Ok(pools)
 }
 
-async fn parse_descr_regions(path: PathBuf) -> anyhow::Result<Vec<Region>> {
+async fn parse_descr_regions(path: PathBuf) -> Result<Vec<Region>> {
     let mut data = fs::read_to_string(&path).await?;
     data += "\n";
     let lex = utils::spanned_lexer::<descr_regions::Token>(&data);
@@ -596,36 +598,30 @@ async fn parse_descr_regions(path: PathBuf) -> anyhow::Result<Vec<Region>> {
     Ok(pools)
 }
 
-async fn parse_descr_sm_factions_og(
-    path: PathBuf,
-) -> anyhow::Result<Vec<descr_sm_factions::Faction>> {
+async fn parse_descr_sm_factions_og(path: PathBuf) -> Result<Vec<descr_sm_factions::Faction>> {
     let buf = read_file(&path).await?;
     let data = String::from_utf8_lossy(&buf);
     let factions = descr_sm_factions::og::parse(data)?;
     Ok(factions)
 }
 
-async fn parse_descr_sm_factions_rr(
-    path: PathBuf,
-) -> anyhow::Result<Vec<descr_sm_factions::Faction>> {
+async fn parse_descr_sm_factions_rr(path: PathBuf) -> Result<Vec<descr_sm_factions::Faction>> {
     let buf = read_file(&path).await?;
     let data = String::from_utf8_lossy(&buf);
     let factions = descr_sm_factions::rr::parse(data)?;
     Ok(factions)
 }
 
-async fn parse_export_descr_unit(path: PathBuf) -> anyhow::Result<Vec<export_descr_unit::Unit>> {
-    let mut data = fs::read_to_string(&path).await?;
-    data += "\n";
-    let lex = utils::spanned_lexer::<export_descr_unit::Token>(&data);
-
-    let units = export_descr_unit::Parser::new().parse(lex).unwrap();
+async fn parse_export_descr_unit(path: PathBuf) -> Result<Vec<export_descr_unit::Unit>> {
+    let buf = read_file(&path).await?;
+    let data = String::from_utf8_lossy(&buf);
+    let units = export_descr_unit::parse(data)?;
     Ok(units)
 }
 
 async fn parse_export_descr_buildings(
     path: PathBuf,
-) -> anyhow::Result<(HashMap<String, Requires>, Vec<Building>)> {
+) -> Result<(HashMap<String, Requires>, Vec<Building>)> {
     let mut data = fs::read_to_string(&path).await?;
     data += "\n";
     let lex = utils::spanned_lexer::<export_descr_buildings::Token>(&data);

@@ -26,7 +26,7 @@ Building =
         "levels" Ident+ "{"
             <Level*>
         "}"
-        "plugins" "{" "}"
+        ("plugins" "{" "}")?
     "}";
 
 PreLevelEntry: () = {

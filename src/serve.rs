@@ -1,6 +1,6 @@
 use std::net::SocketAddr;
 
-use anyhow::Context as _;
+use anyhow::{Context as _, Result};
 use axum::Router;
 use clipboard_rs::{Clipboard as _, ClipboardContext};
 use console::style;
@@ -9,7 +9,7 @@ use tower_http::services::ServeDir;
 
 use crate::{args::Config, utils::EARTH};
 
-pub async fn serve(cfg: &Config) -> anyhow::Result<()> {
+pub async fn serve(cfg: &Config) -> Result<()> {
     let addr = SocketAddr::from(([127, 0, 0, 1], PORT));
     let listener = TcpListener::bind(addr)
         .await

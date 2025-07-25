@@ -1,5 +1,6 @@
 use std::path::Path;
 
+use anyhow::Result;
 use askama::Template;
 
 use crate::utils::write_file;
@@ -23,7 +24,7 @@ pub struct StaticFile<'a> {
 }
 
 impl<'a> StaticFile<'a> {
-    pub async fn create(&self, path: impl AsRef<Path>) -> anyhow::Result<()> {
+    pub async fn create(&self, path: impl AsRef<Path>) -> Result<()> {
         let path = path.as_ref().join(self.path);
         write_file(path, self.contents).await
     }

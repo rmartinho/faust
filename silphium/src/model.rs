@@ -1,6 +1,7 @@
 use std::{
     collections::HashMap,
     fmt::{self, Display, Formatter},
+    str::FromStr,
 };
 
 use implicit_clone::{
@@ -9,6 +10,7 @@ use implicit_clone::{
 };
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 use yew::Properties;
 
 #[derive(Properties, PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
@@ -201,6 +203,32 @@ pub enum Formation {
     ShieldWall,
 }
 
+#[derive(Debug, Error)]
+pub struct FormationParseError;
+
+impl Display for FormationParseError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "could not parse formation")
+    }
+}
+
+impl FromStr for Formation {
+    type Err = FormationParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "square" => Ok(Self::Square),
+            "horde" => Ok(Self::Horde),
+            "phalanx" => Ok(Self::Phalanx),
+            "testudo" => Ok(Self::Testudo),
+            "wedge" => Ok(Self::Wedge),
+            "schiltrom" => Ok(Self::Schiltrom),
+            "shield_wall" => Ok(Self::ShieldWall),
+            _ => Err(FormationParseError),
+        }
+    }
+}
+
 impl Display for Formation {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
@@ -210,7 +238,7 @@ impl Display for Formation {
             Self::Testudo => write!(f, "testudo"),
             Self::Wedge => write!(f, "wedge"),
             Self::Schiltrom => write!(f, "schiltrom"),
-            Self::ShieldWall => write!(f, "shield-wall"),
+            Self::ShieldWall => write!(f, "shield_wall"),
         }
     }
 }
@@ -225,6 +253,30 @@ pub enum Discipline {
     Disciplined,
     Impetuous,
     Berserker,
+}
+
+#[derive(Debug, Error)]
+pub struct DisciplineParseError;
+
+impl Display for DisciplineParseError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "could not parse discipline")
+    }
+}
+
+impl FromStr for Discipline {
+    type Err = DisciplineParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "low" => Ok(Self::Low),
+            "normal" => Ok(Self::Normal),
+            "disciplined" => Ok(Self::Disciplined),
+            "impetuous" => Ok(Self::Impetuous),
+            "berserker" => Ok(Self::Berserker),
+            _ => Err(DisciplineParseError),
+        }
+    }
 }
 
 impl Display for Discipline {
