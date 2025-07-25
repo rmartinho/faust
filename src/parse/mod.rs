@@ -68,7 +68,7 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
             "data/world/maps/base/descr_mercenaries.txt",
         ],
     );
-    let _descr_regions_path = try_paths(
+    let descr_regions_path = try_paths(
         cfg,
         [
             &format!(
@@ -106,14 +106,13 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
         parse_descr_mercenaries(descr_mercenaries_path),
     )
     .await?;
-    let regions = vec![];
-    // let regions = parse_progress(
-    //     m.clone(),
-    //     4,
-    //     descr_regions_path.clone(),
-    //     parse_descr_regions(descr_regions_path),
-    // )
-    // .await?;
+    let regions = parse_progress(
+        m.clone(),
+        4,
+        descr_regions_path.clone(),
+        parse_descr_regions(descr_regions_path),
+    )
+    .await?;
     let factions = if cfg.manifest.mode == ParserMode::Original {
         parse_progress(
             m.clone(),
@@ -587,12 +586,10 @@ async fn parse_descr_mercenaries(path: PathBuf) -> Result<Vec<Pool>> {
 }
 
 async fn parse_descr_regions(path: PathBuf) -> Result<Vec<Region>> {
-    let mut data = fs::read_to_string(&path).await?;
-    data += "\n";
-    let lex = utils::spanned_lexer::<descr_regions::Token>(&data);
-
-    let pools = descr_regions::Parser::new().parse(lex).unwrap();
-    Ok(pools)
+    let buf = read_file(&path).await?;
+    let data = String::from_utf8_lossy(&buf);
+    let regions = descr_regions::parse(data)?;
+    Ok(regions)
 }
 
 async fn parse_descr_sm_factions_og(path: PathBuf) -> Result<Vec<descr_sm_factions::Faction>> {
