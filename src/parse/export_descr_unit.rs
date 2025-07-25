@@ -36,9 +36,8 @@ fn parse_unit(lines: &[String]) -> Result<Unit> {
         })
         .collect::<Result<_>>()?;
     let entries: HashMap<_, _> = raw.iter().copied().collect();
-    let id = require_line_value(&entries, "type")?;
     Ok(Unit {
-        id: id.into(),
+        id: require_line_value(&entries, "type")?.into(),
         key: require_line_value(&entries, "dictionary")?.into(),
         category: require_line_value(&entries, "category")?.into(),
         class: require_line_value(&entries, "class")?.into(),
@@ -310,6 +309,17 @@ fn parse_attribute(string: &str) -> Result<Attr> {
     })
 }
 
+fn parse_ownership(owners: &str) -> Vec<String> {
+    owners
+        .split(OPT_COMMA)
+        .map(|s| s.trim())
+        .filter(|s| s.len() > 0)
+        .map(Into::into)
+        .collect()
+}
+
+type UnitEntries<'a> = HashMap<&'a str, Option<&'a str>>;
+
 fn split_line<'a, P>(entries: &'a UnitEntries, key: &str, pat: P) -> Result<Vec<&'a str>>
 where
     P: Pattern,
@@ -320,17 +330,6 @@ where
         .filter(|s| s.len() > 0)
         .collect())
 }
-
-fn parse_ownership(owners: &str) -> Vec<String> {
-    owners
-        .split([',', ' '])
-        .map(|s| s.trim())
-        .filter(|s| s.len() > 0)
-        .map(Into::into)
-        .collect()
-}
-
-type UnitEntries<'a> = HashMap<&'a str, Option<&'a str>>;
 
 fn get_line<'a>(entries: &'a UnitEntries, key: &str) -> Option<Option<&'a str>> {
     entries.get(key).map(Option::as_deref)

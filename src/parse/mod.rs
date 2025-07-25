@@ -58,7 +58,7 @@ fn try_paths<'a>(cfg: &Config, paths: impl AsRef<[&'a str]>) -> PathBuf {
 pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     let expanded_bi_path = path_fallback(cfg, "data/text/expanded_bi.txt");
     let export_units_path = path_fallback(cfg, "data/text/export_units.txt");
-    let _descr_mercenaries_path = try_paths(
+    let descr_mercenaries_path = try_paths(
         cfg,
         [
             &format!(
@@ -99,15 +99,14 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     .await?;
     text.extend(export_units.into_iter());
 
-    let pools = vec![];
+    let pools = parse_progress(
+        m.clone(),
+        3,
+        descr_mercenaries_path.clone(),
+        parse_descr_mercenaries(descr_mercenaries_path),
+    )
+    .await?;
     let regions = vec![];
-    // let pools = parse_progress(
-    //     m.clone(),
-    //     3,
-    //     descr_mercenaries_path.clone(),
-    //     parse_descr_mercenaries(descr_mercenaries_path),
-    // )
-    // .await?;
     // let regions = parse_progress(
     //     m.clone(),
     //     4,
@@ -581,11 +580,9 @@ async fn parse_text(path: PathBuf) -> Result<HashMap<String, String>> {
 }
 
 async fn parse_descr_mercenaries(path: PathBuf) -> Result<Vec<Pool>> {
-    let mut data = fs::read_to_string(&path).await?;
-    data += "\n";
-    let lex = utils::spanned_lexer::<descr_mercenaries::Token>(&data);
-
-    let pools = descr_mercenaries::Parser::new().parse(lex).unwrap();
+    let buf = read_file(&path).await?;
+    let data = String::from_utf8_lossy(&buf);
+    let pools = descr_mercenaries::parse(data)?;
     Ok(pools)
 }
 
