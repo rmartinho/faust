@@ -2,7 +2,9 @@ use std::{collections::HashMap, str::pattern::Pattern};
 
 use anyhow::{Context as _, Result, anyhow};
 
-pub fn parse(data: impl AsRef<str>) -> Result<Vec<Pool>> {
+use crate::parse::manifest::ParserMode;
+
+pub fn parse(data: impl AsRef<str>, _: ParserMode) -> Result<Vec<Pool>> {
     data.as_ref()
         .lines() // split lines
         .filter_map(|l| l.split(';').nth(0)) // strip comments
@@ -57,14 +59,15 @@ fn parse_pool(lines: &[String]) -> Result<Pool> {
 }
 
 fn parse_unit(line: &str) -> Result<Unit> {
-    let mut split = line.split(COMMA);
+    let mut split = line.split(TAB_OR_COMMA);
     let id = split
         .next()
         .ok_or_else(|| anyhow!("missing unit id"))?
         .into();
     let rest = split
         .remainder()
-        .ok_or_else(|| anyhow!("missing unit entry data"))?;
+        .ok_or_else(|| anyhow!("missing unit entry data"))?
+        .trim();
 
     let data: Vec<_> = rest.split_whitespace().collect();
 
@@ -150,7 +153,7 @@ fn require_line_value<'a>(entries: &'a PoolEntries, key: &str) -> Result<&'a str
 }
 
 const OPT_COMMA: &[char] = &[',', ' '];
-const COMMA: &str = ",";
+const TAB_OR_COMMA: &[char] = &[',', '\t'];
 
 #[derive(Debug)]
 pub struct Pool {

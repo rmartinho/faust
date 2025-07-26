@@ -1,7 +1,18 @@
 use std::path::PathBuf;
 
-pub mod og;
-pub mod rr;
+use anyhow::Result;
+
+use crate::parse::manifest::ParserMode;
+
+mod og;
+mod rr;
+
+pub fn parse(data: impl AsRef<str>, mode: ParserMode) -> Result<Vec<Faction>> {
+    match mode {
+        ParserMode::Original | ParserMode::Medieval2 => og::parse(data),
+        ParserMode::Remastered => rr::parse(data),
+    }
+}
 
 #[derive(Debug)]
 pub struct Faction {

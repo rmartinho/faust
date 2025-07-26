@@ -2,7 +2,9 @@ use std::{collections::HashMap, str::pattern::Pattern};
 
 use anyhow::{Context as _, Result, anyhow};
 
-pub fn parse(data: impl AsRef<str>) -> Result<Vec<Unit>> {
+use crate::parse::manifest::ParserMode;
+
+pub fn parse(data: impl AsRef<str>, _: ParserMode) -> Result<Vec<Unit>> {
     data.as_ref()
         .lines() // split lines
         .filter_map(|l| l.split(';').nth(0)) // strip comments

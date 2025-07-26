@@ -56,6 +56,7 @@ fn try_paths<'a>(cfg: &Config, paths: impl AsRef<[&'a str]>) -> PathBuf {
 }
 
 pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
+    let expanded_path = path_fallback(cfg, "data/text/expanded.txt");
     let expanded_bi_path = path_fallback(cfg, "data/text/expanded_bi.txt");
     let export_units_path = path_fallback(cfg, "data/text/export_units.txt");
     let descr_mercenaries_path = try_paths(
@@ -83,18 +84,23 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     let export_descr_buildings_path = path_fallback(cfg, "data/export_descr_buildings.txt");
 
     let m = MultiProgress::new();
+
+    let expanded_text_path = match cfg.manifest.mode {
+        ParserMode::Original | ParserMode::Remastered => expanded_bi_path,
+        ParserMode::Medieval2 => expanded_path,
+    };
     let mut text = parse_progress(
         m.clone(),
         1,
-        expanded_bi_path.clone(),
-        parse_text(expanded_bi_path),
+        expanded_text_path.clone(),
+        parse_text(expanded_text_path, cfg.manifest.mode),
     )
     .await?;
     let export_units = parse_progress(
         m.clone(),
         2,
         export_units_path.clone(),
-        parse_text(export_units_path),
+        parse_text(export_units_path, cfg.manifest.mode),
     )
     .await?;
     text.extend(export_units.into_iter());
@@ -103,45 +109,35 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
         m.clone(),
         3,
         descr_mercenaries_path.clone(),
-        parse_descr_mercenaries(descr_mercenaries_path),
+        parse_descr_mercenaries(descr_mercenaries_path, cfg.manifest.mode),
     )
     .await?;
     let regions = parse_progress(
         m.clone(),
         4,
         descr_regions_path.clone(),
-        parse_descr_regions(descr_regions_path),
+        parse_descr_regions(descr_regions_path, cfg.manifest.mode),
     )
     .await?;
-    let factions = if cfg.manifest.mode == ParserMode::Original {
-        parse_progress(
-            m.clone(),
-            5,
-            descr_sm_factions_path.clone(),
-            parse_descr_sm_factions_og(descr_sm_factions_path),
-        )
-        .await?
-    } else {
-        parse_progress(
-            m.clone(),
-            5,
-            descr_sm_factions_path.clone(),
-            parse_descr_sm_factions_rr(descr_sm_factions_path),
-        )
-        .await?
-    };
+    let factions = parse_progress(
+        m.clone(),
+        5,
+        descr_sm_factions_path.clone(),
+        parse_descr_sm_factions(descr_sm_factions_path, cfg.manifest.mode),
+    )
+    .await?;
     let units = parse_progress(
         m.clone(),
         6,
         export_descr_unit_path.clone(),
-        parse_export_descr_unit(export_descr_unit_path),
+        parse_export_descr_unit(export_descr_unit_path, cfg.manifest.mode),
     )
     .await?;
     let (require_aliases, buildings) = parse_progress(
         m.clone(),
         7,
         export_descr_buildings_path.clone(),
-        parse_export_descr_buildings(export_descr_buildings_path),
+        parse_export_descr_buildings(export_descr_buildings_path, cfg.manifest.mode),
     )
     .await?;
 
@@ -571,50 +567,50 @@ fn do_evaluate(
     }
 }
 
-async fn parse_text(path: PathBuf) -> Result<HashMap<String, String>> {
+async fn parse_text(path: PathBuf, mode: ParserMode) -> Result<HashMap<String, String>> {
     let buf = read_file(&path).await?;
     let data = String::from_utf16le_lossy(&buf).replace(BOM, "");
-    let map = text::parse(data)?;
+    let map = text::parse(data, mode)?;
     Ok(map)
 }
 
-async fn parse_descr_mercenaries(path: PathBuf) -> Result<Vec<Pool>> {
+async fn parse_descr_mercenaries(path: PathBuf, mode: ParserMode) -> Result<Vec<Pool>> {
     let buf = read_file(&path).await?;
     let data = String::from_utf8_lossy(&buf);
-    let pools = descr_mercenaries::parse(data)?;
+    let pools = descr_mercenaries::parse(data, mode)?;
     Ok(pools)
 }
 
-async fn parse_descr_regions(path: PathBuf) -> Result<Vec<Region>> {
+async fn parse_descr_regions(path: PathBuf, mode: ParserMode) -> Result<Vec<Region>> {
     let buf = read_file(&path).await?;
     let data = String::from_utf8_lossy(&buf);
-    let regions = descr_regions::parse(data)?;
+    let regions = descr_regions::parse(data, mode)?;
     Ok(regions)
 }
 
-async fn parse_descr_sm_factions_og(path: PathBuf) -> Result<Vec<descr_sm_factions::Faction>> {
+async fn parse_descr_sm_factions(
+    path: PathBuf,
+    mode: ParserMode,
+) -> Result<Vec<descr_sm_factions::Faction>> {
     let buf = read_file(&path).await?;
     let data = String::from_utf8_lossy(&buf);
-    let factions = descr_sm_factions::og::parse(data)?;
+    let factions = descr_sm_factions::parse(data, mode)?;
     Ok(factions)
 }
 
-async fn parse_descr_sm_factions_rr(path: PathBuf) -> Result<Vec<descr_sm_factions::Faction>> {
+async fn parse_export_descr_unit(
+    path: PathBuf,
+    mode: ParserMode,
+) -> Result<Vec<export_descr_unit::Unit>> {
     let buf = read_file(&path).await?;
     let data = String::from_utf8_lossy(&buf);
-    let factions = descr_sm_factions::rr::parse(data)?;
-    Ok(factions)
-}
-
-async fn parse_export_descr_unit(path: PathBuf) -> Result<Vec<export_descr_unit::Unit>> {
-    let buf = read_file(&path).await?;
-    let data = String::from_utf8_lossy(&buf);
-    let units = export_descr_unit::parse(data)?;
+    let units = export_descr_unit::parse(data, mode)?;
     Ok(units)
 }
 
 async fn parse_export_descr_buildings(
     path: PathBuf,
+    _mode: ParserMode,
 ) -> Result<(HashMap<String, Requires>, Vec<Building>)> {
     let mut data = fs::read_to_string(&path).await?;
     data += "\n";

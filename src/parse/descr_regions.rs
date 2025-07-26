@@ -1,6 +1,8 @@
 use anyhow::{Context as _, Result, anyhow};
 
-pub fn parse(data: impl AsRef<str>) -> Result<Vec<Region>> {
+use crate::parse::manifest::ParserMode;
+
+pub fn parse(data: impl AsRef<str>, _: ParserMode) -> Result<Vec<Region>> {
     data.as_ref()
         .lines() // split lines
         .filter_map(|l| l.split(';').nth(0)) // strip comments
