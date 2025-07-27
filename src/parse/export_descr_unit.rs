@@ -183,6 +183,9 @@ fn parse_ground(strings: &[&str]) -> Result<GroundBonus> {
 }
 
 fn parse_weapon(stats: &[&str], attrs: &[&str]) -> Result<Weapon> {
+    if let Some("no") = stats.get(0).copied() {
+        return Ok(Weapon::default());
+    }
     Ok(Weapon {
         factor: stats
             .get(0)
@@ -386,6 +389,21 @@ pub struct Weapon {
     pub lethality: f64,
     pub weapon_type: String,
     pub attributes: Vec<WeaponAttr>,
+}
+
+impl Default for Weapon {
+    fn default() -> Self {
+        Self {
+            factor: Default::default(),
+            charge: Default::default(),
+            missile: Default::default(),
+            range: Default::default(),
+            ammo: Default::default(),
+            lethality: Default::default(),
+            weapon_type: "no".into(),
+            attributes: Default::default(),
+        }
+    }
 }
 
 pub type GroundBonus = silphium::model::GroundBonus;

@@ -54,9 +54,9 @@ fn try_paths<'a>(cfg: &Config, paths: impl AsRef<[&'a str]>) -> PathBuf {
 }
 
 pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
-    let expanded_path = path_fallback(cfg, "data/text/expanded.txt", false);
-    let expanded_bi_path = path_fallback(cfg, "data/text/expanded_bi.txt", false);
-    let export_units_path = path_fallback(cfg, "data/text/export_units.txt", false);
+    let expanded_path = path_fallback(cfg, "data/text/expanded.txt", None);
+    let expanded_bi_path = path_fallback(cfg, "data/text/expanded_bi.txt", None);
+    let export_units_path = path_fallback(cfg, "data/text/export_units.txt", None);
     let descr_mercenaries_path = try_paths(
         cfg,
         [
@@ -77,9 +77,9 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
             "data/world/maps/base/descr_regions.txt",
         ],
     );
-    let descr_sm_factions_path = path_fallback(cfg, "data/descr_sm_factions.txt", false);
-    let export_descr_unit_path = path_fallback(cfg, "data/export_descr_unit.txt", false);
-    let export_descr_buildings_path = path_fallback(cfg, "data/export_descr_buildings.txt", false);
+    let descr_sm_factions_path = path_fallback(cfg, "data/descr_sm_factions.txt", None);
+    let export_descr_unit_path = path_fallback(cfg, "data/export_descr_unit.txt", None);
+    let export_descr_buildings_path = path_fallback(cfg, "data/export_descr_buildings.txt", None);
 
     let m = MultiProgress::new();
 

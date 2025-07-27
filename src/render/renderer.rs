@@ -59,7 +59,7 @@ impl Renderer {
         pb.tick();
         pb.set_message(format!("{PICTURE}rendering images"));
         for m in self.modules.values_mut() {
-            let src = path_fallback(&self.cfg, m.banner.as_ref(), false);
+            let src = path_fallback(&self.cfg, m.banner.as_ref(), None);
             let banner_path = Self::module_banner_path(m);
             let dst = self.cfg.out_dir.join(&banner_path);
             pb.tick();
@@ -67,7 +67,11 @@ impl Renderer {
             Self::render_image(&src, &dst, MOD_BANNER_SIZE).await?;
 
             for f in m.factions.values_mut() {
-                let src = path_fallback(&self.cfg, f.image.as_ref(), false);
+                let src = path_fallback(
+                    &self.cfg,
+                    f.image.as_ref(),
+                    Some("data/ui/faction_icons/slave_blank.tga"),
+                );
                 let symbol_path = Self::faction_symbol_path(&m.id, f);
                 let dst = self.cfg.out_dir.join(&symbol_path);
                 pb.tick();
@@ -76,7 +80,11 @@ impl Renderer {
 
                 let mut roster: Vec<_> = f.roster.iter().collect();
                 for u in roster.iter_mut() {
-                    let src = path_fallback(&self.cfg, u.image.as_ref(), true);
+                    let src = path_fallback(
+                        &self.cfg,
+                        u.image.as_ref(),
+                        Some("data/generic/generic_unit_card.tga"),
+                    );
                     let portrait_path = Self::unit_portrait_path(&m.id, &f.id, u);
                     let dst = self.cfg.out_dir.join(&portrait_path);
                     pb.tick();
