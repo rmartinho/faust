@@ -239,6 +239,12 @@ fn parse_req_primary(mut pairs: Pairs<requires::Rule>) -> Result<Requires> {
         Rule::BuildingLevel => parse_building_level(pair.into_inner())?,
         Rule::ReligionCond => parse_religion(pair.into_inner())?,
         Rule::NoTag => parse_no_tag(pair.into_inner())?,
+        Rule::Port => Requires::Port,
+        Rule::Player => Requires::IsPlayer,
+        Rule::Diplomacy => parse_diplomacy(pair.into_inner())?,
+        Rule::MajorityReligion => Requires::MajorityReligion(pair.as_str().into()),
+        Rule::OfficialReligion => Requires::OfficialReligion,
+        Rule::Capability => parse_capability(pair.into_inner())?,
         _ => unreachable!(),
     })
 }
@@ -331,6 +337,24 @@ fn parse_religion(mut pairs: Pairs<requires::Rule>) -> Result<Requires> {
     Ok(Requires::Religion {
         id: id.as_str().into(),
         cmp: cmp.as_str().parse()?,
+        amount: amount.as_str().parse()?,
+    })
+}
+
+fn parse_diplomacy(mut pairs: Pairs<requires::Rule>) -> Result<Requires> {
+    let status = pairs.next().unwrap();
+    let faction = pairs.next().unwrap();
+    Ok(Requires::Diplomacy {
+        status: status.as_str().parse()?,
+        faction: faction.as_str().into(),
+    })
+}
+
+fn parse_capability(mut pairs: Pairs<requires::Rule>) -> Result<Requires> {
+    let id = pairs.next().unwrap();
+    let amount = pairs.next().unwrap();
+    Ok(Requires::Capability {
+        capability: id.as_str().into(),
         amount: amount.as_str().parse()?,
     })
 }
@@ -438,7 +462,10 @@ pub enum Requires {
         status: DipStatus,
         faction: String,
     },
-    // Capability { capability: Capability, amount: u32 },
+    Capability {
+        capability: String, // TODO list capabilities?
+        amount: u32,
+    },
     NoBuildingTagged {
         tag: String,
         queued: bool,
@@ -499,4 +526,28 @@ pub enum DipStatus {
     Protectorate,
     SameSuperfaction,
     AtWar,
+}
+
+#[derive(Debug, Error)]
+pub struct DipStatusParseError;
+
+impl Display for DipStatusParseError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "invalid diplomacy status")
+    }
+}
+
+impl FromStr for DipStatus {
+    type Err = DipStatusParseError;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        match s {
+            "allied" => Ok(DipStatus::Allied),
+            "protector" => Ok(DipStatus::Protector),
+            "protectorate" => Ok(DipStatus::Protectorate),
+            "same_superfaction" => Ok(DipStatus::SameSuperfaction),
+            "at_war" => Ok(DipStatus::AtWar),
+            _ => Err(DipStatusParseError),
+        }
+    }
 }

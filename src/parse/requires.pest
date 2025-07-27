@@ -14,6 +14,12 @@ ReqPrimary            =  {
   | req_religion
   | req_no_tag
   | req_event_counter
+  | req_majority_religion
+  | Port
+  | Player
+  | OfficialReligion
+  | Capability
+  | Diplomacy
   | Alias
   | Unknown
 }
@@ -32,7 +38,7 @@ HiddenResource        =  { Ident ~ Factionwide? }
 req_event             = _{ "major_event" ~ "\"" ~ Event ~ "\"" }
 Event                 = @{ String }
 req_event_counter     = _{ "event_counter" ~ EventCount }
-EventCount            = { Ident ~ Amount }
+EventCount            =  { Ident ~ Amount }
 req_factions          = _{ "factions" ~ "{" ~ Factions ~ "}" }
 Factions              =  { "," | (Faction ~ ","*)* }
 Faction               = @{ Ident }
@@ -54,6 +60,13 @@ req_no_tag            = _{ "no_building_tagged" ~ NoTag }
 NoTag                 =  { Ident ~ (Queued | Factionwide)* }
 Queued                = @{ "queued" }
 Factionwide           = @{ "factionwide" }
+Port                  = @{ "port" }
+Player                = @{ "is_player" }
+Diplomacy             = @{ "diplomacy" ~ Ident ~ Ident }
+req_majority_religion =  { "majority_religion" ~ MajorityReligion }
+MajorityReligion      = @{ Ident }
+OfficialReligion      =  { "official_religion" }
+Capability            =  { "capability" ~ Ident ~ Amount }
 
 Ident  = @{ (ASCII_ALPHANUMERIC | "_" | "-" | "+")+ }
 String = @{ (!"\"" ~ ANY)* }
