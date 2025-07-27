@@ -145,6 +145,7 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     pb.set_message(format!("{THINKING}processing mod data..."));
     pb.enable_steady_tick(Duration::from_millis(200));
     let model = build_model(
+        cfg.manifest.mode,
         units,
         factions,
         regions,
@@ -191,6 +192,7 @@ fn parse_progress<'a, T>(
 }
 
 fn build_model(
+    mode: ParserMode,
     raw_units: Vec<export_descr_unit::Unit>,
     raw_factions: Vec<descr_sm_factions::Faction>,
     _raw_regions: Vec<Region>,
@@ -216,7 +218,14 @@ fn build_model(
                         .into(),
                     image: format!(
                         "{}",
-                        f.logo.to_str().expect("invalid file name").to_lowercase()
+                        match mode {
+                            ParserMode::Original | ParserMode::Medieval2 =>
+                                PathBuf::from("data").join(&f.logo),
+                            ParserMode::Remastered => f.logo.clone(),
+                        }
+                        .to_str()
+                        .expect("invalid file name")
+                        .to_lowercase()
                     )
                     .into(),
                     alias: None,         // TODO
