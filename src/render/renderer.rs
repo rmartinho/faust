@@ -59,7 +59,7 @@ impl Renderer {
         pb.tick();
         pb.set_message(format!("{PICTURE}rendering images"));
         for m in self.modules.values_mut() {
-            let src = path_fallback(&self.cfg, m.banner.as_ref());
+            let src = path_fallback(&self.cfg, m.banner.as_ref(), false);
             let banner_path = Self::module_banner_path(m);
             let dst = self.cfg.out_dir.join(&banner_path);
             pb.tick();
@@ -67,7 +67,7 @@ impl Renderer {
             Self::render_image(&src, &dst, MOD_BANNER_SIZE).await?;
 
             for f in m.factions.values_mut() {
-                let src = path_fallback(&self.cfg, f.image.as_ref());
+                let src = path_fallback(&self.cfg, f.image.as_ref(), false);
                 let symbol_path = Self::faction_symbol_path(&m.id, f);
                 let dst = self.cfg.out_dir.join(&symbol_path);
                 pb.tick();
@@ -76,7 +76,7 @@ impl Renderer {
 
                 let mut roster: Vec<_> = f.roster.iter().collect();
                 for u in roster.iter_mut() {
-                    let src = path_fallback(&self.cfg, u.image.as_ref());
+                    let src = path_fallback(&self.cfg, u.image.as_ref(), true);
                     let portrait_path = Self::unit_portrait_path(&m.id, &f.id, u);
                     let dst = self.cfg.out_dir.join(&portrait_path);
                     pb.tick();
@@ -119,11 +119,7 @@ impl Renderer {
         path
     }
 
-    async fn render_image(
-        from: &Path,
-        to: &Path,
-        (height, width): (u32, u32),
-    ) -> Result<()> {
+    async fn render_image(from: &Path, to: &Path, (height, width): (u32, u32)) -> Result<()> {
         let buf = read_file(from)
             .await
             .with_context(|| format!("reading image {}", from.display()))?;
@@ -173,11 +169,7 @@ impl Renderer {
                 write_file(
                     &self.cfg.out_dir.join(&r.path),
                     RedirectHtml { target }.render().with_context(|| {
-                        format!(
-                            "rendering redirect {} -> {}",
-                            r.route.to_path(),
-                            target
-                        )
+                        format!("rendering redirect {} -> {}", r.route.to_path(), target)
                     })?,
                 )
                 .await
@@ -187,11 +179,7 @@ impl Renderer {
                 write_file(
                     &self.cfg.out_dir.join(&r.path),
                     IndexHtml { head: "", body }.render().with_context(|| {
-                        format!(
-                            "rendering {} -> {}",
-                            r.route.to_path(),
-                            r.path.display()
-                        )
+                        format!("rendering {} -> {}", r.route.to_path(), r.path.display())
                     })?,
                 )
                 .await
@@ -221,22 +209,14 @@ impl Renderer {
             fs::remove_dir_all(&self.cfg.out_dir)
                 .await
                 .with_context(|| {
-                    format!(
-                        "clearing output directory {}",
-                        self.cfg.out_dir.display()
-                    )
+                    format!("clearing output directory {}", self.cfg.out_dir.display())
                 })?;
         }
         pb.tick();
         pb.set_message(format!("{FOLDER}creating output directory"));
         fs::create_dir_all(&self.cfg.out_dir)
             .await
-            .with_context(|| {
-                format!(
-                    "creating output directory {}",
-                    self.cfg.out_dir.display()
-                )
-            })?;
+            .with_context(|| format!("creating output directory {}", self.cfg.out_dir.display()))?;
         pb.finish_with_message(format!("{FOLDER}created {}", self.cfg.out_dir.display()));
         Ok(())
     }

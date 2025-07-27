@@ -32,9 +32,9 @@ fn is_comment_char(c: char) -> bool {
 
 fn parse_tag(str: &str) -> Result<(String, String)> {
     let mut split = str.split(CLOSE_BRACE);
-    let tag = split.next().ok_or_else(|| anyhow!("missing tag"))?;
+    let tag = &split.next().ok_or_else(|| anyhow!("missing tag"))?[1..];
     let value = split.remainder().ok_or_else(|| anyhow!("missing value"))?;
-    Ok((tag.into(), value.into()))
+    Ok((tag.to_lowercase(), value.into()))
 }
 
 const OPEN_BRACE: char = '{';

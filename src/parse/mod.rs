@@ -54,9 +54,9 @@ fn try_paths<'a>(cfg: &Config, paths: impl AsRef<[&'a str]>) -> PathBuf {
 }
 
 pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
-    let expanded_path = path_fallback(cfg, "data/text/expanded.txt");
-    let expanded_bi_path = path_fallback(cfg, "data/text/expanded_bi.txt");
-    let export_units_path = path_fallback(cfg, "data/text/export_units.txt");
+    let expanded_path = path_fallback(cfg, "data/text/expanded.txt", false);
+    let expanded_bi_path = path_fallback(cfg, "data/text/expanded_bi.txt", false);
+    let export_units_path = path_fallback(cfg, "data/text/export_units.txt", false);
     let descr_mercenaries_path = try_paths(
         cfg,
         [
@@ -77,9 +77,9 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
             "data/world/maps/base/descr_regions.txt",
         ],
     );
-    let descr_sm_factions_path = path_fallback(cfg, "data/descr_sm_factions.txt");
-    let export_descr_unit_path = path_fallback(cfg, "data/export_descr_unit.txt");
-    let export_descr_buildings_path = path_fallback(cfg, "data/export_descr_buildings.txt");
+    let descr_sm_factions_path = path_fallback(cfg, "data/descr_sm_factions.txt", false);
+    let export_descr_unit_path = path_fallback(cfg, "data/export_descr_unit.txt", false);
+    let export_descr_buildings_path = path_fallback(cfg, "data/export_descr_buildings.txt", false);
 
     let m = MultiProgress::new();
 
@@ -209,8 +209,18 @@ fn build_model(
                 f.id.clone().into(),
                 silphium::model::Faction {
                     id: f.id.clone().into(),
-                    name: text.get(&f.name).cloned().unwrap_or(f.name.clone()).into(),
-                    image: format!("{}", f.logo.to_str().expect("invalid file name")).into(),
+                    name: {
+                        println!("{} {:?}", f.name, text);
+                        text.get(&f.name.to_lowercase())
+                            .cloned()
+                            .unwrap_or(f.name.clone())
+                            .into()
+                    },
+                    image: format!(
+                        "{}",
+                        f.logo.to_str().expect("invalid file name").to_lowercase()
+                    )
+                    .into(),
                     alias: None,         // TODO
                     eras: vec![].into(), // TODO
                     is_horde: false,     // TODO
@@ -293,7 +303,7 @@ fn build_model(
                                 name: text.get(&u.key).cloned().unwrap_or(u.key.clone()).into(),
                                 image: format!(
                                     "data/ui/units/{}/#{}.tga",
-                                    f.id,
+                                    f.id.to_lowercase(),
                                     u.key.to_lowercase()
                                 )
                                 .into(),

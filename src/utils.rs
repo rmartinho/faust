@@ -44,7 +44,7 @@ pub fn progress_style() -> ProgressStyle {
         .tick_chars("⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏ ")
 }
 
-pub fn path_fallback(cfg: &Config, path: &str) -> PathBuf {
+pub fn path_fallback(cfg: &Config, path: &str, use_generic: bool) -> PathBuf {
     let first = cfg.src_dir.join(path);
     let fallback = cfg.fallback_dir.join(path);
     let generic = cfg.fallback_dir.join("data/generic/generic_unit_card.tga");
@@ -52,7 +52,9 @@ pub fn path_fallback(cfg: &Config, path: &str) -> PathBuf {
         first
     } else if fallback.exists() {
         fallback
-    } else {
+    } else if use_generic {
         generic
+    } else {
+        first
     }
 }
