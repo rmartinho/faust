@@ -209,13 +209,11 @@ fn build_model(
                 f.id.clone().into(),
                 silphium::model::Faction {
                     id: f.id.clone().into(),
-                    name: {
-                        println!("{} {:?}", f.name, text);
-                        text.get(&f.name.to_lowercase())
-                            .cloned()
-                            .unwrap_or(f.name.clone())
-                            .into()
-                    },
+                    name: text
+                        .get(&f.name.to_lowercase())
+                        .cloned()
+                        .unwrap_or(f.name.clone())
+                        .into(),
                     image: format!(
                         "{}",
                         f.logo.to_str().expect("invalid file name").to_lowercase()
