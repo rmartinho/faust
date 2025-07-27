@@ -6,32 +6,24 @@ use winresource::WindowsResource;
 #[tokio::main]
 async fn main() {
     build_win_resources();
-    build_parsers();
     build_site_template().await
 }
 
 fn build_win_resources() {
-    rerun_if_changed!("faust.ico");
     if env::var("CARGO_CFG_TARGET_OS").expect("CARGO_CFG_TARGET_OS missing") == "windows" {
-        let mut res = WindowsResource::new();
-        res.set_icon("faust.ico");
-        res.compile().expect("Windows icon compilation failed");
+        rerun_if_changed!("faust.ico");
+        WindowsResource::new()
+            .set_icon("faust.ico")
+            .compile()
+            .expect("Windows icon compilation failed");
     }
-}
-
-fn build_parsers() {
-    lalrpop::Configuration::new()
-        .emit_rerun_directives(true)
-        .use_cargo_dir_conventions()
-        .process()
-        .expect("parsers build failed");
 }
 
 async fn build_site_template() {
     rerun_if_changed!("silphium/");
     let old_target = env::var("CARGO_TARGET_DIR").ok();
     let old_cd = env::current_dir().expect("current dir failed");
-    unsafe { env::set_var("CARGO_TARGET_DIR", "target") };
+    unsafe { env::set_var("CARGO_TARGET_DIR", "../trunk-target") };
     env::set_current_dir("silphium").expect("changing dir failed");
     let out_dir: PathBuf = env::var("OUT_DIR").expect("OUT_DIR missing").into();
 

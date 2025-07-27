@@ -12,7 +12,6 @@ use silphium::{
     ModuleMap,
     model::{Ability, Module, WeaponType},
 };
-use tokio::fs;
 
 use crate::{
     args::Config,
@@ -34,7 +33,6 @@ mod export_descr_buildings;
 mod export_descr_unit;
 mod manifest;
 mod text;
-mod utils;
 
 fn do_try_paths<'a>(root: &Path, paths: &[&'a str]) -> PathBuf {
     for path in paths.as_ref().iter() {
@@ -570,22 +568,19 @@ fn do_evaluate(
 async fn parse_text(path: PathBuf, mode: ParserMode) -> Result<HashMap<String, String>> {
     let buf = read_file(&path).await?;
     let data = String::from_utf16le_lossy(&buf).replace(BOM, "");
-    let map = text::parse(data, mode)?;
-    Ok(map)
+    text::parse(data, mode)
 }
 
 async fn parse_descr_mercenaries(path: PathBuf, mode: ParserMode) -> Result<Vec<Pool>> {
     let buf = read_file(&path).await?;
     let data = String::from_utf8_lossy(&buf);
-    let pools = descr_mercenaries::parse(data, mode)?;
-    Ok(pools)
+    descr_mercenaries::parse(data, mode)
 }
 
 async fn parse_descr_regions(path: PathBuf, mode: ParserMode) -> Result<Vec<Region>> {
     let buf = read_file(&path).await?;
     let data = String::from_utf8_lossy(&buf);
-    let regions = descr_regions::parse(data, mode)?;
-    Ok(regions)
+    descr_regions::parse(data, mode)
 }
 
 async fn parse_descr_sm_factions(
@@ -594,8 +589,7 @@ async fn parse_descr_sm_factions(
 ) -> Result<Vec<descr_sm_factions::Faction>> {
     let buf = read_file(&path).await?;
     let data = String::from_utf8_lossy(&buf);
-    let factions = descr_sm_factions::parse(data, mode)?;
-    Ok(factions)
+    descr_sm_factions::parse(data, mode)
 }
 
 async fn parse_export_descr_unit(
@@ -604,20 +598,16 @@ async fn parse_export_descr_unit(
 ) -> Result<Vec<export_descr_unit::Unit>> {
     let buf = read_file(&path).await?;
     let data = String::from_utf8_lossy(&buf);
-    let units = export_descr_unit::parse(data, mode)?;
-    Ok(units)
+    export_descr_unit::parse(data, mode)
 }
 
 async fn parse_export_descr_buildings(
     path: PathBuf,
-    _mode: ParserMode,
+    mode: ParserMode,
 ) -> Result<(HashMap<String, Requires>, Vec<Building>)> {
-    let mut data = fs::read_to_string(&path).await?;
-    data += "\n";
-    let lex = utils::spanned_lexer::<export_descr_buildings::Token>(&data);
-
-    let res = export_descr_buildings::Parser::new().parse(lex).unwrap();
-    Ok(res)
+    let buf = read_file(&path).await?;
+    let data = String::from_utf8_lossy(&buf);
+    export_descr_buildings::parse(data, mode)
 }
 
 const BOM: &str = "\u{feff}";

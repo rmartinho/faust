@@ -4,7 +4,7 @@
 #![feature(str_split_remainder)]
 #![feature(str_split_whitespace_remainder)]
 #![feature(pattern)]
-#![feature(iterator_try_collect)]
+#![feature(try_blocks)]
 #![allow(dead_code)]
 
 use std::{

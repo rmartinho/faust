@@ -41,8 +41,8 @@ fn parse_unit(lines: &[String]) -> Result<Unit> {
     Ok(Unit {
         id: require_line_value(&entries, "type")?.into(),
         key: require_line_value(&entries, "dictionary")?.into(),
-        category: require_line_value(&entries, "category")?.into(),
-        class: require_line_value(&entries, "class")?.into(),
+        _category: require_line_value(&entries, "category")?.into(),
+        _class: require_line_value(&entries, "class")?.into(),
         ownership: parse_ownership(require_line_value(&entries, "ownership")?),
         stats: parse_statblock(&entries, &raw)?,
     })
@@ -333,16 +333,8 @@ where
         .collect())
 }
 
-fn get_line<'a>(entries: &'a UnitEntries, key: &str) -> Option<Option<&'a str>> {
-    entries.get(key).map(Option::as_deref)
-}
-
 fn get_line_value<'a>(entries: &'a UnitEntries, key: &str) -> Option<&'a str> {
     entries.get(key).and_then(Option::as_deref)
-}
-
-fn require_line<'a>(entries: &'a UnitEntries, key: &str) -> Result<Option<&'a str>> {
-    get_line(entries, key).ok_or_else(|| anyhow!("{key} not found"))
 }
 
 fn require_line_value<'a>(entries: &'a UnitEntries, key: &str) -> Result<&'a str> {
@@ -356,8 +348,8 @@ const COMMA: &str = ",";
 pub struct Unit {
     pub id: String,
     pub key: String,
-    pub category: String,
-    pub class: String,
+    pub _category: String,
+    pub _class: String,
     pub stats: StatBlock,
     pub ownership: Vec<String>,
 }

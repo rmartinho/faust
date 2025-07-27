@@ -1,0 +1,64 @@
+Requires              =  {
+  
+  | SOI ~ "requires" ~ req_or ~ EOI
+}
+ReqPrimary            =  {
+    req_resource
+  | req_hidden_resource
+  | req_event
+  | req_factions
+  | req_building_factions
+  | req_is_toggled
+  | req_building_level
+  | req_building
+  | req_religion
+  | req_no_tag
+  | req_event_counter
+  | Alias
+  | Unknown
+}
+Unknown               = @{ (!NEWLINE ~ ANY)+ }
+Alias                 = @{ Ident }
+req_or                = _{ Or }
+req_and               = _{ And }
+And                   =  { req_not ~ ("and" ~ req_not)* }
+Or                    =  { req_and ~ ("or" ~ req_and)* }
+req_not               = _{ Not | ReqPrimary }
+Not                   =  { "not" ~ ReqPrimary }
+req_resource          = _{ "resource" ~ Resource }
+Resource              =  { Ident ~ Factionwide? }
+req_hidden_resource   = _{ "hidden_resource" ~ HiddenResource }
+HiddenResource        =  { Ident ~ Factionwide? }
+req_event             = _{ "major_event" ~ "\"" ~ Event ~ "\"" }
+Event                 = @{ String }
+req_event_counter     = _{ "event_counter" ~ EventCount }
+EventCount            = { Ident ~ Amount }
+req_factions          = _{ "factions" ~ "{" ~ Factions ~ "}" }
+Factions              =  { "," | (Faction ~ ","*)* }
+Faction               = @{ Ident }
+req_building_factions = _{ "building_factions" ~ "{" ~ BuildingFactions ~ "}" }
+BuildingFactions      =  { "," | (Faction ~ ","*)* }
+req_is_toggled        = _{ "is_toggled" ~ "\"" ~ Toggle ~ "\"" }
+Toggle                = @{ String }
+req_building          = _{ "building_present" ~ Building }
+Building              = @{ Ident }
+req_building_level    = _{ "building_present_min_level" ~ BuildingLevel }
+BuildingLevel         =  { Ident ~ Level }
+Level                 = @{ Ident }
+req_religion          = _{ "religion" ~ ReligionCond }
+ReligionCond          =  { Religion ~ Cmp ~ Amount }
+Religion              = @{ Ident }
+Cmp                   = @{ "<=" | ">=" | "<" | ">" }
+Amount                = @{ Num }
+req_no_tag            = _{ "no_building_tagged" ~ NoTag }
+NoTag                 =  { Ident ~ (Queued | Factionwide)* }
+Queued                = @{ "queued" }
+Factionwide           = @{ "factionwide" }
+
+Ident  = @{ (ASCII_ALPHANUMERIC | "_" | "-" | "+")+ }
+String = @{ (!"\"" ~ ANY)* }
+Num    = @{ ASCII_DIGIT+ }
+
+COMMENT    = _{ ";" ~ (!NEWLINE ~ ANY)* ~ (NEWLINE | EOI) }
+WHITESPACE = _{ " " | "\t" | NEWLINE }
+NEWLINE    =  { "\r\n" | "\n" }
