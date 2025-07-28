@@ -292,8 +292,8 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
         contents: include_bytes!(concat!(env!("OUT_DIR"), "/silphium_template/icons/formation/schiltrom.svg")),
     },
     StaticFile {
-        path: "icons/formation/shield-wall.svg",
-        contents: include_bytes!(concat!(env!("OUT_DIR"), "/silphium_template/icons/formation/shield-wall.svg")),
+        path: "icons/formation/shield_wall.svg",
+        contents: include_bytes!(concat!(env!("OUT_DIR"), "/silphium_template/icons/formation/shield_wall.svg")),
     },
     StaticFile {
         path: "icons/stat/soldiers.svg",

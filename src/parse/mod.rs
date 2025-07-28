@@ -30,6 +30,7 @@ pub use manifest::Manifest;
 mod descr_mercenaries;
 mod descr_regions;
 mod descr_sm_factions;
+mod descr_strat;
 mod export_descr_buildings;
 mod export_descr_unit;
 mod manifest;
@@ -81,6 +82,16 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     let descr_sm_factions_path = path_fallback(cfg, "data/descr_sm_factions.txt", None);
     let export_descr_unit_path = path_fallback(cfg, "data/export_descr_unit.txt", None);
     let export_descr_buildings_path = path_fallback(cfg, "data/export_descr_buildings.txt", None);
+    let descr_strat_path = try_paths(
+        cfg,
+        [
+            &format!(
+                "data/world/maps/campaign/{}/descr_strat.txt",
+                cfg.manifest.campaign
+            ),
+            "data/world/maps/base/descr_strat.txt",
+        ],
+    );
 
     let m = MultiProgress::new();
 
@@ -139,6 +150,13 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
         parse_export_descr_buildings(export_descr_buildings_path, cfg.manifest.mode),
     )
     .await?;
+    let strat = parse_progress(
+        m.clone(),
+        6,
+        descr_strat_path.clone(),
+        parse_descr_strat(descr_strat_path, cfg.manifest.mode),
+    )
+    .await?;
 
     let pb = m.add(ProgressBar::new_spinner());
     pb.set_style(progress_style());
@@ -154,6 +172,7 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
         buildings,
         require_aliases,
         text,
+        strat,
     );
     let _ = m.clear();
 
@@ -193,18 +212,23 @@ fn parse_progress<'a, T>(
 }
 
 fn build_model(
-    mode: ParserMode,
+    _: ParserMode,
     raw_units: Vec<export_descr_unit::Unit>,
-    raw_factions: Vec<descr_sm_factions::Faction>,
+    mut raw_factions: Vec<descr_sm_factions::Faction>,
     _raw_regions: Vec<Region>,
     _raw_pools: Vec<Pool>,
     raw_buildings: Vec<Building>,
     aliases: HashMap<String, Requires>,
     text: HashMap<String, String>,
+    strat: HashMap<String, usize>,
 ) -> IndexMap<IString, silphium::model::Faction> {
     let unit_map: IndexMap<_, _> = raw_units.into_iter().map(|u| (u.id.clone(), u)).collect();
     let requires = build_requires(raw_buildings, &unit_map);
 
+    raw_factions
+        .extract_if(.., |f| !strat.contains_key(&f.id))
+        .count();
+    raw_factions.sort_by_key(|f| strat[&f.id]);
     let factions = raw_factions
         .into_iter()
         .map(|f| {
@@ -218,18 +242,12 @@ fn build_model(
                         .cloned()
                         .unwrap_or(f.name.clone())
                         .into(),
-                    image: format!(
-                        "{}",
-                        match mode {
-                            ParserMode::Original | ParserMode::Medieval2 =>
-                                PathBuf::from("data").join(&f.logo),
-                            ParserMode::Remastered => f.logo.clone(),
-                        }
+                    image: f
+                        .logo
                         .to_str()
                         .expect("invalid file name")
                         .to_lowercase()
-                    )
-                    .into(),
+                        .into(),
                     alias: None,         // TODO
                     eras: vec![].into(), // TODO
                     roster: unit_map
@@ -643,6 +661,12 @@ async fn parse_export_descr_buildings(
     let buf = read_file(&path).await?;
     let data = String::from_utf8_lossy(&buf);
     export_descr_buildings::parse(data, mode)
+}
+
+async fn parse_descr_strat(path: PathBuf, mode: ParserMode) -> Result<HashMap<String, usize>> {
+    let buf = read_file(&path).await?;
+    let data = String::from_utf8_lossy(&buf);
+    descr_strat::parse(data, mode)
 }
 
 const BOM: &str = "\u{feff}";

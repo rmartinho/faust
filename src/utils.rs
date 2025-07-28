@@ -45,15 +45,14 @@ pub fn progress_style() -> ProgressStyle {
 }
 
 pub fn path_fallback(cfg: &Config, path: &str, generic: Option<&str>) -> PathBuf {
-    let first = cfg.src_dir.join(path);
-    let fallback = cfg.fallback_dir.join(path);
-    if first.exists() {
-        first
-    } else if fallback.exists() {
-        fallback
-    } else if let Some(generic) = generic {
-        cfg.fallback_dir.join(generic)
-    } else {
-        first
-    }
+    [
+        cfg.src_dir.join(path),
+        cfg.src_dir.join("data").join(path),
+        cfg.fallback_dir.join(path),
+        cfg.fallback_dir.join("data").join(path),
+    ]
+    .into_iter()
+    .chain(generic.into_iter().map(|g| cfg.fallback_dir.join(g)))
+    .find(|p| p.exists())
+    .unwrap_or(cfg.src_dir.join(path))
 }
