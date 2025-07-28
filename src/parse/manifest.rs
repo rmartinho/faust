@@ -1,8 +1,10 @@
-use std::{io, path::PathBuf};
+use std::{collections::HashMap, io, path::PathBuf};
 
 use anyhow::{Context as _, Result};
 use implicit_clone::unsync::IString;
 use serde::{Deserialize, Serialize};
+
+use crate::parse::Evaluator;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Manifest {
@@ -16,8 +18,10 @@ pub struct Manifest {
     pub campaign: String,
     #[serde(default = "default_banner")]
     pub banner: PathBuf,
-    // overrides
-    // strings
+    #[serde(default)]
+    pub aliases: HashMap<String, String>,
+    #[serde(default)]
+    pub eras: HashMap<String, Evaluator>,
 }
 
 fn default_campaign() -> String {

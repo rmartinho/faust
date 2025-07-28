@@ -8,6 +8,7 @@ use anyhow::Result;
 use implicit_clone::unsync::IString;
 use indexmap::IndexMap;
 use indicatif::{MultiProgress, ProgressBar};
+use serde::{Deserialize, Serialize};
 use silphium::{
     ModuleMap,
     model::{Ability, Module, WeaponType},
@@ -207,6 +208,7 @@ fn build_model(
     let factions = raw_factions
         .into_iter()
         .map(|f| {
+            let mut is_horde = false;
             (
                 f.id.clone().into(),
                 silphium::model::Faction {
@@ -230,7 +232,6 @@ fn build_model(
                     .into(),
                     alias: None,         // TODO
                     eras: vec![].into(), // TODO
-                    is_horde: false,     // TODO
                     roster: unit_map
                         .values()
                         .filter(|u| {
@@ -287,7 +288,10 @@ fn build_model(
                                     Attr::Inexhaustible => inexhaustible = true,
                                     Attr::Warcry => abilities.push(Ability::Warcry),
                                     Attr::PowerCharge => abilities.push(Ability::PowerCharge),
-                                    Attr::CanHorde => horde = true,
+                                    Attr::CanHorde => {
+                                        is_horde = true;
+                                        horde = true;
+                                    }
                                     Attr::LegionaryName => legionary_name = true,
                                     Attr::InfiniteAmmo => infinite_ammo = true,
                                     Attr::NonScaling => non_scaling = true,
@@ -356,6 +360,7 @@ fn build_model(
                         })
                         .filter(|u| !u.mercenary)
                         .collect(),
+                    is_horde,
                 },
             )
         })
@@ -468,12 +473,18 @@ fn available_in_region(
     evaluate(req, aliases, &Evaluator::region(region))
 }
 
-#[derive(Default)]
-struct Evaluator {
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Evaluator {
+    #[serde(skip_serializing_if = "Option::is_none")]
     default: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     faction: Option<EvaluatorChoices>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     resource: Option<EvaluatorChoices>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     hidden_resource: Option<EvaluatorChoices>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     major_event: Option<EvaluatorChoices>,
 }
 
@@ -508,8 +519,11 @@ impl Evaluator {
     }
 }
 
-struct EvaluatorChoices {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EvaluatorChoices {
+    #[serde(flatten)]
     map: HashMap<String, bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     default: Option<bool>,
 }
 
