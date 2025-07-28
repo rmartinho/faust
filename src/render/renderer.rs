@@ -67,7 +67,11 @@ impl Renderer {
             Self::render_image(&src, &dst, MOD_BANNER_SIZE).await?;
 
             for f in m.factions.values_mut() {
-                let src = path_fallback(&self.cfg, f.image.as_ref(), None);
+                let src = path_fallback(
+                    &self.cfg,
+                    f.image.as_ref(),
+                    Some("data/loading_screen/symbols/symbol128_slaves.tga"),
+                );
                 let symbol_path = Self::faction_symbol_path(&m.id, f);
                 let dst = self.cfg.out_dir.join(&symbol_path);
                 pb.tick();
