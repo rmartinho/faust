@@ -67,11 +67,7 @@ impl Renderer {
             Self::render_image(&src, &dst, MOD_BANNER_SIZE).await?;
 
             for f in m.factions.values_mut() {
-                let src = path_fallback(
-                    &self.cfg,
-                    f.image.as_ref(),
-                    Some("data/ui/faction_icons/slave_blank.tga"),
-                );
+                let src = path_fallback(&self.cfg, f.image.as_ref(), None);
                 let symbol_path = Self::faction_symbol_path(&m.id, f);
                 let dst = self.cfg.out_dir.join(&symbol_path);
                 pb.tick();
@@ -83,7 +79,7 @@ impl Renderer {
                     let src = path_fallback(
                         &self.cfg,
                         u.image.as_ref(),
-                        Some("data/generic/generic_unit_card.tga"),
+                        Some("data/ui/generic/generic_unit_card.tga"),
                     );
                     let portrait_path = Self::unit_portrait_path(&m.id, &f.id, u);
                     let dst = self.cfg.out_dir.join(&portrait_path);
