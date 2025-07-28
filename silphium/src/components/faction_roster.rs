@@ -2,7 +2,10 @@ use implicit_clone::unsync::IArray;
 use yew::prelude::*;
 use yew_autoprops::autoprops;
 
-use crate::model::{Ability, Defense, Discipline, Formation, Unit, Weapon, WeaponType};
+use crate::{
+    components::Text,
+    model::{Ability, Defense, Discipline, Formation, Unit, Weapon, WeaponType},
+};
 
 #[autoprops]
 #[function_component(FactionRoster)]
@@ -92,7 +95,7 @@ pub fn unit_card(unit: Unit) -> Html {
 
     html! {
       <div class="unit-card">
-        <div class="name">{ unit.name.clone() }</div>
+        <div class="name"><Text text={&unit.name} /></div>
         <div class="frame">
           <img class="image" title={&unit.name} src={&unit.image} />
           <div class="size-row">

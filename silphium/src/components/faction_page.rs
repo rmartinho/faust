@@ -3,10 +3,7 @@ use yew_autoprops::autoprops;
 use yew_router::prelude::*;
 
 use crate::{
-    AppContext,
-    components::{BackLink, FactionRoster, Link},
-    model::{Faction, Module},
-    routes::Route,
+    components::{BackLink, FactionRoster, Link, Text}, model::{Faction, Module}, routes::Route, AppContext
 };
 
 #[autoprops]
@@ -76,7 +73,7 @@ pub fn faction_header(
     html! {
       <div class={classes!("faction-header", classes)}>
         <div class="main">
-          <div class="name">{ faction.name }</div>
+          <div class="name"><Text text={faction.name} /></div>
             if faction.eras.len() > 1 {
               <div class="eras">
                 {for era_links}
@@ -121,7 +118,7 @@ fn era_link(to: AttrValue, active: bool) -> Html {
       <Link to={era_route}>
         <div class={classes!("era", if active {Some("checked")} else {None})}>
           <img src={&era.icon} title={&era.name} />
-          <span>{ era.name }</span>
+          <span><Text text={era.name} /></span>
         </div>
       </Link>
     }

@@ -1,3 +1,5 @@
+#![feature(iter_intersperse)]
+
 use crate::model::Module;
 use crate::routes::switch;
 use gloo::history::{AnyHistory, MemoryHistory};

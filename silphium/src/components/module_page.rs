@@ -1,6 +1,6 @@
 use crate::{
     AppContext,
-    components::{BackLink, Link},
+    components::{BackLink, Link, Text},
     model::{Faction, Module},
     routes::Route,
 };
@@ -48,7 +48,7 @@ fn faction_link(to: Faction) -> Html {
     html! {
       <Link to={route}>
         <img class="icon" src={to.image} title={&to.name} />
-        <div class="name">{ to.name }</div>
+        <div class="name"><Text text={to.name} /></div>
       </Link>
     }
 }
