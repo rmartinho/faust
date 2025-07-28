@@ -1,35 +1,33 @@
-@scope (.roster) to (.unit-card) {
-  :scope {
+.roster {
+  display: flex;
+  gap: 2rem;
+  flex-flow: row wrap;
+
+  .roster-group {
     display: flex;
-    gap: 2rem;
-    flex-flow: row wrap;
+    flex-flow: row;
+    align-items: start;
+    gap: 2px;
+    @media (orientation: portrait) {
+      flex-flow: column;
+    }
 
-    .roster-group {
+    .unit-cards {
       display: flex;
-      flex-flow: row;
-      align-items: start;
-      gap: 2px;
-      @media (orientation: portrait) {
-        flex-flow: column;
-      }
+      flex-flow: row wrap;
+    }
 
-      .unit-cards {
-        display: flex;
-        flex-flow: row wrap;
-      }
+    .legend {
+      display: flex;
+      width: 60px;
+      min-width: 60px;
+      margin: 2px;
 
-      .legend {
-        display: flex;
-        width: 60px;
-        min-width: 60px;
-        margin: 2px;
-
-        .group {
-          align-self: center;
-          height: 100%;
-          width: 100%;
-          grid-area: group;
-        }
+      .group {
+        align-self: center;
+        height: 100%;
+        width: 100%;
+        grid-area: group;
       }
     }
   }
