@@ -48,13 +48,23 @@ pub fn roster_group(roster: IArray<Unit>, group: UnitClass) -> Html {
         .collect();
 
     let icon = format!("/icons/class/{group}.svg");
+    let title = match group {
+        UnitClass::Sword => "Blade infantry",
+        UnitClass::Spear => "Spear infantry",
+        UnitClass::Missile => "Missile infantry",
+        UnitClass::Cavalry => "Cavalry",
+        UnitClass::General => "General bodyguards",
+        UnitClass::Animal => "Animals",
+        UnitClass::Artillery => "Artillery",
+        UnitClass::Ship => "Navy",
+    };
 
     html! {
       <>
         if cards.len() > 0 {
           <div class="roster-group">
             <div class="legend">
-              <img class="group" src={icon} />
+              <img class="group" src={icon} {title} />
             </div>
             <div class="unit-cards">
               {for cards}
