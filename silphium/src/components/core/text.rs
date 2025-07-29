@@ -8,8 +8,7 @@ pub fn text(text: IString) -> Html {
     let lines = text
         .split("\n")
         .map(|s| html! { {s} })
-        .intersperse(html! {<br/>})
-        .collect::<Vec<_>>();
+        .intersperse(html! {<br/>});
     html! {
       {for lines}
     }

@@ -45,6 +45,7 @@ pub struct Config {
     pub src_dir: PathBuf,
     pub out_dir: PathBuf,
     pub fallback_dir: PathBuf,
+    pub manifest_dir: PathBuf,
     pub serve: bool,
 }
 
@@ -81,6 +82,7 @@ impl Config {
             out_dir,
             src_dir,
             fallback_dir,
+            manifest_dir,
             serve: args.serve,
         })
     }

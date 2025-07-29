@@ -54,6 +54,7 @@ impl Faction {
 pub struct Era {
     pub id: IString,
     pub icon: IString,
+    pub icoff: IString,
     pub name: IString,
 }
 
@@ -108,13 +109,11 @@ pub enum Ability {
     FrightenMounted,
     FrightenAll,
     CanRunAmok,
-    // GeneralUnit,
     CantabrianCircle,
     Command,
     Warcry,
     PowerCharge,
     Chant,
-    // Horde,
     // LegionaryName,
 }
 

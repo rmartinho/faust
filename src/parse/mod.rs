@@ -1,11 +1,11 @@
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     path::{Path, PathBuf},
     time::Duration,
 };
 
 use anyhow::Result;
-use implicit_clone::unsync::IString;
+use implicit_clone::unsync::{IArray, IString};
 use indexmap::IndexMap;
 use indicatif::{MultiProgress, ProgressBar};
 use serde::{Deserialize, Serialize};
@@ -170,7 +170,7 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect();
     let model = build_model(
-        cfg.manifest.mode,
+        &cfg,
         units,
         factions,
         regions,
@@ -179,7 +179,6 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
         require_aliases,
         text,
         strat,
-        &aliases,
     );
     let _ = m.clear();
 
@@ -211,7 +210,16 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
                                 .to_string_lossy()
                                 .into_owned()
                                 .into(),
-                            name: v.name.clone().unwrap_or("".into()),
+                            icoff: v
+                                .icoff
+                                .clone()
+                                .unwrap_or_else(|| {
+                                    PathBuf::from("eras").join(format!("{id}-off.png"))
+                                })
+                                .to_string_lossy()
+                                .into_owned()
+                                .into(),
+                            name: v.name.clone().unwrap_or(id.clone()),
                         },
                     )
                 })
@@ -243,7 +251,7 @@ fn parse_progress<'a, T>(
 }
 
 fn build_model(
-    _: ParserMode,
+    cfg: &Config,
     raw_units: Vec<export_descr_unit::Unit>,
     mut raw_factions: Vec<descr_sm_factions::Faction>,
     _raw_regions: Vec<Region>,
@@ -252,7 +260,6 @@ fn build_model(
     aliases: HashMap<String, Requires>,
     text: HashMap<String, String>,
     strat: HashMap<String, usize>,
-    faction_aliases: &HashMap<IString, IString>,
 ) -> IndexMap<IString, silphium::model::Faction> {
     let unit_map: IndexMap<_, _> = raw_units.into_iter().map(|u| (u.id.clone(), u)).collect();
     let requires = build_requires(raw_buildings, &unit_map);
@@ -265,6 +272,152 @@ fn build_model(
         .into_iter()
         .map(|f| {
             let mut is_horde = false;
+            let roster: IArray<_> = unit_map
+                .values()
+                .filter(|u| {
+                    available_to_faction(
+                        requires.get(&u.id).unwrap_or(&Requires::False),
+                        &f,
+                        &aliases,
+                    )
+                })
+                .map(|u| {
+                    let mut inexhaustible = false;
+                    let mut stamina = 0;
+                    let mut abilities = vec![];
+                    let mut cant_hide = true;
+                    let mut frighten_foot = false;
+                    let mut frighten_mounted = false;
+                    let mut infinite_ammo = false;
+                    let mut non_scaling = false;
+                    let mut horde = false;
+                    let mut general = false;
+                    let mut mercenary = false;
+                    let mut legionary_name = false;
+                    for attr in u.stats.attributes.iter() {
+                        match attr {
+                            Attr::HideForest => cant_hide = false,
+                            Attr::HideImprovedForest => {
+                                cant_hide = false;
+                                abilities.push(Ability::HideImprovedForest)
+                            }
+                            Attr::HideLongGrass => {
+                                cant_hide = false;
+                                abilities.push(Ability::HideLongGrass)
+                            }
+                            Attr::HideAnywhere => {
+                                cant_hide = false;
+                                abilities.push(Ability::HideAnywhere)
+                            }
+                            Attr::FrightenFoot => frighten_foot = true,
+                            Attr::FrightenMounted => frighten_mounted = true,
+                            Attr::CanRunAmok => abilities.push(Ability::CanRunAmok),
+                            Attr::GeneralUnit => general = true,
+                            // Attr::GeneralUnitUpgrade(_) => todo!(),
+                            Attr::CantabrianCircle => abilities.push(Ability::CantabrianCircle),
+                            Attr::Command => abilities.push(Ability::Command),
+                            Attr::Druid | Attr::ScreechingWomen => abilities.push(Ability::Chant),
+                            Attr::MercenaryUnit => mercenary = true,
+                            Attr::Hardy => stamina += 2,
+                            Attr::VeryHardy => stamina += 4,
+                            Attr::ExtremelyHardy => stamina += 8,
+                            Attr::Inexhaustible => inexhaustible = true,
+                            Attr::Warcry => abilities.push(Ability::Warcry),
+                            Attr::PowerCharge => abilities.push(Ability::PowerCharge),
+                            Attr::CanHorde => {
+                                is_horde = true;
+                                horde = true;
+                            }
+                            Attr::LegionaryName => legionary_name = true,
+                            Attr::InfiniteAmmo => infinite_ammo = true,
+                            Attr::NonScaling => non_scaling = true,
+                            _ => {}
+                        }
+                    }
+                    if cant_hide {
+                        abilities.push(Ability::CantHide)
+                    }
+                    if frighten_foot && frighten_mounted {
+                        abilities.push(Ability::FrightenAll)
+                    } else if frighten_foot {
+                        abilities.push(Ability::FrightenFoot)
+                    } else if frighten_mounted {
+                        abilities.push(Ability::FrightenMounted)
+                    }
+                    silphium::model::Unit {
+                        id: u.id.clone().into(),
+                        key: u.key.clone().into(),
+                        name: text
+                            .get(&u.key.to_lowercase())
+                            .cloned()
+                            .unwrap_or(u.key.clone())
+                            .trim()
+                            .to_string()
+                            .into(),
+                        image: format!(
+                            "data/ui/units/{}/#{}.tga",
+                            f.id.to_lowercase(),
+                            u.key.to_lowercase()
+                        )
+                        .into(),
+                        soldiers: u.stats.soldiers,
+                        officers: u.stats.officers,
+                        has_mount: u
+                            .stats
+                            .mount
+                            .as_ref()
+                            .map(|m| !m.contains("horse"))
+                            .unwrap_or(false),
+                        formations: u.stats.formations.clone().into(),
+                        hp: if u.stats.hp < 0 { 0 } else { u.stats.hp as u32 },
+                        hp_mount: if u.stats.hp_mount < 0 {
+                            0
+                        } else {
+                            u.stats.hp_mount as u32
+                        },
+                        primary_weapon: build_weapon(&u.stats.primary_weapon),
+                        secondary_weapon: build_weapon(&u.stats.secondary_weapon),
+                        defense: u.stats.defense,
+                        defense_mount: u.stats.defense_mount,
+                        heat: u.stats.heat,
+                        ground_bonus: u.stats.ground_bonus,
+                        morale: u.stats.morale,
+                        discipline: u.stats.discipline,
+                        turns: u.stats.turns,
+                        cost: u.stats.cost,
+                        upkeep: u.stats.upkeep,
+                        eras: {
+                            cfg.manifest
+                                .eras
+                                .iter()
+                                .filter_map(|(id, e)| {
+                                    if evaluate(
+                                        requires.get(&u.id).unwrap_or(&Requires::False),
+                                        &aliases,
+                                        &e.evaluator,
+                                    ) {
+                                        Some(id.clone())
+                                    } else {
+                                        None
+                                    }
+                                })
+                                .collect()
+                        },
+
+                        stamina,
+                        inexhaustible,
+                        infinite_ammo,
+                        scaling: !non_scaling,
+                        horde,
+                        general,
+                        mercenary,
+                        legionary_name,
+
+                        abilities: abilities.into(),
+                    }
+                })
+                .filter(|u| !u.mercenary)
+                .collect();
             (
                 f.id.clone().into(),
                 silphium::model::Faction {
@@ -282,146 +435,35 @@ fn build_model(
                         .expect("invalid file name")
                         .to_lowercase()
                         .into(),
-                    alias: faction_aliases
+                    alias: cfg
+                        .manifest
+                        .aliases
                         .iter()
                         .find(|(_, v)| *v == &f.id)
                         .map(|(k, _)| k.clone()),
-                    eras: vec![].into(), // TODO
-                    roster: unit_map
-                        .values()
-                        .filter(|u| {
-                            available_to_faction(
-                                requires.get(&u.id).unwrap_or(&Requires::False),
-                                &f,
-                                &aliases,
-                            )
-                        })
-                        .map(|u| {
-                            let mut inexhaustible = false;
-                            let mut stamina = 0;
-                            let mut abilities = vec![];
-                            let mut cant_hide = true;
-                            let mut frighten_foot = false;
-                            let mut frighten_mounted = false;
-                            let mut infinite_ammo = false;
-                            let mut non_scaling = false;
-                            let mut horde = false;
-                            let mut general = false;
-                            let mut mercenary = false;
-                            let mut legionary_name = false;
-                            for attr in u.stats.attributes.iter() {
-                                match attr {
-                                    Attr::HideForest => cant_hide = false,
-                                    Attr::HideImprovedForest => {
-                                        cant_hide = false;
-                                        abilities.push(Ability::HideImprovedForest)
-                                    }
-                                    Attr::HideLongGrass => {
-                                        cant_hide = false;
-                                        abilities.push(Ability::HideLongGrass)
-                                    }
-                                    Attr::HideAnywhere => {
-                                        cant_hide = false;
-                                        abilities.push(Ability::HideAnywhere)
-                                    }
-                                    Attr::FrightenFoot => frighten_foot = true,
-                                    Attr::FrightenMounted => frighten_mounted = true,
-                                    Attr::CanRunAmok => abilities.push(Ability::CanRunAmok),
-                                    Attr::GeneralUnit => general = true,
-                                    // Attr::GeneralUnitUpgrade(_) => todo!(),
-                                    Attr::CantabrianCircle => {
-                                        abilities.push(Ability::CantabrianCircle)
-                                    }
-                                    Attr::Command => abilities.push(Ability::Command),
-                                    Attr::Druid | Attr::ScreechingWomen => {
-                                        abilities.push(Ability::Chant)
-                                    }
-                                    Attr::MercenaryUnit => mercenary = true,
-                                    Attr::Hardy => stamina += 2,
-                                    Attr::VeryHardy => stamina += 4,
-                                    Attr::ExtremelyHardy => stamina += 8,
-                                    Attr::Inexhaustible => inexhaustible = true,
-                                    Attr::Warcry => abilities.push(Ability::Warcry),
-                                    Attr::PowerCharge => abilities.push(Ability::PowerCharge),
-                                    Attr::CanHorde => {
-                                        is_horde = true;
-                                        horde = true;
-                                    }
-                                    Attr::LegionaryName => legionary_name = true,
-                                    Attr::InfiniteAmmo => infinite_ammo = true,
-                                    Attr::NonScaling => non_scaling = true,
-                                    _ => {}
-                                }
-                            }
-                            if cant_hide {
-                                abilities.push(Ability::CantHide)
-                            }
-                            if frighten_foot && frighten_mounted {
-                                abilities.push(Ability::FrightenAll)
-                            } else if frighten_foot {
-                                abilities.push(Ability::FrightenFoot)
-                            } else if frighten_mounted {
-                                abilities.push(Ability::FrightenMounted)
-                            }
-                            silphium::model::Unit {
-                                id: u.id.clone().into(),
-                                key: u.key.clone().into(),
-                                name: text
-                                    .get(&u.key.to_lowercase())
-                                    .cloned()
-                                    .unwrap_or(u.key.clone())
-                                    .trim()
-                                    .to_string()
-                                    .into(),
-                                image: format!(
-                                    "data/ui/units/{}/#{}.tga",
-                                    f.id.to_lowercase(),
-                                    u.key.to_lowercase()
-                                )
-                                .into(),
-                                soldiers: u.stats.soldiers,
-                                officers: u.stats.officers,
-                                has_mount: u
-                                    .stats
-                                    .mount
-                                    .as_ref()
-                                    .map(|m| !m.contains("horse"))
-                                    .unwrap_or(false),
-                                formations: u.stats.formations.clone().into(),
-                                hp: if u.stats.hp < 0 { 0 } else { u.stats.hp as u32 },
-                                hp_mount: if u.stats.hp_mount < 0 {
-                                    0
-                                } else {
-                                    u.stats.hp_mount as u32
-                                },
-                                primary_weapon: build_weapon(&u.stats.primary_weapon),
-                                secondary_weapon: build_weapon(&u.stats.secondary_weapon),
-                                defense: u.stats.defense,
-                                defense_mount: u.stats.defense_mount,
-                                heat: u.stats.heat,
-                                ground_bonus: u.stats.ground_bonus,
-                                morale: u.stats.morale,
-                                discipline: u.stats.discipline,
-                                turns: u.stats.turns,
-                                cost: u.stats.cost,
-                                upkeep: u.stats.upkeep,
-                                eras: vec![].into(), // TODO
-
-                                stamina,
-                                inexhaustible,
-                                infinite_ammo,
-                                scaling: !non_scaling,
-                                horde,
-                                general,
-                                mercenary,
-                                legionary_name,
-
-                                abilities: abilities.into(),
-                            }
-                        })
-                        .filter(|u| !u.mercenary)
-                        .collect(),
                     is_horde,
+                    eras: {
+                        let redundant_eras = roster.iter().fold(
+                            HashSet::from_iter(cfg.manifest.eras.keys().cloned()),
+                            |s: HashSet<IString>, u| {
+                                if u.general {
+                                    s // TODO generals and upgrades
+                                } else {
+                                    &s & &u.eras.iter().collect()
+                                }
+                            },
+                        );
+                        let unique_eras = &HashSet::from_iter(cfg.manifest.eras.keys().cloned())
+                            - &redundant_eras;
+                        cfg.manifest
+                            .eras
+                            .iter()
+                            .map(|(id, _)| id)
+                            .filter(|id| unique_eras.contains(id.as_ref()))
+                            .cloned()
+                            .collect()
+                    },
+                    roster,
                 },
             )
         })

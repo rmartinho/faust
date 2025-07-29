@@ -34,16 +34,20 @@
         text-decoration: none;
         display: flex;
         flex-direction: column;
-        align-items: center;
+        place-items: center;
         border-radius: 8px;
         border: 1px solid transparent;
         padding: 8px;
         cursor: pointer;
-        color: lightgrey;
-        filter: saturate(0%) opacity(80%);
+        color: var(--color-text-inactive);
+        max-width: 128px;
 
         img {
           width: 64px;
+        }
+
+        span {
+          text-align: center;
         }
 
         &:hover,
@@ -52,7 +56,6 @@
           color: var(--color-text);
         }
         &.checked {
-          filter: unset;
           border: 1px dotted grey;
         }
       }

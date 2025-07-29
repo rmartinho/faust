@@ -9,12 +9,21 @@ use crate::{
 
 #[autoprops]
 #[function_component(FactionRoster)]
-pub fn faction_roster(roster: IArray<Unit>) -> Html {
-    let cards = roster.iter().map(|unit| {
-        html! {
-          <UnitCard {unit}/>
-        }
-    });
+pub fn faction_roster(roster: IArray<Unit>, era: Option<AttrValue>) -> Html {
+    let cards = roster
+        .iter()
+        .filter(|unit| {
+            if let Some(era) = &era {
+                unit.eras.contains(era)
+            } else {
+                true
+            }
+        })
+        .map(|unit| {
+            html! {
+              <UnitCard {unit}/>
+            }
+        });
 
     html! {
       <div class="roster">

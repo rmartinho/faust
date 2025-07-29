@@ -2,6 +2,7 @@ use std::{collections::HashMap, io, path::PathBuf};
 
 use anyhow::{Context as _, Result};
 use implicit_clone::unsync::IString;
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
 use crate::parse::Evaluator;
@@ -21,13 +22,15 @@ pub struct Manifest {
     #[serde(default)]
     pub aliases: HashMap<IString, IString>,
     #[serde(default)]
-    pub eras: HashMap<IString, EraSpec>,
+    pub eras: IndexMap<IString, EraSpec>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EraSpec {
     #[serde(default)]
     pub icon: Option<PathBuf>,
+    #[serde(default)]
+    pub icoff: Option<PathBuf>,
     #[serde(default)]
     pub name: Option<IString>,
     #[serde(flatten)]

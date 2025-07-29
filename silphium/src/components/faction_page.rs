@@ -3,7 +3,10 @@ use yew_autoprops::autoprops;
 use yew_router::prelude::*;
 
 use crate::{
-    components::{BackLink, FactionRoster, Link, Text}, model::{Faction, Module}, routes::Route, AppContext
+    AppContext,
+    components::{BackLink, FactionRoster, Link, Text},
+    model::{Faction, Module},
+    routes::Route,
 };
 
 #[autoprops]
@@ -30,6 +33,8 @@ pub fn faction_page(
         };
     }
 
+    let era = &era.or(faction.eras.get(0));
+
     html! {
     <div class="faction-page">
       <div class="header-container">
@@ -38,13 +43,13 @@ pub fn faction_page(
           <button>
             <img class="settings button" title="Configure" src="/icons/ui/settings.png" />
           </button>
-          <button >
+          <button>
             <img class="help button" title="Help" src="/icons/ui/help.png" />
           </button>
         </div>
         <FactionHeader classes={classes!("header")} {module} faction={faction.clone()} {era} />
       </div>
-      <FactionRoster roster={faction.roster} />
+      <FactionRoster roster={faction.roster} {era} />
     // <template v-if="faction.id == 'mercs'">
     //   <MercenaryRoster :pools />
     // </template>
@@ -117,7 +122,7 @@ fn era_link(to: AttrValue, active: bool) -> Html {
     html! {
       <Link to={era_route}>
         <div class={classes!("era", if active {Some("checked")} else {None})}>
-          <img src={&era.icon} title={&era.name} />
+          <img src={if active { &era.icon } else { &era.icoff }} title={&era.name} />
           <span><Text text={era.name} /></span>
         </div>
       </Link>

@@ -11,7 +11,7 @@ use implicit_clone::unsync::IString;
 use indicatif::{HumanBytes, MultiProgress, ProgressBar};
 use silphium::{
     ModuleMap, Route, StaticApp, StaticAppProps,
-    model::{Faction, Module, Unit},
+    model::{Era, Faction, Module, Unit},
 };
 use tokio::{fs, io};
 use yew_router::Routable as _;
@@ -66,6 +66,22 @@ impl Renderer {
             pb.set_message(format!("{PICTURE}rendering {}", web_path(&banner_path)));
             Self::render_image(&src, &dst, MOD_BANNER_SIZE).await?;
 
+            for e in m.eras.values_mut() {
+                let src = self.cfg.manifest_dir.join(e.icon.as_ref());
+                let icon_path = Self::era_icon_path(&m.id, e);
+                let dst = self.cfg.out_dir.join(&icon_path);
+                pb.tick();
+                pb.set_message(format!("{PICTURE}rendering {}", web_path(&banner_path)));
+                Self::render_image(&src, &dst, ERA_ICON_SIZE).await?;
+
+                let src = self.cfg.manifest_dir.join(e.icoff.as_ref());
+                let icoff_path = Self::era_icoff_path(&m.id, e);
+                let dst = self.cfg.out_dir.join(&icoff_path);
+                pb.tick();
+                pb.set_message(format!("{PICTURE}rendering {}", web_path(&banner_path)));
+                Self::render_image(&src, &dst, ERA_ICON_SIZE).await?;
+            }
+
             for f in m.factions.values_mut() {
                 let src = path_fallback(
                     &self.cfg,
@@ -103,6 +119,26 @@ impl Renderer {
             .join(module.id.as_ref())
             .join("banner.webp");
         module.banner = web_path(&path).into();
+        path
+    }
+
+    fn era_icon_path(module_id: &IString, era: &mut Era) -> PathBuf {
+        let path = PathBuf::from("images")
+            .join(module_id.as_ref())
+            .join("eras")
+            .join(era.icon.as_ref())
+            .with_extension("webp");
+        era.icon = web_path(&path).into();
+        path
+    }
+
+    fn era_icoff_path(module_id: &IString, era: &mut Era) -> PathBuf {
+        let path = PathBuf::from("images")
+            .join(module_id.as_ref())
+            .join("eras")
+            .join(era.icoff.as_ref())
+            .with_extension("webp");
+        era.icoff = web_path(&path).into();
         path
     }
 
@@ -375,5 +411,6 @@ fn prepare_redirect(from: Route, to: Route) -> RenderRoute {
 }
 
 const MOD_BANNER_SIZE: (u32, u32) = (512, 256);
+const ERA_ICON_SIZE: (u32, u32) = (64, 64);
 const FACTION_SYMBOL_SIZE: (u32, u32) = (128, 128);
 const UNIT_PORTRAIT_SIZE: (u32, u32) = (82, 112);
