@@ -95,6 +95,7 @@ pub struct Unit {
     pub legionary_name: bool,
 
     pub eras: IArray<IString>,
+    pub tech_level: u32,
 }
 
 #[derive(

@@ -10,7 +10,7 @@ use crate::{
 #[autoprops]
 #[function_component(FactionRoster)]
 pub fn faction_roster(roster: IArray<Unit>, era: Option<AttrValue>) -> Html {
-    let roster: &IArray<_> = &roster
+    let mut roster: Vec<_> = roster
         .iter()
         .filter(|unit| {
             if let Some(era) = &era {
@@ -20,6 +20,8 @@ pub fn faction_roster(roster: IArray<Unit>, era: Option<AttrValue>) -> Html {
             }
         })
         .collect();
+    roster.sort_by_key(|u| u.tech_level);
+    let roster: &IArray<_> = &roster.into();
 
     let groups = UnitClass::all()
         .into_iter()

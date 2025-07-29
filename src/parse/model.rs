@@ -28,7 +28,8 @@ pub fn build_model(
     strat: HashMap<String, usize>,
 ) -> IndexMap<IString, silphium::model::Faction> {
     let unit_map: IndexMap<_, _> = raw_units.into_iter().map(|u| (u.id.clone(), u)).collect();
-    let requires = build_requires(raw_buildings, &unit_map);
+    let requires = build_requires(&raw_buildings, &unit_map);
+    let tech_levels = build_tech_levels(&raw_buildings);
 
     raw_factions
         .extract_if(.., |f| !strat.contains_key(&f.id))
@@ -202,6 +203,7 @@ pub fn build_model(
                         legionary_name,
 
                         abilities: abilities.into(),
+                        tech_level: tech_levels.get(&u.id).copied().unwrap_or(99),
                     }
                 })
                 .filter(|u| !u.mercenary)
@@ -352,8 +354,36 @@ fn require_no_events<'a>(events: impl Iterator<Item = &'a String>) -> Requires {
     )
 }
 
+fn tech_level(s: impl AsRef<str>) -> u32 {
+    match s.as_ref() {
+        "village" => 0,
+        _ => 99,
+    }
+}
+
+fn build_tech_levels(raw_buildings: &Vec<Building>) -> HashMap<String, u32> {
+    let mut map = HashMap::new();
+    raw_buildings
+        .into_iter()
+        .flat_map(|b| {
+            b.caps
+                .iter()
+                .map(move |r| (r.unit.clone(), tech_level(&b.min)))
+        })
+        .for_each(|(u, level)| {
+            map.entry(u)
+                .and_modify(|old| {
+                    if *old > level {
+                        *old = level;
+                    }
+                })
+                .or_insert(level);
+        });
+    map
+}
+
 fn build_requires(
-    raw_buildings: Vec<Building>,
+    raw_buildings: &Vec<Building>,
     unit_map: &IndexMap<String, export_descr_unit::Unit>,
 ) -> HashMap<String, Requires> {
     let general_events: HashSet<_> = unit_map
@@ -365,9 +395,12 @@ fn build_requires(
     raw_buildings
         .into_iter()
         .flat_map(|b| {
-            b.caps.into_iter().map(move |r| {
+            b.caps.iter().map(move |r| {
                 let owners = require_ownership(&unit_map[&r.unit]);
-                (r.unit, Requires::And(vec![r.req, b.req.clone(), owners]))
+                (
+                    r.unit.clone(),
+                    Requires::And(vec![r.req.clone(), b.req.clone(), owners]),
+                )
             })
         })
         .chain(unit_map.values().filter(|&u| is_general(u)).map(|u| {
