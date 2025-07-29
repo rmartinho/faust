@@ -1,0 +1,14 @@
+name: Security audit - nightly
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+permissions: read-all
+
+jobs:
+  security_audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/audit@v1
