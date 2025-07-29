@@ -15,6 +15,7 @@ ReqPrimary            =  {
   | req_no_tag
   | req_event_counter
   | req_majority_religion
+  | req_region_religion
   | Port
   | Player
   | OfficialReligion
@@ -67,6 +68,8 @@ req_majority_religion =  { "majority_religion" ~ MajorityReligion }
 MajorityReligion      = @{ Ident }
 OfficialReligion      =  { "official_religion" }
 Capability            =  { "capability" ~ Ident ~ Amount }
+req_region_religion   = _{ "region_religion" ~ RegionReligion }
+RegionReligion        =  { Ident ~ Amount }
 
 Ident  = @{ (ASCII_ALPHANUMERIC | "_" | "-" | "+")+ }
 String = @{ (!"\"" ~ ANY)* }

@@ -121,7 +121,7 @@ fn parse_level<'a>(
     let mut block = get_block(lines)?.into_iter();
     loop {
         match block.next() {
-            Some("capability") => caps = parse_caps(&mut block)?,
+            Some("capability") => caps = parse_caps(&mut block, mode)?,
             Some(l) if l.starts_with("settlement_min") => {
                 min = l
                     .split_whitespace()
@@ -136,7 +136,10 @@ fn parse_level<'a>(
     Ok(Building { req, caps, min })
 }
 
-fn parse_caps<'a>(lines: &mut impl Iterator<Item = &'a str>) -> Result<Vec<RecruitOption>> {
+fn parse_caps<'a>(
+    lines: &mut impl Iterator<Item = &'a str>,
+    mode: ParserMode,
+) -> Result<Vec<RecruitOption>> {
     get_block(lines)?
         .into_iter()
         .filter(|l| l.starts_with("recruit"))
@@ -147,7 +150,7 @@ fn parse_caps<'a>(lines: &mut impl Iterator<Item = &'a str>) -> Result<Vec<Recru
                     let kw = split
                         .next()
                         .ok_or_else(|| anyhow!("invalid recruit line"))?;
-                    if kw != "recruit" {
+                    if kw != "recruit" && (mode != ParserMode::Medieval2 || kw != "recruit_pool") {
                         return None;
                     }
                     let mut split = split
@@ -164,6 +167,17 @@ fn parse_caps<'a>(lines: &mut impl Iterator<Item = &'a str>) -> Result<Vec<Recru
                         .ok_or_else(|| anyhow!("missing exp"))?
                         .trim()
                         .split_whitespace();
+                    if kw == "recruit_pool" {
+                        split
+                            .next()
+                            .ok_or_else(|| anyhow!("missing recruit pool data"))?;
+                        split
+                            .next()
+                            .ok_or_else(|| anyhow!("missing recruit pool data"))?;
+                        split
+                            .next()
+                            .ok_or_else(|| anyhow!("missing recruit pool data"))?;
+                    }
                     let exp = split
                         .next()
                         .ok_or_else(|| anyhow!("missing exp"))?
@@ -245,6 +259,7 @@ fn parse_req_primary(mut pairs: Pairs<requires::Rule>) -> Result<Requires> {
         Rule::MajorityReligion => Requires::MajorityReligion(pair.as_str().into()),
         Rule::OfficialReligion => Requires::OfficialReligion,
         Rule::Capability => parse_capability(pair.into_inner())?,
+        Rule::RegionReligion => parse_region_religion(pair.into_inner())?,
         _ => unreachable!(),
     })
 }
@@ -337,6 +352,17 @@ fn parse_religion(mut pairs: Pairs<requires::Rule>) -> Result<Requires> {
     Ok(Requires::Religion {
         id: id.as_str().into(),
         cmp: cmp.as_str().parse()?,
+        amount: amount.as_str().parse()?,
+    })
+}
+
+fn parse_region_religion(mut pairs: Pairs<requires::Rule>) -> Result<Requires> {
+    let id = pairs.next().unwrap();
+    let amount = pairs.next().unwrap();
+
+    Ok(Requires::Religion {
+        id: id.as_str().into(),
+        cmp: Cmp::Ge,
         amount: amount.as_str().parse()?,
     })
 }
