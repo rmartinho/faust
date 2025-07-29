@@ -184,32 +184,32 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
         contents: include_bytes!(concat!(env!("OUT_DIR"), "/silphium_template/icons/class/artillery.svg")),
     },
     StaticFile {
-        path: "icons/class/beasts.svg",
-        contents: include_bytes!(concat!(env!("OUT_DIR"), "/silphium_template/icons/class/beasts.svg")),
+        path: "icons/class/animal.svg",
+        contents: include_bytes!(concat!(env!("OUT_DIR"), "/silphium_template/icons/class/animal.svg")),
     },
     StaticFile {
         path: "icons/class/general.svg",
         contents: include_bytes!(concat!(env!("OUT_DIR"), "/silphium_template/icons/class/general.svg")),
     },
     StaticFile {
-        path: "icons/class/horses.svg",
-        contents: include_bytes!(concat!(env!("OUT_DIR"), "/silphium_template/icons/class/horses.svg")),
+        path: "icons/class/cavalry.svg",
+        contents: include_bytes!(concat!(env!("OUT_DIR"), "/silphium_template/icons/class/cavalry.svg")),
     },
     StaticFile {
-        path: "icons/class/missiles.svg",
-        contents: include_bytes!(concat!(env!("OUT_DIR"), "/silphium_template/icons/class/missiles.svg")),
+        path: "icons/class/missile.svg",
+        contents: include_bytes!(concat!(env!("OUT_DIR"), "/silphium_template/icons/class/missile.svg")),
     },
     StaticFile {
         path: "icons/class/ship.svg",
         contents: include_bytes!(concat!(env!("OUT_DIR"), "/silphium_template/icons/class/ship.svg")),
     },
     StaticFile {
-        path: "icons/class/spears.svg",
-        contents: include_bytes!(concat!(env!("OUT_DIR"), "/silphium_template/icons/class/spears.svg")),
+        path: "icons/class/spear.svg",
+        contents: include_bytes!(concat!(env!("OUT_DIR"), "/silphium_template/icons/class/spear.svg")),
     },
     StaticFile {
-        path: "icons/class/swords.svg",
-        contents: include_bytes!(concat!(env!("OUT_DIR"), "/silphium_template/icons/class/swords.svg")),
+        path: "icons/class/sword.svg",
+        contents: include_bytes!(concat!(env!("OUT_DIR"), "/silphium_template/icons/class/sword.svg")),
     },
     StaticFile {
         path: "icons/discipline/low.svg",

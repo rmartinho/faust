@@ -41,8 +41,8 @@ fn parse_unit(lines: &[String]) -> Result<Unit> {
     Ok(Unit {
         id: require_line_value(&entries, "type")?.into(),
         key: require_line_value(&entries, "dictionary")?.into(),
-        _category: require_line_value(&entries, "category")?.into(),
-        _class: require_line_value(&entries, "class")?.into(),
+        category: require_line_value(&entries, "category")?.into(),
+        class: require_line_value(&entries, "class")?.into(),
         ownership: parse_ownership(require_line_value(&entries, "ownership")?),
         stats: parse_statblock(&entries, &raw)?,
     })
@@ -351,8 +351,8 @@ const COMMA: &str = ",";
 pub struct Unit {
     pub id: String,
     pub key: String,
-    pub _category: String,
-    pub _class: String,
+    pub category: String,
+    pub class: String,
     pub stats: StatBlock,
     pub ownership: Vec<String>,
 }

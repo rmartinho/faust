@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use implicit_clone::unsync::{IArray, IString};
 use indexmap::IndexMap;
-use silphium::model::{Ability, WeaponType};
+use silphium::model::{Ability, UnitClass, WeaponType};
 
 use crate::{
     args::Config,
@@ -12,7 +12,7 @@ use crate::{
         descr_sm_factions,
         eval::{Evaluator, evaluate},
         export_descr_buildings::{Building, Requires},
-        export_descr_unit::{self, Attr},
+        export_descr_unit::{self, Attr, WeaponAttr},
     },
 };
 
@@ -119,6 +119,29 @@ pub fn build_model(
                             .trim()
                             .to_string()
                             .into(),
+                        class: if is_general(u) {
+                            UnitClass::General
+                        } else if let Some(mount) = &u.stats.mount
+                            && mount.contains("elephant")
+                        {
+                            UnitClass::Animal
+                        } else if u.category.contains("cavalry") {
+                            UnitClass::Cavalry
+                        } else if u.category.contains("handler") {
+                            UnitClass::Animal
+                        } else if u.category.contains("siege") {
+                            UnitClass::Artillery
+                        } else if u.category.contains("ship") {
+                            UnitClass::Ship
+                        } else if u.class.contains("missile") {
+                            UnitClass::Missile
+                        } else if u.class.contains("spearmen") {
+                            UnitClass::Spear
+                        } else if has_spears(u) {
+                            UnitClass::Spear
+                        } else {
+                            UnitClass::Sword
+                        },
                         image: format!(
                             "data/ui/units/{}/#{}.tga",
                             f.id.to_lowercase(),
@@ -286,6 +309,24 @@ fn build_weapon(weapon: &export_descr_unit::Weapon) -> Option<silphium::model::W
 
 fn is_general(unit: &export_descr_unit::Unit) -> bool {
     unit.stats.attributes.contains(&Attr::GeneralUnit)
+}
+
+fn has_spears(unit: &export_descr_unit::Unit) -> bool {
+    unit.stats
+        .primary_weapon
+        .attributes
+        .iter()
+        .find(|a| {
+            matches!(
+                a,
+                WeaponAttr::LightSpear
+                    | WeaponAttr::Spear
+                    | WeaponAttr::ShortPike
+                    | WeaponAttr::LongPike
+                    | WeaponAttr::SpearBonus(_)
+            )
+        })
+        .is_some()
 }
 
 fn general_upgrade_event(unit: &export_descr_unit::Unit) -> Option<String> {

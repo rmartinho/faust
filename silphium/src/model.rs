@@ -63,6 +63,7 @@ pub struct Unit {
     pub id: IString,
     pub name: IString,
     pub key: IString,
+    pub class: UnitClass,
     pub image: IString,
     pub soldiers: u32,
     pub officers: u32,
@@ -100,6 +101,51 @@ pub struct Unit {
     PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ImplicitClone, Clone, Copy, Debug,
 )]
 #[serde(rename_all = "snake_case")]
+pub enum UnitClass {
+    Sword,
+    Spear,
+    Missile,
+    Cavalry,
+    General,
+    Animal,
+    Artillery,
+    Ship,
+}
+
+impl UnitClass {
+    pub fn all() -> [UnitClass; 8] {
+        [
+            UnitClass::Sword,
+            UnitClass::Spear,
+            UnitClass::Missile,
+            UnitClass::Cavalry,
+            UnitClass::General,
+            UnitClass::Animal,
+            UnitClass::Artillery,
+            UnitClass::Ship,
+        ]
+    }
+}
+
+impl Display for UnitClass {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Sword => write!(f, "sword"),
+            Self::Spear => write!(f, "spear"),
+            Self::Missile => write!(f, "missile"),
+            Self::Cavalry => write!(f, "cavalry"),
+            Self::General => write!(f, "general"),
+            Self::Animal => write!(f, "animal"),
+            Self::Artillery => write!(f, "artillery"),
+            Self::Ship => write!(f, "ship"),
+        }
+    }
+}
+
+#[derive(
+    PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ImplicitClone, Clone, Copy, Debug,
+)]
+#[serde(rename_all = "snake_case")]
 pub enum Ability {
     CantHide,
     HideImprovedForest,
@@ -114,7 +160,7 @@ pub enum Ability {
     Warcry,
     PowerCharge,
     Chant,
-    // LegionaryName,
+    // LegionaryName, // TODO
 }
 
 impl Display for Ability {

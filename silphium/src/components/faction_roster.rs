@@ -4,13 +4,13 @@ use yew_autoprops::autoprops;
 
 use crate::{
     components::Text,
-    model::{Ability, Defense, Discipline, Formation, Unit, Weapon, WeaponType},
+    model::{Ability, Defense, Discipline, Formation, Unit, UnitClass, Weapon, WeaponType},
 };
 
 #[autoprops]
 #[function_component(FactionRoster)]
 pub fn faction_roster(roster: IArray<Unit>, era: Option<AttrValue>) -> Html {
-    let cards = roster
+    let roster: &IArray<_> = &roster
         .iter()
         .filter(|unit| {
             if let Some(era) = &era {
@@ -19,23 +19,47 @@ pub fn faction_roster(roster: IArray<Unit>, era: Option<AttrValue>) -> Html {
                 true
             }
         })
+        .collect();
+
+    let groups = UnitClass::all()
+        .into_iter()
+        .map(|group| html! { <RosterGroup {roster} {group} /> });
+
+    html! {
+      <div class="roster">
+        {for groups}
+      </div>
+    }
+}
+
+#[autoprops]
+#[function_component(RosterGroup)]
+pub fn roster_group(roster: IArray<Unit>, group: UnitClass) -> Html {
+    let cards: Vec<_> = roster
+        .iter()
+        .filter(|u| u.class == group)
         .map(|unit| {
             html! {
               <UnitCard {unit}/>
             }
-        });
+        })
+        .collect();
+
+    let icon = format!("/icons/class/{group}.svg");
 
     html! {
-      <div class="roster">
-        <div class="roster-group">
-          <div class="legend">
-            <img class="group" src="/icons/class/swords.svg" />
+      <>
+        if cards.len() > 0 {
+          <div class="roster-group">
+            <div class="legend">
+              <img class="group" src={icon} />
+            </div>
+            <div class="unit-cards">
+              {for cards}
+            </div>
           </div>
-          <div class="unit-cards">
-            {for cards}
-          </div>
-        </div>
-      </div>
+        }
+      </>
     }
 }
 
