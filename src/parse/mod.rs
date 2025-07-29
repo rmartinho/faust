@@ -241,6 +241,8 @@ fn build_model(
                         .get(&f.name.to_lowercase())
                         .cloned()
                         .unwrap_or(f.name.clone())
+                        .trim()
+                        .to_string()
                         .into(),
                     image: f
                         .logo
@@ -329,7 +331,13 @@ fn build_model(
                             silphium::model::Unit {
                                 id: u.id.clone().into(),
                                 key: u.key.clone().into(),
-                                name: text.get(&u.key).cloned().unwrap_or(u.key.clone()).into(),
+                                name: text
+                                    .get(&u.key.to_lowercase())
+                                    .cloned()
+                                    .unwrap_or(u.key.clone())
+                                    .trim()
+                                    .to_string()
+                                    .into(),
                                 image: format!(
                                     "data/ui/units/{}/#{}.tga",
                                     f.id.to_lowercase(),
