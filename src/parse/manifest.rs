@@ -19,9 +19,19 @@ pub struct Manifest {
     #[serde(default = "default_banner")]
     pub banner: PathBuf,
     #[serde(default)]
-    pub aliases: HashMap<String, String>,
+    pub aliases: HashMap<IString, IString>,
     #[serde(default)]
-    pub eras: HashMap<String, Evaluator>,
+    pub eras: HashMap<IString, EraSpec>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EraSpec {
+    #[serde(default)]
+    pub icon: Option<PathBuf>,
+    #[serde(default)]
+    pub name: Option<IString>,
+    #[serde(flatten)]
+    pub evaluator: Evaluator,
 }
 
 fn default_campaign() -> String {

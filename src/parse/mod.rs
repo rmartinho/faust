@@ -11,7 +11,7 @@ use indicatif::{MultiProgress, ProgressBar};
 use serde::{Deserialize, Serialize};
 use silphium::{
     ModuleMap,
-    model::{Ability, Module, WeaponType},
+    model::{Ability, Era, Module, WeaponType},
 };
 
 use crate::{
@@ -163,6 +163,12 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     pb.set_prefix("[8/8]");
     pb.set_message(format!("{THINKING}processing mod data..."));
     pb.enable_steady_tick(Duration::from_millis(200));
+    let aliases = cfg
+        .manifest
+        .aliases
+        .iter()
+        .map(|(k, v)| (k.clone(), v.clone()))
+        .collect();
     let model = build_model(
         cfg.manifest.mode,
         units,
@@ -173,18 +179,43 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
         require_aliases,
         text,
         strat,
+        &aliases,
     );
     let _ = m.clear();
 
     let module_map = ModuleMap::from([(
-        IString::from(&cfg.manifest.id),
+        cfg.manifest.id.clone(),
         Module {
-            id: cfg.manifest.id.clone().into(),
-            name: cfg.manifest.name.clone().into(),
-            banner: "faust/banner.png".into(),
+            id: cfg.manifest.id.clone(),
+            name: cfg.manifest.name.clone(),
+            banner: cfg.manifest.banner.to_string_lossy().into_owned().into(),
             factions: model,
-            aliases: Default::default(),
-            eras: Default::default(),
+            aliases,
+            eras: cfg
+                .manifest
+                .eras
+                .iter()
+                .map(|(id, v)| {
+                    (
+                        id.clone(),
+                        Era {
+                            id: id.clone(),
+                            icon: v
+                                .icon
+                                .clone()
+                                .unwrap_or_else(|| {
+                                    PathBuf::from("eras")
+                                        .join(id.as_ref())
+                                        .with_added_extension("png")
+                                })
+                                .to_string_lossy()
+                                .into_owned()
+                                .into(),
+                            name: v.name.clone().unwrap_or("".into()),
+                        },
+                    )
+                })
+                .collect(),
         },
     )]);
     Ok(module_map)
@@ -221,6 +252,7 @@ fn build_model(
     aliases: HashMap<String, Requires>,
     text: HashMap<String, String>,
     strat: HashMap<String, usize>,
+    faction_aliases: &HashMap<IString, IString>,
 ) -> IndexMap<IString, silphium::model::Faction> {
     let unit_map: IndexMap<_, _> = raw_units.into_iter().map(|u| (u.id.clone(), u)).collect();
     let requires = build_requires(raw_buildings, &unit_map);
@@ -250,7 +282,10 @@ fn build_model(
                         .expect("invalid file name")
                         .to_lowercase()
                         .into(),
-                    alias: None,         // TODO
+                    alias: faction_aliases
+                        .iter()
+                        .find(|(_, v)| *v == &f.id)
+                        .map(|(k, _)| k.clone()),
                     eras: vec![].into(), // TODO
                     roster: unit_map
                         .values()
