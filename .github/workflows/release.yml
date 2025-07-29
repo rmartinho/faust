@@ -37,4 +37,3 @@ jobs:
         with:
           executable-name: faust
           target: ${{ matrix.platform.target }}
-          changes-file: ""
