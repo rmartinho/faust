@@ -5,7 +5,7 @@ use implicit_clone::unsync::IString;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::parse::Evaluator;
+use crate::parse::eval::Evaluator;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Manifest {
