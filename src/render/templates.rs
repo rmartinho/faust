@@ -203,6 +203,20 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
         )),
     },
     StaticFile {
+        path: "icons/ability/stakes.svg",
+        contents: include_bytes!(concat!(
+            env!("OUT_DIR"),
+            "/silphium_template/icons/ability/stakes.svg"
+        )),
+    },
+    StaticFile {
+        path: "icons/ability/formed-charge.svg",
+        contents: include_bytes!(concat!(
+            env!("OUT_DIR"),
+            "/silphium_template/icons/ability/formed-charge.svg"
+        )),
+    },
+    StaticFile {
         path: "icons/attribute/against-cavalry.svg",
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
@@ -655,6 +669,13 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
             "/silphium_template/icons/weapon/thrown.svg"
+        )),
+    },
+    StaticFile {
+        path: "icons/weapon/gunpowder.svg",
+        contents: include_bytes!(concat!(
+            env!("OUT_DIR"),
+            "/silphium_template/icons/weapon/gunpowder.svg"
         )),
     },
 ];

@@ -143,6 +143,8 @@ pub fn unit_card(unit: Unit) -> Html {
             Ability::Warcry => "Can perform warcry to increase attack",
             Ability::PowerCharge => "Powerful charge",
             Ability::Chant => "Can chant to affect morale",
+            Ability::FormedCharge => "Can do formed charge",
+            Ability::Stakes => "Can lay defensive stakes",
         };
         html! {
           <img class="ability" src={format!("/icons/ability/{}.svg", ab)} {title} />
@@ -326,6 +328,7 @@ pub fn weapon_row(#[prop_or_default] class: AttrValue, unit: Unit, weapon: Weapo
         WeaponType::Spear => ("/icons/weapon/spear.svg", "Spear".into()),
         WeaponType::Missile => ("/icons/weapon/missile.svg", "Missile weapon".into()),
         WeaponType::Thrown => ("/icons/weapon/thrown.svg", "Thrown weapon".into()),
+        WeaponType::Gunpowder => ("/icons/weapon/gunpowder.svg", "Gunpowder weapon".into()),
     };
     let lethality = format!("{}%", (weapon.lethality * 100.0).round());
     if weapon.lethality != 1.0 {

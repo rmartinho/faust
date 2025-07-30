@@ -62,6 +62,9 @@ pub fn build_model(
                     let mut general = false;
                     let mut mercenary = false;
                     let mut legionary_name = false;
+                    let mut is_militia = false;
+                    let mut is_knight = false;
+                    let mut is_unique = false;
                     for attr in u.stats.attributes.iter() {
                         match attr {
                             Attr::HideForest => cant_hide = false,
@@ -98,6 +101,13 @@ pub fn build_model(
                             Attr::LegionaryName => legionary_name = true,
                             Attr::InfiniteAmmo => infinite_ammo = true,
                             Attr::NonScaling => non_scaling = true,
+                            Attr::FreeUpkeep => is_militia = true,
+                            Attr::Knight => is_knight = true,
+                            Attr::Unique => is_unique = true,
+                            Attr::Gunpowder => {} // TODO?
+                            Attr::FormedCharge => abilities.push(Ability::FormedCharge),
+                            Attr::Stakes => abilities.push(Ability::Stakes),
+
                             _ => {}
                         }
                     }
@@ -202,6 +212,9 @@ pub fn build_model(
                         general,
                         mercenary,
                         legionary_name,
+                        is_militia,
+                        is_knight,
+                        is_unique,
 
                         abilities: abilities.into(),
                         tech_level: tech_levels.get(&u.id).copied().unwrap_or(99),
@@ -262,11 +275,14 @@ fn build_weapon(weapon: &export_descr_unit::Weapon) -> Option<silphium::model::W
         return None;
     }
 
-    let mut class = if weapon.missile != "no" {
-        WeaponType::Missile
-    } else {
+    let mut class = if weapon.missile == "no" {
         WeaponType::Melee
+    } else if weapon.tech_type.contains("gunpowder") {
+        WeaponType::Gunpowder
+    } else {
+        WeaponType::Missile
     };
+
     let mut armor_piercing = false;
     let mut body_piercing = false;
     let mut pre_charge = false;
@@ -299,7 +315,11 @@ fn build_weapon(weapon: &export_descr_unit::Weapon) -> Option<silphium::model::W
         charge: weapon.charge,
         range: weapon.range,
         ammo: weapon.ammo,
-        lethality: weapon.lethality,
+        lethality: if weapon.lethality > 1.0 {
+            1.0
+        } else {
+            weapon.lethality
+        },
         armor_piercing,
         body_piercing,
         pre_charge,

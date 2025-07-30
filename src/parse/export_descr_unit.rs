@@ -222,9 +222,15 @@ fn parse_weapon(stats: &[&str], attrs: &[&str]) -> Result<Weapon> {
             .copied()
             .ok_or_else(|| anyhow!("missing weapon type"))
             .map(Into::into)?,
+        tech_type: stats
+            .get(6)
+            .copied()
+            .ok_or_else(|| anyhow!("missing tech type"))
+            .map(Into::into)?,
         attributes: attrs
             .iter()
             .copied()
+            .filter(|&a| a != "no")
             .map(parse_weapon_attribute)
             .collect::<Result<_>>()
             .context("parsing weapon attributes")?,
@@ -301,6 +307,21 @@ fn parse_attribute(string: &str) -> Result<Attr> {
         "legionary_name" => Attr::LegionaryName,
         "infinite_ammo" => Attr::InfiniteAmmo,
         "non_scaling" => Attr::NonScaling,
+        "free_upkeep_unit" => Attr::FreeUpkeep,
+        "can_withdraw" => Attr::CanWithdraw,
+        "can_formed_charge" => Attr::FormedCharge,
+        "knight" => Attr::Knight,
+        "gunpowder_unit" => Attr::Gunpowder,
+        "start_not_skirmishing" => Attr::UiOrAiHint,
+        "stakes" => Attr::Stakes,
+        "fire_by_rank" => Attr::FireByRank,
+        "cannot_skirmish" => Attr::NoSkirmish,
+        "unique_unit" => Attr::Unique,
+
+        "guncavalry" | "crossbow" | "gunmen" | "peasant" | "pike" | "incendiary" | "artillery"
+        | "cannon" | "rocket" | "mortar" | "explode" | "standard" | "wagon_fort" => {
+            Attr::UiOrAiHint
+        }
         s if s.starts_with("general_unit_upgrade") => {
             let mut split = s.split_whitespace();
             split.next(); // skip general_unit_upgrade
@@ -388,6 +409,7 @@ pub struct Weapon {
     pub ammo: u32,
     pub lethality: f64,
     pub weapon_type: String,
+    pub tech_type: String,
     pub attributes: Vec<WeaponAttr>,
 }
 
@@ -401,6 +423,7 @@ impl Default for Weapon {
             ammo: Default::default(),
             lethality: Default::default(),
             weapon_type: "no".into(),
+            tech_type: "no".into(),
             attributes: Default::default(),
         }
     }
@@ -441,6 +464,19 @@ pub enum Attr {
     LegionaryName,
     InfiniteAmmo,
     NonScaling,
+
+    FreeUpkeep,
+    CanWithdraw,
+    FormedCharge,
+    Knight,
+    Gunpowder,
+    Stakes,
+    FireByRank,
+    NoSkirmish,
+    Unique,
+
+    UiOrAiHint,
+
     Unknown,
 }
 

@@ -94,6 +94,11 @@ pub struct Unit {
     pub mercenary: bool,
     pub legionary_name: bool,
 
+    // M2TW
+    pub is_militia: bool,
+    pub is_knight: bool,
+    pub is_unique: bool,
+
     pub eras: IArray<IString>,
     pub tech_level: u32,
 }
@@ -162,6 +167,8 @@ pub enum Ability {
     PowerCharge,
     Chant,
     // LegionaryName, // TODO
+    FormedCharge,
+    Stakes,
 }
 
 impl Display for Ability {
@@ -180,6 +187,8 @@ impl Display for Ability {
             Self::Warcry => write!(f, "warcry"),
             Self::PowerCharge => write!(f, "power-charge"),
             Self::Chant => write!(f, "chant"),
+            Self::FormedCharge => write!(f, "formed-charge"),
+            Self::Stakes => write!(f, "stakes"),
         }
     }
 }
@@ -211,6 +220,7 @@ pub enum WeaponType {
     Melee,
     Spear,
     Missile,
+    Gunpowder,
     Thrown,
 }
 
