@@ -361,6 +361,11 @@ fn require_no_events<'a>(events: impl Iterator<Item = &'a String>) -> Requires {
 fn tech_level(s: impl AsRef<str>) -> u32 {
     match s.as_ref() {
         "village" => 0,
+        "town" => 1,
+        "large_town" => 2,
+        "city" => 3,
+        "large_city" => 4,
+        "huge_city" => 5,
         _ => 99,
     }
 }
