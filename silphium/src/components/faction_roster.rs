@@ -20,7 +20,7 @@ pub fn faction_roster(roster: IArray<Unit>, era: Option<AttrValue>) -> Html {
             }
         })
         .collect();
-    roster.sort_by_key(|u| u.tech_level);
+    roster.sort_by_key(|u| (u.tech_level, u.upkeep, u.cost));
     let roster: &IArray<_> = &roster.into();
 
     let groups = UnitClass::all()
