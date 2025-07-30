@@ -25,7 +25,9 @@ pub fn module_page(id: IString) -> Html {
     html! {
       <div class="module-page">
         <header>
-          <BackLink />
+          if ctx.modules.len() > 1 {
+            <BackLink />
+          }
           <ModuleHeader {module} />
         </header>
         <main>

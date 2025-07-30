@@ -1,10 +1,19 @@
-use crate::{model::Module, routes::Route, AppContext};
+use crate::{AppContext, model::Module, routes::Route};
 use yew::prelude::*;
-use yew_router::components::Link;
+use yew_router::prelude::*;
 
 #[function_component(ModuleList)]
 pub fn module_list() -> Html {
     let ctx = use_context::<AppContext>().expect("no context");
+
+    if ctx.modules.len() == 1 {
+        let route = Route::Module {
+            module: ctx.modules[0].id.clone(),
+        };
+        return html! {
+          <Redirect<Route> to={route} />
+        };
+    }
 
     let links = ctx.modules.values().cloned().map(module_link);
 
