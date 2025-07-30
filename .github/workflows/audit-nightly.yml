@@ -2,13 +2,13 @@ name: Security audit - nightly
 
 on:
   schedule:
-    - cron: "0 0 * * *"
-
-permissions: read-all
+    - cron: "50 1 * * *"
 
 jobs:
   security_audit:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rust-lang/audit@v1
+      - uses: rustsec/audit-check@v2.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
