@@ -18,6 +18,7 @@ pub fn module_page(id: IString) -> Html {
     let links = module
         .factions
         .values()
+        .filter(|f| f.roster.len() > 0)
         .map(|f| html! {<FactionLink to={f}/>});
     let module = module.clone();
 
