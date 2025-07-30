@@ -1,4 +1,4 @@
-use implicit_clone::unsync::IArray;
+use implicit_clone::{ImplicitClone, unsync::IArray};
 use yew::prelude::*;
 use yew_autoprops::autoprops;
 
@@ -7,19 +7,30 @@ use crate::{
     model::{Ability, Defense, Discipline, Formation, Unit, UnitClass, Weapon, WeaponType},
 };
 
+#[derive(PartialEq, Clone, ImplicitClone, Default)]
+pub struct UnitFilter {
+    pub era: Option<AttrValue>,
+    pub horde: Option<bool>,
+}
+
+impl UnitFilter {
+    fn apply(&self, unit: &Unit) -> bool {
+        (if let Some(ref era) = self.era {
+            unit.eras.contains(era)
+        } else {
+            true
+        }) && (if let Some(horde) = self.horde {
+            unit.horde == horde
+        } else {
+            true
+        })
+    }
+}
+
 #[autoprops]
 #[function_component(FactionRoster)]
-pub fn faction_roster(roster: IArray<Unit>, era: Option<AttrValue>) -> Html {
-    let mut roster: Vec<_> = roster
-        .iter()
-        .filter(|unit| {
-            if let Some(era) = &era {
-                unit.eras.contains(era)
-            } else {
-                true
-            }
-        })
-        .collect();
+pub fn faction_roster(roster: IArray<Unit>, filter: UnitFilter) -> Html {
+    let mut roster: Vec<_> = roster.iter().filter(|unit| filter.apply(unit)).collect();
     roster.sort_by_key(|u| (u.tech_level, u.upkeep, u.cost));
     let roster: &IArray<_> = &roster.into();
 

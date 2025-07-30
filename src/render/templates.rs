@@ -616,6 +616,20 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
         )),
     },
     StaticFile {
+        path: "icons/ui/horde.svg",
+        contents: include_bytes!(concat!(
+            env!("OUT_DIR"),
+            "/silphium_template/icons/ui/horde.svg"
+        )),
+    },
+    StaticFile {
+        path: "icons/ui/horde-off.svg",
+        contents: include_bytes!(concat!(
+            env!("OUT_DIR"),
+            "/silphium_template/icons/ui/horde-off.svg"
+        )),
+    },
+    StaticFile {
         path: "icons/weapon/blade.svg",
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),

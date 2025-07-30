@@ -4,7 +4,7 @@ use yew_router::prelude::*;
 
 use crate::{
     AppContext,
-    components::{BackLink, FactionRoster, Link, Text},
+    components::{BackLink, FactionRoster, Link, Text, UnitFilter},
     model::{Faction, Module},
     routes::Route,
 };
@@ -33,7 +33,18 @@ pub fn faction_page(
         };
     }
 
-    let era = &era.or(faction.eras.get(0));
+    let filter_state = use_state(|| UnitFilter {
+        era: era.or(faction.eras.get(0)),
+        horde: if faction.is_horde { Some(false) } else { None },
+    });
+    let filter = &(*filter_state).clone();
+
+    let toggle_horde = Callback::from(move |_| {
+        filter_state.set(UnitFilter {
+            horde: filter_state.horde.map(|h| !h),
+            era: filter_state.era.clone(),
+        })
+    });
 
     html! {
     <div class="faction-page">
@@ -47,9 +58,9 @@ pub fn faction_page(
             <img class="help button" title="Help" src="/icons/ui/help.png" />
           </button>
         </div>
-        <FactionHeader classes={classes!("header")} {module} faction={faction.clone()} {era} />
+        <FactionHeader classes={classes!("header")} {module} faction={faction.clone()} {filter} {toggle_horde} />
       </div>
-      <FactionRoster roster={faction.roster} {era} />
+      <FactionRoster roster={faction.roster} {filter} />
     // <template v-if="faction.id == 'mercs'">
     //   <MercenaryRoster :pools />
     // </template>
@@ -67,13 +78,16 @@ pub fn faction_header(
     classes: Classes,
     module: Module,
     faction: Faction,
-    #[prop_or_default] era: Option<AttrValue>,
+    #[prop_or_default] filter: UnitFilter,
+    toggle_horde: Callback<()>,
 ) -> Html {
     let _ = module;
     let era_links = faction
         .eras
         .iter()
-        .map(|e| html! {<EraLink to={&e} active={era == Some(e)}/>});
+        .map(|e| html! {<EraLink to={&e} active={filter.era == Some(e)}/>});
+
+    let onclick = Callback::from(move |_| toggle_horde.emit(()));
 
     html! {
       <div class={classes!("faction-header", classes)}>
@@ -82,6 +96,18 @@ pub fn faction_header(
             if faction.eras.len() > 1 {
               <div class="eras">
                 {for era_links}
+              </div>
+            }
+            if let Some(horde)= filter.horde {
+              <div class="eras">
+                <button {onclick}>
+                  <div class={classes!("era", if horde {Some("checked")} else {None})}>
+                    <img
+                      src={if horde { HORDE_ICON } else { HORDE_ICOFF }}
+                      title={if horde { "Show settled units" } else { "Show horde units" }}
+                    />
+                  </div>
+                </button>
               </div>
             }
           </div>
@@ -128,3 +154,6 @@ fn era_link(to: AttrValue, active: bool) -> Html {
       </Link>
     }
 }
+
+const HORDE_ICON: &str = "/icons/ui/horde.svg";
+const HORDE_ICOFF: &str = "/icons/ui/horde-off.svg";
