@@ -37,6 +37,7 @@ pub fn build_model(
     raw_factions.sort_by_key(|f| strat[&f.id]);
     let factions = raw_factions
         .into_iter()
+        .filter(|f| !cfg.manifest.exclude.contains(&f.id))
         .map(|f| {
             let mut is_horde = false;
             let roster: IArray<_> = unit_map

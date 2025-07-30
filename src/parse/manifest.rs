@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::parse::eval::Evaluator;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Manifest {
     pub id: IString,
     pub name: IString,
@@ -23,6 +24,8 @@ pub struct Manifest {
     pub aliases: HashMap<IString, IString>,
     #[serde(default)]
     pub eras: IndexMap<IString, EraSpec>,
+    #[serde(default)]
+    pub exclude: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
