@@ -7,26 +7,21 @@
 #![feature(try_blocks)]
 #![allow(dead_code)]
 
-use std::{
-    fs::{File, metadata},
-    time::{Duration, Instant},
-};
+use std::time::Instant;
 
 use anyhow::Result;
 use clap::Parser as _;
 use console::style;
-use indicatif::{HumanBytes, HumanDuration, ProgressBar};
-use zip_dir::zip_dir;
+use indicatif::HumanDuration;
 
 use crate::{
-    args::{Args, Command, Config},
+    args::{Args, Config},
     render::Renderer,
     serve::serve,
-    utils::{CLAMP, LINK, LOOKING_GLASS, PACKAGE, SPARKLE, progress_style},
+    utils::{LINK, LOOKING_GLASS, PACKAGE, SPARKLE},
 };
 
 mod args;
-mod pack;
 mod parse;
 mod platform;
 mod render;
@@ -42,12 +37,6 @@ async fn main() -> Result<()> {
 
 async fn run() -> Result<()> {
     let args = Args::parse();
-    match args.command {
-        Some(Command::Pack) => {
-            return Ok(pack::pack().await?);
-        }
-        _ => {}
-    }
     let started = Instant::now();
     let cfg = Config::get(args)?;
 
@@ -55,7 +44,7 @@ async fn run() -> Result<()> {
     let modules = parse::parse_folder(&cfg).await?;
     println!(
         "{} {LOOKING_GLASS}{}",
-        style("[1/3]").bold().dim(),
+        style("[1/2]").bold().dim(),
         style(format!(
             "parsed mod folder in {}",
             HumanDuration(step.elapsed())
@@ -68,7 +57,7 @@ async fn run() -> Result<()> {
     renderer.render().await?;
     println!(
         "{} {LINK}{}",
-        style("[2/3]").bold().dim(),
+        style("[2/2]").bold().dim(),
         style(format!(
             "rendered site in {}",
             HumanDuration(step.elapsed())
@@ -76,28 +65,13 @@ async fn run() -> Result<()> {
         .green()
     );
 
-    let step = Instant::now();
-    let zip_file = cfg.out_dir.with_added_extension("zip");
-    let pb = ProgressBar::new_spinner();
-    pb.enable_steady_tick(Duration::from_millis(200));
-    pb.set_message(format!("{CLAMP}zipping site"));
-    pb.set_style(progress_style());
-    zip_dir(&cfg.out_dir, File::create(&zip_file)?, None)?;
-    pb.finish_and_clear();
-    println!(
-        "{} {CLAMP}{}",
-        style("[3/3]").bold().dim(),
-        style(format!("zipped site in {}", HumanDuration(step.elapsed()))).green()
-    );
-
     println!(
         "      {SPARKLE}{}",
         style(format!("Done in {}", HumanDuration(started.elapsed()))).bold()
     );
     println!(
-        "      {PACKAGE}Site files available at {} ({})",
-        style(zip_file.display()).bold(),
-        HumanBytes(metadata(&zip_file)?.len())
+        "      {PACKAGE}Site files available at {}",
+        style(cfg.out_dir.display()).bold(),
     );
 
     if cfg.serve {

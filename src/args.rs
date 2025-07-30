@@ -35,8 +35,6 @@ pub struct GenerateArgs {
 pub enum Command {
     #[command(about = "Generates a FAUST website")]
     Generate(GenerateArgs),
-    #[command(about = "Packs all the mod files used (generally useful for bug reports)")]
-    Pack,
 }
 
 #[derive(Debug, Clone)]
