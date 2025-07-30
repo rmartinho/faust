@@ -313,6 +313,10 @@ fn is_general(unit: &export_descr_unit::Unit) -> bool {
     unit.stats.attributes.contains(&Attr::GeneralUnit)
 }
 
+fn can_horde(unit: &export_descr_unit::Unit) -> bool {
+    unit.stats.attributes.contains(&Attr::CanHorde)
+}
+
 fn has_spears(unit: &export_descr_unit::Unit) -> bool {
     unit.stats
         .primary_weapon
@@ -414,6 +418,12 @@ fn build_requires(
                 ]),
             )
         }))
+        .chain(
+            unit_map
+                .values()
+                .filter(|&u| can_horde(u))
+                .map(|u| (u.id.clone(), require_ownership(u))),
+        )
         .fold(HashMap::new(), |mut h, (u, r)| {
             match h.entry(u).or_insert(Requires::Or(vec![])) {
                 Requires::Or(items) => items.push(r),
