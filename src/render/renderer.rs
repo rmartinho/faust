@@ -6,35 +6,32 @@ use std::{
 
 use anyhow::{Context as _, Result};
 use askama::Template as _;
-use image::{ImageError, ImageFormat, ImageReader, imageops::FilterType};
+use image::{ImageFormat, ImageReader, imageops::FilterType};
 use implicit_clone::unsync::IString;
 use indicatif::{HumanBytes, MultiProgress, ProgressBar};
 use silphium::{
     ModuleMap, Route, StaticApp, StaticAppProps,
     model::{Era, Faction, Module, Unit},
 };
-use tokio::{fs, io};
+use tokio::fs;
 use yew_router::Routable as _;
 
 use crate::{
     args::Config,
-    render::templates::{FILESYSTEM_STATIC, IndexHtml, RedirectHtml},
+    render::templates::{FILESYSTEM_STATIC, IndexHtml, PrefetchHtml, RedirectHtml},
     utils::{FOLDER, LINK, PAPER, PICTURE, path_fallback, progress_style, read_file, write_file},
 };
 
 #[derive(Clone)]
 pub struct Renderer {
     pub cfg: Config,
-    pub routes: Vec<RenderRoute>,
     pub data: String,
     pub modules: ModuleMap,
 }
 
 impl Renderer {
     pub fn new(cfg: &Config, modules: ModuleMap) -> Self {
-        let routes = collect_routes(&modules);
         Self {
-            routes,
             cfg: cfg.clone(),
             data: String::new(),
             modules,
@@ -206,7 +203,8 @@ impl Renderer {
         pb.set_prefix("[5/5]");
         pb.tick();
         pb.set_message(format!("{LINK}rendering routes"));
-        for r in &self.routes {
+        let routes = collect_routes(&self.modules);
+        for r in &routes {
             pb.tick();
             pb.set_message(format!("{LINK}rendering {}", r.route.to_path()));
             if let Some(ref target) = r.redirect {
@@ -220,9 +218,12 @@ impl Renderer {
                 .with_context(|| format!("writing file {}", r.path.display()))?;
             } else {
                 let body = &self.render_route(r.route.clone()).await;
+                let head = &self
+                    .render_preload(r)
+                    .with_context(|| format!("rendering preloads for {}", r.route.to_path()))?;
                 write_file(
                     &self.cfg.out_dir.join(&r.path),
-                    IndexHtml { head: "", body }.render().with_context(|| {
+                    IndexHtml { head, body }.render().with_context(|| {
                         format!("rendering {} -> {}", r.route.to_path(), r.path.display())
                     })?,
                 )
@@ -230,7 +231,7 @@ impl Renderer {
                 .with_context(|| format!("writing file {}", r.path.display()))?;
             }
         }
-        pb.finish_with_message(format!("{LINK}rendered {} routes", self.routes.len()));
+        pb.finish_with_message(format!("{LINK}rendered {} routes", routes.len()));
         Ok(())
     }
 
@@ -241,6 +242,13 @@ impl Renderer {
         };
         let renderer = yew::LocalServerRenderer::<StaticApp>::with_props(props);
         renderer.render().await
+    }
+
+    fn render_preload(&self, r: &RenderRoute) -> Result<String> {
+        Ok(PrefetchHtml {
+            preload: &r.preload,
+        }
+        .render()?)
     }
 
     async fn create_directory(&self, m: MultiProgress) -> Result<()> {
@@ -284,10 +292,6 @@ impl Renderer {
     }
 }
 
-fn from_image_error(e: ImageError) -> io::Error {
-    io::Error::new(io::ErrorKind::Other, e)
-}
-
 fn web_path(p: &Path) -> String {
     p.components().fold(String::new(), |mut s, c| {
         match c {
@@ -305,6 +309,7 @@ pub struct RenderRoute {
     pub route: Route,
     pub redirect: Option<String>,
     pub path: PathBuf,
+    pub preload: Vec<(String, &'static str)>,
 }
 
 fn collect_routes(modules: &ModuleMap) -> Vec<RenderRoute> {
@@ -313,17 +318,31 @@ fn collect_routes(modules: &ModuleMap) -> Vec<RenderRoute> {
         route: Route::Home,
         path: "index.html".into(),
         redirect: None,
+        preload: modules
+            .values()
+            .map(|m| (m.banner.as_ref().into(), "image"))
+            .chain([("/mods.json".into(), "fetch")])
+            .collect(),
     });
     routes.push(RenderRoute {
         route: Route::NotFound,
         path: "404.html".into(),
         redirect: None,
+        preload: vec![],
     });
 
     for module in modules.values() {
-        routes.push(prepare_route(Route::Module {
-            module: module.id.clone(),
-        }));
+        routes.push(prepare_route(
+            Route::Module {
+                module: module.id.clone(),
+            },
+            module
+                .factions
+                .values()
+                .map(|f| (f.image.as_ref().into(), "image"))
+                .chain([(module.banner.as_ref().into(), "image")])
+                .collect(),
+        ));
 
         for faction in module.factions.values() {
             let id_or_alias = faction.id_or_alias();
@@ -365,7 +384,15 @@ fn collect_routes(modules: &ModuleMap) -> Vec<RenderRoute> {
                         route.clone(),
                     ))
                 }
-                routes.push(prepare_route(route));
+                routes.push(prepare_route(
+                    route,
+                    faction
+                        .roster
+                        .iter()
+                        .map(|u| (u.image.as_ref().into(), "image"))
+                        .chain([(faction.image.as_ref().into(), "image")])
+                        .collect(),
+                ));
             } else {
                 routes.push(prepare_redirect(
                     route,
@@ -378,24 +405,39 @@ fn collect_routes(modules: &ModuleMap) -> Vec<RenderRoute> {
             }
 
             for era in faction.eras.iter() {
-                routes.push(prepare_route(Route::FactionEra {
-                    module: module.id.clone(),
-                    faction: faction.id_or_alias(),
-                    era,
-                }));
+                routes.push(prepare_route(
+                    Route::FactionEra {
+                        module: module.id.clone(),
+                        faction: faction.id_or_alias(),
+                        era,
+                    },
+                    faction
+                        .roster
+                        .iter()
+                        .map(|u| (u.image.as_ref().into(), "image"))
+                        .chain([(faction.image.as_ref().into(), "image")])
+                        .chain(module.eras.values().flat_map(|e| {
+                            [
+                                (e.icon.as_ref().into(), "image"),
+                                (e.icoff.as_ref().into(), "image"),
+                            ]
+                        }))
+                        .collect(),
+                ));
             }
         }
     }
     routes
 }
 
-fn prepare_route(route: Route) -> RenderRoute {
-    let path: String = route.to_path();
+fn prepare_route(route: Route, preload: Vec<(String, &'static str)>) -> RenderRoute {
+    let path = route.to_path();
     let path = PathBuf::from(&path[1..]).join("index.html");
     RenderRoute {
         path,
         route,
         redirect: None,
+        preload,
     }
 }
 
@@ -407,6 +449,7 @@ fn prepare_redirect(from: Route, to: Route) -> RenderRoute {
         path,
         route: from,
         redirect: Some(target),
+        preload: vec![],
     }
 }
 
