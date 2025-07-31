@@ -3,7 +3,10 @@ use std::path::Path;
 use anyhow::Result;
 use askama::Template;
 
-use crate::utils::write_file;
+use crate::{
+    render::renderer::{Preload, PreloadType},
+    utils::write_file,
+};
 
 #[derive(Template)]
 #[template(path = "index.html")]
@@ -21,12 +24,13 @@ pub struct RedirectHtml<'a> {
 #[derive(Template)]
 #[template(path = "preload.html")]
 pub struct PrefetchHtml<'a> {
-    pub preload: &'a [(String, &'a str)],
+    pub preload: &'a [(String, Preload)],
 }
 
 pub struct StaticFile<'a> {
     pub path: &'a str,
     pub contents: &'a [u8],
+    pub preload_as: Option<PreloadType>,
 }
 
 impl<'a> StaticFile<'a> {
@@ -38,8 +42,9 @@ impl<'a> StaticFile<'a> {
 
 pub const FILESYSTEM_STATIC: &[StaticFile] = &[
     StaticFile {
-        path: "favicon.png",
-        contents: include_bytes!(concat!(env!("OUT_DIR"), "/silphium_template/favicon.png")),
+        path: "favicon.webp",
+        contents: include_bytes!(concat!(env!("OUT_DIR"), "/silphium_template/favicon.webp")),
+        preload_as: None,
     },
     StaticFile {
         path: "styles/main.css",
@@ -47,6 +52,7 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
             env!("OUT_DIR"),
             "/silphium_template/styles/main.css"
         )),
+        preload_as: None,
     },
     StaticFile {
         path: "scripts/silphium.js",
@@ -54,6 +60,7 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
             env!("OUT_DIR"),
             "/silphium_template/scripts/silphium.js"
         )),
+        preload_as: None,
     },
     StaticFile {
         path: "scripts/silphium_bg.wasm",
@@ -61,6 +68,7 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
             env!("OUT_DIR"),
             "/silphium_template/scripts/silphium_bg.wasm"
         )),
+        preload_as: None,
     },
     StaticFile {
         path: "fonts/blinker-regular-1.woff2",
@@ -68,6 +76,7 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
             env!("OUT_DIR"),
             "/silphium_template/fonts/blinker-regular-1.woff2"
         )),
+        preload_as: Some(PreloadType::Woff2),
     },
     StaticFile {
         path: "fonts/blinker-regular-2.woff2",
@@ -75,6 +84,7 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
             env!("OUT_DIR"),
             "/silphium_template/fonts/blinker-regular-2.woff2"
         )),
+        preload_as: Some(PreloadType::Woff2),
     },
     StaticFile {
         path: "fonts/blinker-bold-1.woff2",
@@ -82,6 +92,7 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
             env!("OUT_DIR"),
             "/silphium_template/fonts/blinker-bold-1.woff2"
         )),
+        preload_as: Some(PreloadType::Woff2),
     },
     StaticFile {
         path: "fonts/blinker-bold-2.woff2",
@@ -89,6 +100,7 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
             env!("OUT_DIR"),
             "/silphium_template/fonts/blinker-bold-2.woff2"
         )),
+        preload_as: Some(PreloadType::Woff2),
     },
     StaticFile {
         path: "fonts/blinker-regular.woff",
@@ -96,6 +108,7 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
             env!("OUT_DIR"),
             "/silphium_template/fonts/blinker-regular.woff"
         )),
+        preload_as: Some(PreloadType::Woff),
     },
     StaticFile {
         path: "fonts/blinker-bold.woff",
@@ -103,531 +116,68 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
             env!("OUT_DIR"),
             "/silphium_template/fonts/blinker-bold.woff"
         )),
+        preload_as: Some(PreloadType::Woff),
     },
     StaticFile {
-        path: "icons/ability/can-run-amok.svg",
+        path: "icons/ability.svg",
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
-            "/silphium_template/icons/ability/can-run-amok.svg"
+            "/silphium_template/icons/ability.svg"
         )),
+        preload_as: None,
     },
     StaticFile {
-        path: "icons/ability/chant.svg",
+        path: "icons/attribute.svg",
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
-            "/silphium_template/icons/ability/chant.svg"
+            "/silphium_template/icons/attribute.svg"
         )),
+        preload_as: None,
     },
     StaticFile {
-        path: "icons/ability/cantabrian-circle.svg",
+        path: "icons/class.svg",
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
-            "/silphium_template/icons/ability/cantabrian-circle.svg"
+            "/silphium_template/icons/class.svg"
         )),
+        preload_as: None,
     },
     StaticFile {
-        path: "icons/ability/command.svg",
+        path: "icons/discipline.svg",
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
-            "/silphium_template/icons/ability/command.svg"
+            "/silphium_template/icons/discipline.svg"
         )),
+        preload_as: None,
     },
     StaticFile {
-        path: "icons/ability/frighten-all.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/ability/frighten-all.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/ability/frighten-foot.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/ability/frighten-foot.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/ability/frighten-mounted.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/ability/frighten-mounted.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/ability/heart.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/ability/heart.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/ability/hide-anywhere.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/ability/hide-anywhere.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/ability/hide-forest.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/ability/hide-forest.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/ability/hide-grass.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/ability/hide-grass.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/ability/cant-hide.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/ability/cant-hide.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/ability/power-charge.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/ability/power-charge.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/ability/warcry.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/ability/warcry.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/ability/stakes.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/ability/stakes.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/ability/formed-charge.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/ability/formed-charge.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/attribute/against-cavalry.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/attribute/against-cavalry.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/attribute/ammo.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/attribute/ammo.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/attribute/armor-piercing.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/attribute/armor-piercing.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/attribute/armor.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/attribute/armor.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/attribute/charge.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/attribute/charge.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/attribute/heat.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/attribute/heat.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/attribute/inexhaustible.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/attribute/inexhaustible.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/attribute/precharge.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/attribute/precharge.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/attribute/range.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/attribute/range.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/attribute/shield.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/attribute/shield.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/attribute/skill.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/attribute/skill.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/attribute/stamina.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/attribute/stamina.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/attribute/turns.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/attribute/turns.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/class/artillery.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/class/artillery.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/class/animal.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/class/animal.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/class/general.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/class/general.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/class/cavalry.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/class/cavalry.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/class/missile.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/class/missile.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/class/ship.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/class/ship.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/class/spear.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/class/spear.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/class/sword.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/class/sword.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/discipline/low.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/discipline/low.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/discipline/normal.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/discipline/normal.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/discipline/disciplined.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/discipline/disciplined.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/discipline/impetuous.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/discipline/impetuous.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/discipline/berserker.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/discipline/berserker.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/exp/exp1.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/exp/exp1.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/exp/exp2.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/exp/exp2.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/exp/exp3.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/exp/exp3.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/exp/exp4.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/exp/exp4.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/exp/exp5.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/exp/exp5.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/exp/exp6.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/exp/exp6.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/exp/exp7.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/exp/exp7.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/exp/exp8.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/exp/exp8.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/exp/exp9.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/exp/exp9.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/formation/horde.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/formation/horde.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/formation/square.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/formation/square.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/formation/phalanx.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/formation/phalanx.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/formation/wedge.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/formation/wedge.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/formation/testudo.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/formation/testudo.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/formation/schiltrom.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/formation/schiltrom.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/formation/shield_wall.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/formation/shield_wall.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/stat/soldiers.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/stat/soldiers.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/stat/cost.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/stat/cost.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/stat/upkeep.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/stat/upkeep.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/stat/defense.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/stat/defense.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/stat/defense2.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/stat/defense2.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/stat/replenish.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/stat/replenish.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/terrain/scrub-up.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/terrain/scrub-up.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/terrain/scrub-down.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/terrain/scrub-down.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/terrain/forest-up.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/terrain/forest-up.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/terrain/forest-down.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/terrain/forest-down.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/terrain/sand-up.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/terrain/sand-up.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/terrain/sand-down.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/terrain/sand-down.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/terrain/snow-up.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/terrain/snow-up.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/terrain/snow-down.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/terrain/snow-down.svg"
-        )),
+        path: "icons/exp.svg",
+        contents: include_bytes!(concat!(env!("OUT_DIR"), "/silphium_template/icons/exp.svg")),
+        preload_as: None,
     },
     StaticFile {
-        path: "icons/ui/back.png",
+        path: "icons/formation.svg",
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
-            "/silphium_template/icons/ui/back.png"
+            "/silphium_template/icons/formation.svg"
         )),
+        preload_as: None,
     },
     StaticFile {
-        path: "icons/ui/help.png",
+        path: "icons/stat.svg",
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
-            "/silphium_template/icons/ui/help.png"
+            "/silphium_template/icons/stat.svg"
         )),
+        preload_as: None,
     },
     StaticFile {
-        path: "icons/ui/settings.png",
+        path: "icons/terrain.svg",
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
-            "/silphium_template/icons/ui/settings.png"
+            "/silphium_template/icons/terrain.svg"
         )),
+        preload_as: None,
     },
     StaticFile {
         path: "icons/ui/horde.svg",
@@ -635,47 +185,38 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
             env!("OUT_DIR"),
             "/silphium_template/icons/ui/horde.svg"
         )),
+        preload_as: None,
     },
     StaticFile {
-        path: "icons/ui/horde-off.svg",
+        path: "icons/weapon.svg",
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
-            "/silphium_template/icons/ui/horde-off.svg"
+            "/silphium_template/icons/weapon.svg"
         )),
+        preload_as: None,
     },
     StaticFile {
-        path: "icons/weapon/blade.svg",
+        path: "icons/ui/back.webp",
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
-            "/silphium_template/icons/weapon/blade.svg"
+            "/silphium_template/icons/ui/back.webp"
         )),
+        preload_as: None,
     },
     StaticFile {
-        path: "icons/weapon/missile.svg",
+        path: "icons/ui/help.webp",
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
-            "/silphium_template/icons/weapon/missile.svg"
+            "/silphium_template/icons/ui/help.webp"
         )),
+        preload_as: None,
     },
     StaticFile {
-        path: "icons/weapon/spear.svg",
+        path: "icons/ui/settings.webp",
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
-            "/silphium_template/icons/weapon/spear.svg"
+            "/silphium_template/icons/ui/settings.webp"
         )),
-    },
-    StaticFile {
-        path: "icons/weapon/thrown.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/weapon/thrown.svg"
-        )),
-    },
-    StaticFile {
-        path: "icons/weapon/gunpowder.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/weapon/gunpowder.svg"
-        )),
+        preload_as: None,
     },
 ];

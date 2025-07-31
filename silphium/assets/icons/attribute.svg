@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" height="512">
+  <symbol id="against-cavalry" viewBox="0 0 512 512">
+    <defs>
+      <clipPath id="clip-spear">
+        <path
+          d="M38 11h400v458H38Zm127 157a22 22 0 0 0-21 32c36 79 59 122 80 147 11 13 22 22 35 26 8 2 16 2 23 1l126 126c9 9 23 8 32-1l33-34c8-9 8-23 0-32L348 309c1-7 1-15-2-23-3-14-13-25-25-36-26-21-69-43-147-80l-9-2z" />
+      </clipPath>
+    </defs>
+    <g fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="24">
+      <path
+        d="M306 452c2-155-87-152-60-234 15 10 16 31 56 21l51 19c18 23 37 13 55 8 16-19 14-36 12-53l-89-76c-6-22-26-34-49-44 16-18 11-42 11-65-19 13-38 25-44 44C82 84 63 336 55 436"
+        clip-path="url(#clip-spear)" />
+      <path d="M457 449 324 316c10-35-3-53-160-126 73 157 91 170 126 160l134 134" />
+    </g>
+  </symbol>
+  <symbol id="ammo" viewBox="0 0 256 512">
+    <path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="24"
+      d="M86 85 61 73V28l25 19 25-19v45L86 85v34m78-13-25-11V49l25 19 26-19v46l-26 11v51m43 12v257c0 20-15 40-40 50a99 99 0 0 1-79 0c-24-10-39-30-39-50V114c96 8 80 43 158 55z" />
+  </symbol>
+  <symbol id="armor" viewBox="0 0 512 512">
+    <path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="24"
+      d="m388 391 22 39c-76 72-232 72-308 0l22-39m330-243c16 26 25 56 26 78-20 5-39 15-63 39m-9-49c8 51 24 85-7 158-21 47-123 64-201 49m-32-8c-27-9-48-23-57-41-31-73-15-107-7-158M359 77c52 2 85 24 100 67a84 84 0 0 0-42 72c-48-1-85-22-112-64m24-109c-11 17-18 35-53 48l-20 56-20-56c-35-13-42-31-53-48m146 0v0l30 34c-13 43-42 78-103 100-61-22-90-57-103-100l30-34v0c46-20 100-20 146 0zM58 148c-16 26-25 56-26 78 20 5 39 15 63 39m58-188c-52 2-85 24-100 67 27 17 41 41 42 72 48-1 85-22 112-64" />
+  </symbol>
+  <symbol id="armor-piercing" viewBox="0 0 512 512">
+    <path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="24"
+      d="M38 280h175c17 30 38 34 197-24-159-58-180-54-197-24H38" />
+    <path d="M199 16v143l146 41V16Zm146 293-146 41v146h146z" />
+  </symbol>
+  <symbol id="charge" viewBox="0 0 384 512">
+    <path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="24"
+      d="m316 484-35-313h83L194 28 20 171h87L72 484l122-68Z" />
+  </symbol>
+  <symbol id="heat" viewBox="0 0 384 512">
+    <path fill="none" stroke="#000" stroke-width="24"
+      d="M255 248c-8-5-13-13-13-22V79c0-68-100-68-100 0v147c0 9-5 17-13 22-111 65-65 236 63 236s174-171 63-236z" />
+    <path
+      d="M267 357c0 62-68 98-118 63a76 76 0 0 1 18-134V79c0-34 50-34 50 0v207c30 11 50 39 50 71z" />
+  </symbol>
+  <symbol id="inexhaustible" viewBox="0 0 512 512">
+    <defs>
+      <clipPath id="clip-infinite" clipPathUnits="userSpaceOnUse">
+        <path
+          d="M23 7h466v498H23Zm177 178c-19 0-38 6-52 20a71 71 0 0 0-21 51c0 19 7 38 21 51 14 14 33 20 52 20a73 73 0 0 0 51-20v-1l5-4 4 5c7 6 15 11 23 15h1c8 3 18 5 27 5a70 70 0 0 0 73-71c1-19-7-38-21-51a74 74 0 0 0-52-20 74 74 0 0 0-51 20l-4 5-5-5a72 72 0 0 0-51-20z" />
+      </clipPath>
+    </defs>
+    <path
+      d="M361 256q0 21-14 34t-36 13q-9 0-18-3-9-4-16-11l-21-20-21 20q-7 7-16 11-9 3-19 3-22 0-35-13-14-13-14-34t14-34q14-13 35-13 10 0 19 3 9 4 16 11l21 20 21-20q7-7 15-11 9-3 19-3 22 0 36 13t14 34Zm-71-20-21 20 21 21q4 4 10 6 5 2 11 2 13 0 21-8 9-8 9-21t-9-21q-8-8-21-8l-12 2q-5 2-9 7zm-47 20-21-20q-5-5-10-7t-12-2q-12 0-21 8-8 8-8 21t8 21q9 8 21 8 7 0 12-2 6-2 10-6z" />
+    <g fill="none" stroke="#000" stroke-linejoin="round" stroke-width="24"
+      clip-path="url(#clip-infinite)">
+      <path id="lightning-bolt" d="M332 26 140 260l100 14-60 209 192-234-100-14Z" />
+      <use href="#lightning-bolt" transform="translate(-100, 0)" />
+      <use href="#lightning-bolt" transform="translate(100, 0)" />
+    </g>
+  </symbol>
+  <symbol id="precharge" viewBox="0 0 512 512">
+    <g fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="24">
+      <path
+        d="m155 155 120 94 13 99v47l-69 49c-21 15 6 52 27 37l81-60 4-45 33 15 42 79c12 22 51 5 39-18l-42-88-44-35-3-64 93-1c31-1 22-41 2-41l-101-1c-16-8-31-20-51-10l-118-90c-19-14-45 19-26 33z" />
+      <ellipse cx="330.7" cy="152.8" rx="41.3" ry="40.1" />
+      <path d="M42 193 350 28" />
+    </g>
+  </symbol>
+  <symbol id="range" viewBox="0 0 384 512">
+    <g fill="none" stroke="#000" stroke-linecap="round" stroke-width="24">
+      <path stroke-linejoin="round" d="M24 428 260 28l100 56-236 400Z" />
+      <path
+        d="m73 397-23-13m91-76-35-19m-5 60-23-13m136-114-51-29m-6 61-23-13m136-115-51-29m-5 61-23-13" />
+    </g>
+  </symbol>
+  <symbol id="shield" viewBox="0 0 512 512">
+    <path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="24"
+      d="m238 479 13 5h10l13-5c52-26 201-108 201-222v-97c0-21 0-31-4-40-3-7-8-14-15-20s-17-10-38-17L271 32l-11-4h-8l-11 4L94 83c-21 7-31 11-38 17s-12 13-15 20c-4 9-4 19-4 40v97c0 114 149 196 201 222z" />
+  </symbol>
+  <symbol id="skill" viewBox="0 0 512 512">
+    <path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="24"
+      d="m28 28 37 102 126 126-42 41-20-20-31 31v30l19 18-42 42c-34-1-54 11-38 52-15 15-7 22-2 27s12 13 27-2c41 16 53-4 52-38l42-42 18 19h30l31-31-20-20 41-42 41 42-20 20 31 31h30l18-19 42 42c-1 34 11 54 52 38 15 15 22 7 27 2s13-12-2-27c16-41-4-53-38-52l-42-42 19-18v-30l-31-31-20 20-42-41 126-126 37-102-102 37-126 126L130 65Z" />
+  </symbol>
+  <symbol id="stamina" viewBox="0 0 256 512">
+    <path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="24"
+      d="M199 43 20 261l93 13-56 195 179-218-93-13Z" />
+  </symbol>
+  <symbol id="turns" viewBox="0 0 512 512">
+    <path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="24"
+      d="M83 413H63v71h386v-71h-20c3-79-23-132-79-157 56-25 82-78 79-157h20V28H63v71h20c-3 79 23 132 79 157-56 25-82 78-79 157Z" />
+  </symbol>
+</svg>

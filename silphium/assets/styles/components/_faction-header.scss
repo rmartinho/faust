@@ -44,6 +44,7 @@
 
         img {
           width: 64px;
+          height: 64px;
         }
 
         span {
@@ -64,7 +65,7 @@
   .icon {
     grid-area: icon;
     align-self: center;
-    height: 128px;
     width: 128px;
+    height: 128px;
   }
 }

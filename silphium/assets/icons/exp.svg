@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
+  <symbol id="exp1" fill="#ba5e46" viewBox="0 0 512 512">
+    <path id="chevron" stroke="#000" stroke-linejoin="round" stroke-width="16"
+      d="M61 143v119l195 107 195-107V143L256 250Z" />
+  </symbol>
+  <symbol id="exp2" fill="#ba5e46" viewBox="0 0 512 512">
+    <use href="#chevron" transform="translate(0, -60)" />
+    <use href="#chevron" transform="translate(0, 60)" />
+  </symbol>
+  <symbol id="exp3" fill="#ba5e46" viewBox="0 0 512 512">
+    <use href="#chevron" transform="translate(0, -120)" />
+    <use href="#chevron" />
+    <use href="#chevron" transform="translate(0, 120)" />
+  </symbol>
+  <symbol id="exp4" fill="#b9d0f7" viewBox="0 0 512 512">
+    <use href="#chevron" />
+  </symbol>
+  <symbol id="exp5" fill="#b9d0f7" viewBox="0 0 512 512">
+    <use href="#chevron" transform="translate(0, -60)" />
+    <use href="#chevron" transform="translate(0, 60)" />
+  </symbol>
+  <symbol id="exp6" fill="#b9d0f7" viewBox="0 0 512 512">
+    <use href="#chevron" transform="translate(0, -120)" />
+    <use href="#chevron" />
+    <use href="#chevron" transform="translate(0, 120)" />
+  </symbol>
+  <symbol id="exp7" fill="#eac642" viewBox="0 0 512 512">
+    <use href="#chevron" />
+  </symbol>
+  <symbol id="exp8" fill="#eac642" viewBox="0 0 512 512">
+    <use href="#chevron" transform="translate(0, -60)" />
+    <use href="#chevron" transform="translate(0, 60)" />
+  </symbol>
+  <symbol id="exp9" fill="#eac642" viewBox="0 0 512 512">
+    <use href="#chevron" transform="translate(0, -120)" />
+    <use href="#chevron" />
+    <use href="#chevron" transform="translate(0, 120)" />
+  </symbol>
+</svg>

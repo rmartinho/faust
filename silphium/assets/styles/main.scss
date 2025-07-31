@@ -34,10 +34,13 @@ a {
   }
 }
 
-button { all: unset; }
+button {
+  all: unset;
+}
 
 button,
-a img {
+a img,
+a svg {
   display: flex;
 
   &:disabled {

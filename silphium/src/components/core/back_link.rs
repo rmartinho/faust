@@ -13,7 +13,7 @@ pub fn back_link(#[prop_or_default] title: Option<IString>) -> Html {
 
     html! {
       <Link to={route}>
-        <img class="back" {title} src="/icons/ui/back.png" />
+        <img class="back" {title} src="/icons/ui/back.webp" />
       </Link>
     }
 }

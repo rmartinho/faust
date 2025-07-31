@@ -57,6 +57,7 @@
 
     %stat-icon {
       width: $icon-size;
+      height: $icon-size;
     }
 
     %stat-row {
@@ -104,7 +105,7 @@
         justify-content: right;
         margin-left: calc(2 * $gap);
 
-        img {
+        .formation {
           width: $small-icon-size;
           height: $small-icon-size;
         }
@@ -124,12 +125,13 @@
 
         .turns {
           display: flex;
+          gap: $gap;
           align-items: center;
           font-size: smaller;
 
           .attribute {
-            margin-left: $gap;
             height: 1em;
+            width: auto;
           }
         }
       }
@@ -161,13 +163,14 @@
       }
       .stamina {
         display: flex;
+        gap: $gap;
         font-size: smaller;
         justify-self: start;
         align-items: center;
 
         .attribute {
-          margin-left: $gap;
           height: 1em;
+          width: auto;
         }
       }
     }
@@ -211,6 +214,7 @@
 
     .attribute {
       height: $small-icon-size;
+      width: auto;
     }
 
     .weapon1-row,
@@ -233,7 +237,7 @@
           grid-area: hp;
           position: relative;
           text-align: center;
-          img {
+          .ability {
             width: $icon-size;
             height: $icon-size;
           }
@@ -266,13 +270,14 @@
         @extend %combat-stats;
         grid-area: details;
         display: flex;
+        gap: $gap;
         font-size: smaller;
         justify-self: start;
         align-items: center;
 
         .attribute {
           height: 1em;
-          margin-left: 1px;
+          width: auto;
         }
       }
     }

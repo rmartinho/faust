@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
+  <symbol id="blade" viewBox="0 0 512 512">
+    <path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="24"
+      d="M62 475c41 16 53-4 52-38l42-42 18 19h30l31-31-20-20 232-233 37-102-102 37-233 232-20-20-31 31v30l19 18-42 42c-34-1-54 11-38 52-15 15-7 22-2 27s12 13 27-2z" />
+  </symbol>
+  <symbol id="gunpowder" viewBox="0 0 512 512">
+    <g fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round"
+      stroke-miterlimit="6"
+      stroke-width="24">
+      <ellipse cx="207.9" cy="176.7" rx="21.1" ry="21.4" />
+      <path d="m190 187-66 37c-10 5-11 17-9 27M470 80l-21-37-222 124M331 190l153-85-14-25" />
+      <path
+        d="m111 203 22-14c8-5 14-6 22 3l17 20M335 107l41 25M470 80 155 255c-19 10-34-19-61 6-55 52-78 118-61 201 37 15 66 3 91-16 18-13 9-21-3-36-36-43-12-83 18-100l162-89c41-23 41-67 19-58" />
+      <path d="M139 311c24 44 99 31 81-45M171 293l12 15M104 374l-75 11" />
+    </g>
+  </symbol>
+  <symbol id="missile" viewBox="0 0 512 512">
+    <path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="24"
+      d="m97 484-1-65-65-1m363-271c48 29 86-106 87-119-13 1-142 46-113 93L150 339h-39l-80 79m363-271L176 365v40l-79 79" />
+  </symbol>
+  <symbol id="spear" viewBox="0 0 512 512">
+    <path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="24"
+      d="m64 484 286-286c37 11 56-2 134-170-168 78-181 97-170 134L28 448" />
+  </symbol>
+  <symbol id="thrown" viewBox="0 0 512 512">
+    <path fill="none" stroke="#000" stroke-linecap="square" stroke-miterlimit="1000"
+      stroke-width="24"
+      d="M424 112 112 424c-17 17-40 24-60 36 12-20 19-43 36-60L400 88c17-17 40-24 60-36-12 20-19 43-36 60z" />
+  </symbol>
+</svg>

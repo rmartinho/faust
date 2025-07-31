@@ -1,2 +1,5 @@
+[build]
+no_sri = true
+
 [tools]
 sass = "1.89.2"

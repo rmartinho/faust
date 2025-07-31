@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
+  <symbol id="horde" viewBox="0 0 512 512">
+    <circle cx="256" cy="256" r="224" fill="none" stroke="#000" stroke-width="32" />
+  </symbol>
+  <symbol id="phalanx" viewBox="0 0 512 512">
+    <path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"
+      d="M52 237h407v243H52zM52 237V32m408 205V32M297 237V32m-82 205V32m-81 205V32m244 205V32" />
+  </symbol>
+  <symbol id="schiltrom" viewBox="0 0 512 512">
+    <g fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="32">
+      <circle cx="256" cy="256" r="136.1" />
+      <path
+        d="M256 392v88m0-448v88M120 256H32m448 0h-88m-232 96-62 62M414 98l-62 62m-192 0L98 98m316 316-62-62" />
+    </g>
+  </symbol>
+  <symbol id="shield_wall" viewBox="0 0 512 512">
+    <path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"
+      d="M72 149h368v291H72zM379 78h61m-163 0h61m-164 0h61M72 78h61" />
+  </symbol>
+  <symbol id="square" viewBox="0 0 512 512">
+    <path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="32" d="M72 72h368v368H72Z" />
+  </symbol>
+  <symbol id="wedge" viewBox="0 0 512 512">
+    <path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="32"
+      d="M480 454H32L256 58Z" />
+  </symbol>
+  <symbol id="testudo" viewBox="0 0 512 512">
+    <path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="32"
+      d="M257 30v449M180 33v446m-79-111h310M101 144h310M104 256h307M334 33v446M104 33h304v446H104Z" />
+  </symbol>
+</svg>

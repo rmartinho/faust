@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
+  <symbol id="berserker" viewBox="0 0 512 512">
+    <use href="#face" />
+    <ellipse cx="197.5" cy="183.7" rx="25" ry="40" />
+    <ellipse cx="314.5" cy="183.7" rx="25" ry="40" />
+    <path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="24"
+      d="M391 270a136 136 0 0 1-270 0zm-59 0v95m-152-95v95m76-95v120M152 108l77 44m131-44-77 44" />
+    <path
+      d="M109 71c-17-1-41-11-59-49 0 0-17 74 22 84Zm147 199ZM403 71c17-1 41-11 59-49 0 0 17 74-22 84zM256 270Z" />
+  </symbol>
+  <symbol id="disciplined" viewBox="0 0 512 512">
+    <defs>
+      <clipPath id="clip-salute">
+        <path
+          d="M7 6h498v500H7Zm163 336h152m-358-38s97-45 127-86c15-21 5-54 21-73 22-26 91-46 91-46 23-12 13-32-15-38-13-3-112 18-153 50-27 21-45 75-45 75l-83 53" />
+      </clipPath>
+    </defs>
+    <use href="#face" clip-path="url(#clip-salute)" />
+    <use href="#l-eye" />
+    <use href="#r-eye" />
+    <path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="24"
+      d="M322 342H170M-93 239l83-53s18-54 45-75c41-32 140-53 153-50 28 6 38 26 15 38 0 0-69 20-91 46-16 19-6 52-21 73-30 41-127 86-127 86" />
+  </symbol>
+  <symbol id="normal" viewBox="0 0 512 512">
+    <circle id="face" cx="256" cy="256" r="228" fill="none" stroke="#000" stroke-width="24" />
+    <circle id="l-eye" cx="180" cy="205" r="40" />
+    <circle id="r-eye" cx="332" cy="205" r="40" />
+    <path fill="none" stroke="#000" stroke-linecap="round" stroke-width="24"
+      d="M333 355c-77 0-77 33-154 33" />
+  </symbol>
+  <symbol id="impetuous" viewBox="0 0 512 512">
+    <use href="#face" />
+    <use href="#l-eye" transform="translate(8, 62)" />
+    <use href="#r-eye" transform="translate(-8, 62)" />
+    <path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="24"
+      d="M181 399c-26-103 176-103 150 0-6 20-47-10-75-10s-69 30-75 10zM228 236l-80-33M284 236l80-33" />
+  </symbol>
+  <symbol id="low" viewBox="0 0 512 512">
+    <use href="#face" />
+    <use href="#l-eye" />
+    <use href="#r-eye" />
+    <path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="24"
+      d="M333 388a80 80 0 0 0-154 0M142 243c-1 28-62 85 0 85s0-57 0-85z" />
+  </symbol>
+</svg>

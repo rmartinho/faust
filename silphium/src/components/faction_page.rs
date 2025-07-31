@@ -52,10 +52,10 @@ pub fn faction_page(
         <div class="nav">
           <BackLink />
           <button>
-            <img class="settings button" title="Configure" src="/icons/ui/settings.png" />
+            <img class="settings button" title="Configure" src="/icons/ui/settings.webp" />
           </button>
           <button>
-            <img class="help button" title="Help" src="/icons/ui/help.png" />
+            <img class="help button" title="Help" src="/icons/ui/help.webp" />
           </button>
         </div>
         <FactionHeader classes={classes!("header")} {module} faction={faction.clone()} {filter} {toggle_horde} />
@@ -102,10 +102,9 @@ pub fn faction_header(
               <div class="eras">
                 <button {onclick}>
                   <div class={classes!("era", if horde {Some("checked")} else {None})}>
-                    <img
-                      src={if horde { HORDE_ICON } else { HORDE_ICOFF }}
-                      title={if horde { "Show settled units" } else { "Show horde units" }}
-                    />
+                    <svg title={if horde { "Show settled units" } else { "Show horde units" }}>
+                      <use href={if horde { HORDE_ICON } else { HORDE_ICOFF }} />
+                    </svg>
                   </div>
                 </button>
               </div>
@@ -155,5 +154,5 @@ fn era_link(to: AttrValue, active: bool) -> Html {
     }
 }
 
-const HORDE_ICON: &str = "/icons/ui/horde.svg";
-const HORDE_ICOFF: &str = "/icons/ui/horde-off.svg";
+const HORDE_ICON: &str = "/icons/ui/horde.svg#on";
+const HORDE_ICOFF: &str = "/icons/ui/horde.svg#off";

@@ -1,5 +1,5 @@
 use std::{
-    fmt::Write as _,
+    fmt::{self, Display, Formatter, Write as _},
     io::Cursor,
     path::{Component, Path, PathBuf},
 };
@@ -23,10 +23,79 @@ use crate::{
 };
 
 #[derive(Clone)]
+pub struct Preload {
+    pub r#as: PreloadAs,
+    pub r#type: PreloadType,
+    pub cors: bool,
+}
+
+impl From<PreloadType> for Preload {
+    fn from(value: PreloadType) -> Self {
+        Self {
+            r#as: match value {
+                PreloadType::Wasm | PreloadType::Json => PreloadAs::Fetch,
+                PreloadType::Woff | PreloadType::Woff2 => PreloadAs::Font,
+                PreloadType::Svg | PreloadType::Png | PreloadType::Webp => PreloadAs::Image,
+            },
+            r#type: value,
+            cors: match value {
+                PreloadType::Wasm | PreloadType::Json | PreloadType::Woff | PreloadType::Woff2 => {
+                    true
+                }
+                _ => false,
+            },
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub enum PreloadAs {
+    Fetch,
+    Font,
+    Image,
+}
+
+impl Display for PreloadAs {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Fetch => write!(f, "fetch"),
+            Self::Font => write!(f, "font"),
+            Self::Image => write!(f, "image"),
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub enum PreloadType {
+    Wasm,
+    Json,
+    Woff,
+    Woff2,
+    Svg,
+    Png,
+    Webp,
+}
+
+impl Display for PreloadType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Wasm => write!(f, "application/wasm"),
+            Self::Json => write!(f, "application/json"),
+            Self::Woff => write!(f, "application/font-woff"),
+            Self::Woff2 => write!(f, "font/woff2"),
+            Self::Svg => write!(f, "image/svg+xml"),
+            Self::Png => write!(f, "image/png"),
+            Self::Webp => write!(f, "image/webp"),
+        }
+    }
+}
+
+#[derive(Clone)]
 pub struct Renderer {
     pub cfg: Config,
     pub data: String,
     pub modules: ModuleMap,
+    pub preload: Vec<(String, Preload)>,
 }
 
 impl Renderer {
@@ -35,6 +104,7 @@ impl Renderer {
             cfg: cfg.clone(),
             data: String::new(),
             modules,
+            preload: vec![],
         }
     }
 
@@ -190,6 +260,8 @@ impl Renderer {
         write_file(&self.cfg.out_dir.join("mods.json"), data)
             .await
             .context("writing mods.json")?;
+        self.preload
+            .push(("/mods.json".into(), PreloadType::Json.into()));
         pb.finish_with_message(format!(
             "{PAPER}rendered mods.json ({})",
             HumanBytes(self.data.len() as u64)
@@ -245,10 +317,9 @@ impl Renderer {
     }
 
     fn render_preload(&self, r: &RenderRoute) -> Result<String> {
-        Ok(PrefetchHtml {
-            preload: &r.preload,
-        }
-        .render()?)
+        let mut preload = self.preload.clone();
+        preload.extend_from_slice(&r.preload);
+        Ok(PrefetchHtml { preload: &preload }.render()?)
     }
 
     async fn create_directory(&self, m: MultiProgress) -> Result<()> {
@@ -273,7 +344,7 @@ impl Renderer {
         Ok(())
     }
 
-    async fn create_static_files(&self, m: MultiProgress) -> Result<()> {
+    async fn create_static_files(&mut self, m: MultiProgress) -> Result<()> {
         let pb = m.add(ProgressBar::new_spinner());
         pb.set_style(progress_style());
         pb.set_prefix("[2/5]");
@@ -283,6 +354,9 @@ impl Renderer {
             file.create(&self.cfg.out_dir)
                 .await
                 .with_context(|| format!("creating {}", file.path))?;
+            if let Some(preload_as) = file.preload_as {
+                self.preload.push((file.path.into(), preload_as.into()));
+            }
         }
         pb.finish_with_message(format!(
             "{PAPER}created icons, styles, and scripts ({} files)",
@@ -309,7 +383,7 @@ pub struct RenderRoute {
     pub route: Route,
     pub redirect: Option<String>,
     pub path: PathBuf,
-    pub preload: Vec<(String, &'static str)>,
+    pub preload: Vec<(String, Preload)>,
 }
 
 fn collect_routes(modules: &ModuleMap) -> Vec<RenderRoute> {
@@ -318,11 +392,7 @@ fn collect_routes(modules: &ModuleMap) -> Vec<RenderRoute> {
         route: Route::Home,
         path: "index.html".into(),
         redirect: None,
-        preload: modules
-            .values()
-            .map(|m| (m.banner.as_ref().into(), "image"))
-            .chain([("/mods.json".into(), "fetch")])
-            .collect(),
+        preload: vec![],
     });
     routes.push(RenderRoute {
         route: Route::NotFound,
@@ -336,12 +406,7 @@ fn collect_routes(modules: &ModuleMap) -> Vec<RenderRoute> {
             Route::Module {
                 module: module.id.clone(),
             },
-            module
-                .factions
-                .values()
-                .map(|f| (f.image.as_ref().into(), "image"))
-                .chain([(module.banner.as_ref().into(), "image")])
-                .collect(),
+            vec![],
         ));
 
         for faction in module.factions.values() {
@@ -384,15 +449,7 @@ fn collect_routes(modules: &ModuleMap) -> Vec<RenderRoute> {
                         route.clone(),
                     ))
                 }
-                routes.push(prepare_route(
-                    route,
-                    faction
-                        .roster
-                        .iter()
-                        .map(|u| (u.image.as_ref().into(), "image"))
-                        .chain([(faction.image.as_ref().into(), "image")])
-                        .collect(),
-                ));
+                routes.push(prepare_route(route, vec![]));
             } else {
                 routes.push(prepare_redirect(
                     route,
@@ -411,18 +468,7 @@ fn collect_routes(modules: &ModuleMap) -> Vec<RenderRoute> {
                         faction: faction.id_or_alias(),
                         era,
                     },
-                    faction
-                        .roster
-                        .iter()
-                        .map(|u| (u.image.as_ref().into(), "image"))
-                        .chain([(faction.image.as_ref().into(), "image")])
-                        .chain(module.eras.values().flat_map(|e| {
-                            [
-                                (e.icon.as_ref().into(), "image"),
-                                (e.icoff.as_ref().into(), "image"),
-                            ]
-                        }))
-                        .collect(),
+                    vec![],
                 ));
             }
         }
@@ -430,7 +476,7 @@ fn collect_routes(modules: &ModuleMap) -> Vec<RenderRoute> {
     routes
 }
 
-fn prepare_route(route: Route, preload: Vec<(String, &'static str)>) -> RenderRoute {
+fn prepare_route(route: Route, preload: Vec<(String, Preload)>) -> RenderRoute {
     let path = route.to_path();
     let path = PathBuf::from(&path[1..]).join("index.html");
     RenderRoute {

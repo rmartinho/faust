@@ -58,7 +58,7 @@ pub fn roster_group(roster: IArray<Unit>, group: UnitClass) -> Html {
         })
         .collect();
 
-    let icon = format!("/icons/class/{group}.svg");
+    let icon = format!("/icons/class.svg#{group}");
     let title = match group {
         UnitClass::Sword => "Blade infantry",
         UnitClass::Spear => "Spear infantry",
@@ -74,8 +74,10 @@ pub fn roster_group(roster: IArray<Unit>, group: UnitClass) -> Html {
       <>
         if cards.len() > 0 {
           <div class="roster-group">
-            <div class="legend">
-              <img class="group" src={icon} {title} />
+            <div class="legend" {title}>
+              <svg class="group">
+                <use href={icon} />
+              </svg>
             </div>
             <div class="unit-cards">
               {for cards}
@@ -116,7 +118,11 @@ pub fn unit_card(unit: Unit) -> Html {
             Formation::ShieldWall => "Shield wall",
         };
         html! {
-          <img src={format!("/icons/formation/{f}.svg")} {title} />
+          <div {title}>
+            <svg class="formation">
+              <use href={format!("/icons/formation.svg#{f}")} />
+            </svg>
+          </div>
         }
     });
 
@@ -147,7 +153,11 @@ pub fn unit_card(unit: Unit) -> Html {
             Ability::Stakes => "Can lay defensive stakes",
         };
         html! {
-          <img class="ability" src={format!("/icons/ability/{}.svg", ab)} {title} />
+          <div {title}>
+            <svg class="ability">
+              <use href={format!("/icons/ability.svg#{ab}")} />
+            </svg>
+          </div>
         }
     });
 
@@ -157,7 +167,9 @@ pub fn unit_card(unit: Unit) -> Html {
         <div class="frame">
           <img class="image" title={&unit.name} src={&unit.image} />
           <div class="size-row">
-            <img class="icon" src="/icons/stat/soldiers.svg" title="Soldiers" />
+            <svg class="icon" title="Soldiers">
+              <use href="/icons/stat.svg#soldiers" />
+            </svg>
             <div class="size" title={soldiers_title}>
               <span class="soldiers">{ unit.soldiers }</span>
               if unit.officers > 0 {
@@ -169,25 +181,35 @@ pub fn unit_card(unit: Unit) -> Html {
             </div>
           </div>
           <div class="cost-row">
-            <img class="icon" src="/icons/stat/cost.svg" title="Recruitment cost" />
+            <svg class="icon" title="Recruitment cost">
+              <use href="/icons/stat.svg#cost" />
+            </svg>
             <div class="cost" title={format!("Cost: {}", unit.cost)}>
               <span>{ unit.cost }</span>
               if unit.turns > 1 {
                 <div class="turns" title={format!("{} turns", unit.turns)}>
-                  <img class="attribute" src="/icons/attribute/turns.svg" />
+                  <svg class="attribute" height="512" width="512">
+                    <use href="/icons/attribute.svg#turns" />
+                  </svg>
                   <span>{ unit.turns }</span>
                 </div>
               }
             </div>
           </div>
           <div class="upkeep-row">
-            <img class="icon" src="/icons/stat/upkeep.svg" title="Upkeep cost" />
+            <svg class="icon" title="Upkeep cost">
+              <use href="/icons/stat.svg#upkeep" />
+            </svg>
             <div class="upkeep" title={format!("Upkeep: {}", unit.upkeep)}>
               <span>{ unit.upkeep }</span>
             </div>
           </div>
           <div class="mental-row">
-            <img class="icon" src={format!("/icons/discipline/{}.svg", unit.discipline)} title={discipline_tooltip} />
+            <div title={discipline_tooltip}>
+              <svg class="icon">
+                <use href={format!("/icons/discipline.svg#{}", unit.discipline)} />
+              </svg>
+            </div>
             <div class="mental" title={format!("Morale: {}", unit.morale)}>
               <span class="morale">{ unit.morale }</span>
               if unit.stamina > 0 || unit.inexhaustible {
@@ -220,20 +242,21 @@ pub fn terrain_details(unit: Unit) -> Html {
     use std::fmt::Write as _;
 
     let mut title = "".to_string();
-    if unit.ground_bonus.scrub != 0 {
-        let _ = write!(title, "\n{:+}", unit.ground_bonus.scrub);
-    }
-    if unit.ground_bonus.forest != 0 {
-        let _ = write!(title, "\n{:+}", unit.ground_bonus.forest);
-    }
-    if unit.ground_bonus.sand != 0 {
-        let _ = write!(title, "\n{:+}", unit.ground_bonus.sand);
-    }
-    if unit.ground_bonus.snow != 0 {
-        let _ = write!(title, "\n{:+}", unit.ground_bonus.snow);
-    }
+    let mut write_details = |ground, v| {
+        if v != 0 {
+            let _ = writeln!(
+                title,
+                "{ground} {}: {v:+}",
+                if v < 0 { "penalty" } else { "bonus" },
+            );
+        }
+    };
+    write_details("Scrub", unit.ground_bonus.scrub);
+    write_details("Forest", unit.ground_bonus.forest);
+    write_details("Sand", unit.ground_bonus.sand);
+    write_details("Snow", unit.ground_bonus.snow);
     if title.len() > 0 {
-        title.remove(0);
+        title.pop();
     }
 
     html! {
@@ -241,9 +264,13 @@ pub fn terrain_details(unit: Unit) -> Html {
         if unit.ground_bonus.scrub != 0 {
           <div class="scrub">
             if unit.ground_bonus.scrub > 0 {
-              <img class="attribute" src="/icons/terrain/scrub-down.svg" />
+              <svg class="attribute">
+                <use href="/icons/terrain.svg#scrub-up" />
+              </svg>
             } else {
-              <img class="attribute" src="/icons/terrain/scrub-up.svg" />
+              <svg class="attribute">
+                <use href="/icons/terrain.svg#scrub-down" />
+              </svg>
             }
             <span>{ format!("{:+}", unit.ground_bonus.scrub) }</span>
           </div>
@@ -251,9 +278,13 @@ pub fn terrain_details(unit: Unit) -> Html {
         if unit.ground_bonus.forest != 0 {
           <div class="forest">
             if unit.ground_bonus.forest > 0 {
-              <img class="attribute" src="/icons/terrain/forest-down.svg" />
+              <svg class="attribute">
+                <use href="/icons/terrain.svg#forest-up" />
+              </svg>
             } else {
-              <img class="attribute" src="/icons/terrain/forest-up.svg" />
+              <svg class="attribute">
+                <use href="/icons/terrain.svg#forest-down" />
+              </svg>
             }
             <span>{ format!("{:+}", unit.ground_bonus.forest) }</span>
           </div>
@@ -261,9 +292,13 @@ pub fn terrain_details(unit: Unit) -> Html {
         if unit.ground_bonus.sand != 0 {
           <div class="sand">
             if unit.ground_bonus.sand > 0 {
-              <img class="attribute" src="/icons/terrain/sand-down.svg" />
+              <svg class="attribute">
+                <use href="/icons/terrain.svg#sand-up" />
+              </svg>
             } else {
-              <img class="attribute" src="/icons/terrain/sand-up.svg" />
+              <svg class="attribute">
+                <use href="/icons/terrain.svg#sand-down" />
+              </svg>
             }
             <span>{ format!("{:+}", unit.ground_bonus.sand) }</span>
           </div>
@@ -271,9 +306,13 @@ pub fn terrain_details(unit: Unit) -> Html {
         if unit.ground_bonus.snow != 0 {
           <div class="snow">
             if unit.ground_bonus.snow > 0 {
-              <img class="attribute" src="/icons/terrain/snow-down.svg" />
+              <svg class="attribute">
+                <use href="/icons/terrain.svg#snow-up" />
+              </svg>
             } else {
-              <img class="attribute" src="/icons/terrain/snow-up.svg" />
+              <svg class="attribute">
+                <use href="/icons/terrain.svg#snow-down" />
+              </svg>
             }
             <span>{ format!("{:+}", unit.ground_bonus.snow) }</span>
           </div>
@@ -305,14 +344,20 @@ pub fn stamina_details(unit: Unit) -> Html {
     html! {
       <div class="stamina" {title}>
         if unit.stamina > 0 {
-          <img src="/icons/attribute/stamina.svg" class="attribute" />
+          <svg class="attribute" height="512" width="256">
+            <use href="/icons/attribute.svg#stamina" />
+          </svg>
           <span>{ unit.stamina }</span>
           if unit.heat != 0 {
-            <img src="/icons/attribute/heat.svg" class="attribute" />
+            <svg class="attribute" height="512" width="384">
+              <use href="/icons/attribute.svg#heat" />
+            </svg>
             <span>{ format!("{:+}", -unit.heat) }</span>
           }
         } else {
-          <img src="/icons/attribute/inexhaustible.svg" class="attribute" />
+          <svg class="attribute" height="512" width="512">
+            <use href="/icons/attribute.svg#inexhaustible" />
+          </svg>
         }
       </div>
     }
@@ -324,20 +369,18 @@ pub fn weapon_row(#[prop_or_default] class: AttrValue, unit: Unit, weapon: Weapo
     use std::fmt::Write as _;
 
     let (icon, mut title) = match weapon.class {
-        WeaponType::Melee => ("/icons/weapon/blade.svg", "Melee weapon".to_string()),
-        WeaponType::Spear => ("/icons/weapon/spear.svg", "Spear".into()),
-        WeaponType::Missile => ("/icons/weapon/missile.svg", "Missile weapon".into()),
-        WeaponType::Thrown => ("/icons/weapon/thrown.svg", "Thrown weapon".into()),
-        WeaponType::Gunpowder => ("/icons/weapon/gunpowder.svg", "Gunpowder weapon".into()),
+        WeaponType::Melee => ("/icons/weapon.svg#blade", "Melee weapon".to_string()),
+        WeaponType::Spear => ("/icons/weapon.svg#spear", "Spear".into()),
+        WeaponType::Missile => ("/icons/weapon.svg#missile", "Missile weapon".into()),
+        WeaponType::Thrown => ("/icons/weapon.svg#thrown", "Thrown weapon".into()),
+        WeaponType::Gunpowder => ("/icons/weapon.svg#gunpowder", "Gunpowder weapon".into()),
     };
     let lethality = format!("{}%", (weapon.lethality * 100.0).round());
     if weapon.lethality != 1.0 {
         let _ = write!(title, "\n    {} lethal", lethality);
     }
-    let title: AttrValue = title.into();
-
     let strength = weapon.factor;
-    let mut details = format!("Strength: {strength}");
+    let _ = write!(title, "\n    Strength: {strength}");
     let extra = if weapon.is_missile {
         weapon.range
     } else {
@@ -345,8 +388,8 @@ pub fn weapon_row(#[prop_or_default] class: AttrValue, unit: Unit, weapon: Weapo
     };
     if extra > 0 {
         let _ = write!(
-            details,
-            "\n{}: {extra}",
+            title,
+            "\n    {}: {extra}",
             if weapon.is_missile {
                 "Range"
             } else {
@@ -355,47 +398,61 @@ pub fn weapon_row(#[prop_or_default] class: AttrValue, unit: Unit, weapon: Weapo
         );
     }
     if weapon.is_missile && !unit.infinite_ammo {
-        let _ = write!(details, "\nAmmo: {}", weapon.ammo);
+        let _ = write!(title, "\n    Ammo: {}", weapon.ammo);
     }
     if weapon.spear_bonus > 0 {
-        let _ = write!(details, "\nBonus against cavalry: {}", weapon.spear_bonus);
+        let _ = write!(title, "\n    Bonus against cavalry: {}", weapon.spear_bonus);
     }
     if weapon.armor_piercing {
-        let _ = write!(details, "\nArmor piercing");
+        let _ = write!(title, "\n    Armor piercing");
     }
     if weapon.pre_charge {
-        let _ = write!(details, "\nThrown before charge");
+        let _ = write!(title, "\n    Thrown before charge");
     }
-    let details: AttrValue = details.into();
+    let title: AttrValue = title.into();
 
     html! {
-      <div {class}>
-        <img class="icon" src={icon} title={&title} />
+      <div {class} {title}>
+        <svg class="icon">
+          <use href={icon} />
+        </svg>
         if weapon.lethality != 1.0 {
-          <div class="lethality" title={&title}>{ lethality }</div>
+          <div class="lethality">{ lethality }</div>
         }
-        <div class="strength" title={&details}>{ strength }</div>
-        <div class="details" title={&details}>
+        <div class="strength">{ strength }</div>
+        <div class="details">
           if weapon.is_missile {
-            <img src="/icons/attribute/range.svg" class="attribute" />
+            <svg class="attribute" height="512" width="384">
+              <use href="/icons/attribute.svg#range" />
+            </svg>
             <span>{ weapon.range }</span>
             if !unit.infinite_ammo {
-              <img src="/icons/attribute/ammo.svg" class="attribute" />
+              <svg class="attribute" height="512" width="256">
+                <use href="/icons/attribute.svg#ammo" />
+              </svg>
               <span>{ weapon.ammo }</span>
             }
           } else if weapon.charge > 0 {
-            <img src="/icons/attribute/charge.svg" class="attribute" />
+            <svg class="attribute" height="512" width="384">
+              <use href="/icons/attribute.svg#charge" />
+            </svg>
             <span>{ weapon.charge }</span>
           }
           if weapon.spear_bonus > 0 {
-            <img src="/icons/attribute/against-cavalry.svg" class="attribute" />
+            <svg class="attribute" height="512" width="512">
+              <use href="/icons/attribute.svg#against-cavalry" />
+            </svg>
             <span>{ weapon.spear_bonus }</span>
           }
           if weapon.armor_piercing {
-            <img src="/icons/attribute/armor-piercing.svg" class="attribute" />
+            <svg class="attribute" height="512" width="512">
+              <use href="/icons/attribute.svg#armor-piercing" />
+            </svg>
           }
           if weapon.pre_charge {
-            <img src="/icons/attribute/precharge.svg" class="attribute" />
+            <svg class="attribute" height="512" width="512">
+              <use href="/icons/attribute.svg#precharge" />
+            </svg>
           }
         </div>
       </div>
@@ -412,51 +469,60 @@ pub fn defense_row(
 ) -> Html {
     use std::fmt::Write as _;
 
-    let title = if mount { "Defense (mount)" } else { "Defense" };
     let icon = if mount {
-        "/icons/stat/defense2.svg"
+        "/icons/stat.svg#defense-mount"
     } else {
-        "/icons/stat/defense.svg"
+        "/icons/stat.svg#defense"
     };
 
     let strength = def.total();
-    let mut details = format!("Defense: {strength}");
+    let mut title = format!("Defense{}: {strength}", if mount { " (mount)" } else { "" });
     if def.armor > 0 {
-        let _ = write!(details, "\n    Armor: {}", def.armor);
+        let _ = write!(title, "\n    Armor: {}", def.armor);
     }
     if def.skill > 0 {
-        let _ = write!(details, "\n    Skill: {}", def.skill);
+        let _ = write!(title, "\n    Skill: {}", def.skill);
     }
     if def.shield > 0 {
-        let _ = write!(details, "\n    Shield: {}", def.shield);
+        let _ = write!(title, "\n    Shield: {}", def.shield);
     }
-    let details: AttrValue = details.into();
+    let title: AttrValue = title.into();
 
     html! {
       <>
         if strength > 0 || hp > 1 {
-          <div {class}>
-            <img class="icon" src={icon} {title} />
-            <div class="strength" title={&details}>
+          <div {class} {title}>
+            <svg class="icon">
+              <use href={icon} />
+            </svg>
+            <div class="strength">
               { if strength > 0 { strength } else { 0 } }
             </div>
-            <div class="details" title={&details}>
+            <div class="details">
               if def.armor > 0 {
-                <img src="/icons/attribute/armor.svg" class="attribute" />
+                <svg class="attribute" height="512" width="512">
+                  <use href="/icons/attribute.svg#armor" />
+                </svg>
                 <span>{ def.armor }</span>
               }
               if def.skill > 0 {
-                <img src="/icons/attribute/skill.svg" class="attribute" />
+                <svg class="attribute" height="512" width="512">
+                  <use href="/icons/attribute.svg#skill" />
+                </svg>
                 <span>{ def.skill }</span>
               }
               if def.shield > 0 {
-                <img src="/icons/attribute/shield.svg" class="attribute" />
+                <svg class="attribute" height="512" width="512">
+                  <use href="/icons/attribute.svg#shield" />
+                </svg>
                 <span>{ def.shield }</span>
               }
             </div>
             if hp > 1 {
               <div class="hp" title={format!("{hp} hit points")}>
-                <img src="/icons/ability/heart.svg" />
+                <svg class="ability">
+                  <use href="/icons/ability.svg#heart" />
+                </svg>
                 <span>{ hp }</span>
               </div>
             }
