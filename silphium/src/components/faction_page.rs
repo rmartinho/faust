@@ -100,9 +100,9 @@ pub fn faction_header(
             }
             if let Some(horde)= filter.horde {
               <div class="eras">
-                <button {onclick}>
+                <button {onclick} title={if horde { "Show settled units" } else { "Show horde units" }}>
                   <div class={classes!("era", if horde {Some("checked")} else {None})}>
-                    <svg title={if horde { "Show settled units" } else { "Show horde units" }}>
+                    <svg>
                       <use href={if horde { HORDE_ICON } else { HORDE_ICOFF }} />
                     </svg>
                   </div>
