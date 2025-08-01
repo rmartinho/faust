@@ -6,3 +6,5 @@ mod text;
 pub use text::*;
 mod icon;
 pub use icon::*;
+mod button;
+pub use button::*;

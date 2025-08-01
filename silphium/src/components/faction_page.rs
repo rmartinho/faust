@@ -3,10 +3,7 @@ use yew_autoprops::autoprops;
 use yew_router::prelude::*;
 
 use crate::{
-    AppContext,
-    components::{BackLink, FactionRoster, Icon, Link, Text, UnitFilter},
-    model::{Faction, Module},
-    routes::Route,
+    components::{BackLink, Button, FactionRoster, Icon, Link, Text, UnitFilter}, model::{Faction, Module}, routes::Route, AppContext
 };
 
 #[autoprops]
@@ -51,12 +48,12 @@ pub fn faction_page(
       <div class="header-container">
         <div class="nav">
           <BackLink />
-          <button>
+          <Button>
             <img class="settings button" title="Configure" src="/icons/ui/settings.webp" />
-          </button>
-          <button>
+          </Button>
+          <Button>
             <img class="help button" title="Help" src="/icons/ui/help.webp" />
-          </button>
+          </Button>
         </div>
         <FactionHeader class="header" {module} faction={faction.clone()} {filter} {toggle_horde} />
       </div>
@@ -100,11 +97,11 @@ pub fn faction_header(
             }
             if let Some(horde)= filter.horde {
               <div class="eras">
-                <button {onclick} title={if horde { "Show settled units" } else { "Show horde units" }}>
+                <Button {onclick} title={if horde { "Show settled units" } else { "Show horde units" }}>
                   <div class={classes!("era", horde.then_some("checked"))}>
                     <Icon src="/icons/ui/horde.svg" symbol={if horde {"on"} else {"off"}} />
                   </div>
-                </button>
+                </Button>
               </div>
             }
           </div>
