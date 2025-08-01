@@ -1,3 +1,5 @@
 <!--{%- for entry in preload -%}-->
-<link rel="preload" href="<!--{{ entry.0 }}-->" as="<!--{{ entry.1.as }}-->" <!--{%- if entry.1.cors %}--> crossorigin<!--{% endif -%}--> />
+<link rel="preload" href="<!--{{ entry.0 }}-->" as="<!--{{ entry.1.as }}-->" type="<!--{{ entry.1.type }}-->"
+    <!--{%- if entry.1.cors %}--> crossorigin<!--{% endif -%}-->
+/>
 <!--{%- endfor -%}-->

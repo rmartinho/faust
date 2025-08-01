@@ -84,7 +84,7 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
             env!("OUT_DIR"),
             "/silphium_template/fonts/blinker-regular-2.woff2"
         )),
-        preload_as: Some(PreloadType::Woff2),
+        preload_as: None,
     },
     StaticFile {
         path: "fonts/blinker-bold-1.woff2",
@@ -100,23 +100,7 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
             env!("OUT_DIR"),
             "/silphium_template/fonts/blinker-bold-2.woff2"
         )),
-        preload_as: Some(PreloadType::Woff2),
-    },
-    StaticFile {
-        path: "fonts/blinker-regular.woff",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/fonts/blinker-regular.woff"
-        )),
-        preload_as: Some(PreloadType::Woff),
-    },
-    StaticFile {
-        path: "fonts/blinker-bold.woff",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/fonts/blinker-bold.woff"
-        )),
-        preload_as: Some(PreloadType::Woff),
+        preload_as: None,
     },
     StaticFile {
         path: "icons/ability.svg",
