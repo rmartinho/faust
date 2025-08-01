@@ -3,7 +3,7 @@ use yew::prelude::*;
 use yew_autoprops::autoprops;
 
 use crate::{
-    components::UnitCard,
+    components::{Icon, UnitCard},
     model::{Unit, UnitClass},
 };
 
@@ -58,7 +58,6 @@ pub fn roster_group(roster: IArray<Unit>, group: UnitClass) -> Html {
         })
         .collect();
 
-    let icon = format!("/icons/class.svg#{group}");
     let title = match group {
         UnitClass::Sword => "Blade infantry",
         UnitClass::Spear => "Spear infantry",
@@ -74,11 +73,7 @@ pub fn roster_group(roster: IArray<Unit>, group: UnitClass) -> Html {
       <>
         if cards.len() > 0 {
           <div class="roster-group">
-            <div class="legend" {title}>
-              <svg class="group">
-                <use href={icon} />
-              </svg>
-            </div>
+            <Icon class="legend" {title} src="/icons/class.svg" symbol={group.to_string()} />
             <div class="unit-cards">
               {for cards}
             </div>

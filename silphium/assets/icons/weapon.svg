@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
-  <symbol id="blade" viewBox="0 0 512 512">
+  <symbol id="melee" viewBox="0 0 512 512">
     <path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="24"
       d="M62 475c41 16 53-4 52-38l42-42 18 19h30l31-31-20-20 232-233 37-102-102 37-233 232-20-20-31 31v30l19 18-42 42c-34-1-54 11-38 52-15 15-7 22-2 27s12 13 27-2z" />
   </symbol>

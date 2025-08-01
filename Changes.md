@@ -1,10 +1,11 @@
-## 0.2.2
+## 0.3.0
 
 - Parse EDB from Medieval II mods
 - Include some abilities from Medieval II mods
 - Skip mod list page if there is only one mod (currently only one mod is supported anyway)
 - Unused factions can be specified in the manifest to be excluded from the output
 - Horde units are now shown, with a button to select between horde and settled units
+- The size of the icon files has been reduced significantly
 
 ## 0.2.1 2025-07-29
 

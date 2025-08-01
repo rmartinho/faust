@@ -4,7 +4,7 @@ use yew_router::prelude::*;
 
 use crate::{
     AppContext,
-    components::{BackLink, FactionRoster, Link, Text, UnitFilter},
+    components::{BackLink, FactionRoster, Icon, Link, Text, UnitFilter},
     model::{Faction, Module},
     routes::Route,
 };
@@ -35,7 +35,7 @@ pub fn faction_page(
 
     let filter_state = use_state(|| UnitFilter {
         era: era.or(faction.eras.get(0)),
-        horde: if faction.is_horde { Some(false) } else { None },
+        horde: faction.is_horde.then_some(false),
     });
     let filter = &(*filter_state).clone();
 
@@ -58,7 +58,7 @@ pub fn faction_page(
             <img class="help button" title="Help" src="/icons/ui/help.webp" />
           </button>
         </div>
-        <FactionHeader classes={classes!("header")} {module} faction={faction.clone()} {filter} {toggle_horde} />
+        <FactionHeader class="header" {module} faction={faction.clone()} {filter} {toggle_horde} />
       </div>
       <FactionRoster roster={faction.roster} {filter} />
     // <template v-if="faction.id == 'mercs'">
@@ -75,7 +75,7 @@ pub fn faction_page(
 #[autoprops]
 #[function_component(FactionHeader)]
 pub fn faction_header(
-    classes: Classes,
+    class: Classes,
     module: Module,
     faction: Faction,
     #[prop_or_default] filter: UnitFilter,
@@ -90,7 +90,7 @@ pub fn faction_header(
     let onclick = Callback::from(move |_| toggle_horde.emit(()));
 
     html! {
-      <div class={classes!("faction-header", classes)}>
+      <div class={classes!("faction-header", class)}>
         <div class="main">
           <div class="name"><Text text={faction.name} /></div>
             if faction.eras.len() > 1 {
@@ -101,10 +101,8 @@ pub fn faction_header(
             if let Some(horde)= filter.horde {
               <div class="eras">
                 <button {onclick} title={if horde { "Show settled units" } else { "Show horde units" }}>
-                  <div class={classes!("era", if horde {Some("checked")} else {None})}>
-                    <svg>
-                      <use href={if horde { HORDE_ICON } else { HORDE_ICOFF }} />
-                    </svg>
+                  <div class={classes!("era", horde.then_some("checked"))}>
+                    <Icon src="/icons/ui/horde.svg" symbol={if horde {"on"} else {"off"}} />
                   </div>
                 </button>
               </div>
@@ -153,6 +151,3 @@ fn era_link(to: AttrValue, active: bool) -> Html {
       </Link>
     }
 }
-
-const HORDE_ICON: &str = "/icons/ui/horde.svg#on";
-const HORDE_ICOFF: &str = "/icons/ui/horde.svg#off";

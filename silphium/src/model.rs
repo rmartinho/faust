@@ -224,6 +224,18 @@ pub enum WeaponType {
     Thrown,
 }
 
+impl Display for WeaponType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Melee => write!(f, "melee"),
+            Self::Spear => write!(f, "spear"),
+            Self::Missile => write!(f, "missile"),
+            Self::Gunpowder => write!(f, "gunpowder"),
+            Self::Thrown => write!(f, "thrown"),
+        }
+    }
+}
+
 #[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Copy, Debug)]
 pub struct GroundBonus {
     pub scrub: i32,
