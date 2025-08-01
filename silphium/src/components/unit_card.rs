@@ -6,22 +6,26 @@ use crate::{
     model::{Ability, Defense, Discipline, Formation, Unit, Weapon, WeaponType},
 };
 
+fn pluralize<'a>(value: u32, singular: &'a str, plural: &'a str) -> &'a str {
+    if value > 1 { singular } else { plural }
+}
+
 #[autoprops]
 #[function_component(UnitCard)]
 pub fn unit_card(unit: Unit) -> Html {
     use std::fmt::Write as _;
 
-    let mut soldiers_title = format!("{} soldiers", unit.soldiers);
+    let mut soldiers_title = format!(
+        "{} {}",
+        unit.soldiers,
+        pluralize(unit.soldiers, "soldier", "soldiers")
+    );
     if unit.officers > 0 {
         let _ = write!(
             soldiers_title,
             "\n{} {}",
             unit.officers,
-            if unit.officers > 1 {
-                "officers"
-            } else {
-                "officer"
-            }
+            pluralize(unit.officers, "officer", "officers")
         );
     }
 
