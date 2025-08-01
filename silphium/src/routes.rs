@@ -51,6 +51,6 @@ pub fn switch(route: Route) -> Html {
         } => {
             html! { <FactionPage module_id={module} faction_id={faction} {era} /> }
         }
-        Route::NotFound => html! { <h1>{ "404" }</h1> },
+        Route::NotFound => html! { <Redirect<Route> to={Route::Home} /> },
     }
 }

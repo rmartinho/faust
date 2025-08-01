@@ -5,7 +5,7 @@ use axum::Router;
 use clipboard_rs::{Clipboard as _, ClipboardContext};
 use console::style;
 use tokio::net::TcpListener;
-use tower_http::services::ServeDir;
+use tower_http::services::{ServeDir, ServeFile};
 
 use crate::{args::Config, utils::EARTH};
 
@@ -29,9 +29,13 @@ pub async fn serve(cfg: &Config) -> Result<()> {
     );
     axum::serve(
         listener,
-        Router::new().fallback_service(ServeDir::new(&cfg.out_dir)),
+        Router::new().fallback_service(
+            ServeDir::new(&cfg.out_dir)
+                .not_found_service(ServeFile::new(&cfg.out_dir.join("404.html"))),
+        ),
     )
-    .await.context("serving HTTP")?;
+    .await
+    .context("serving HTTP")?;
     Ok(())
 }
 
