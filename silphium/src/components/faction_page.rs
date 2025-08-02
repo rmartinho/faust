@@ -18,7 +18,7 @@ pub fn faction_page(module_id: AttrValue, faction_id: AttrValue) -> Html {
     let faction = module.factions[faction_id].clone();
 
     let filter = use_state(|| UnitFilter {
-        era: (faction.eras.len() > 1).then_some(faction.eras[0].clone()),
+        era: (faction.eras.len() > 1).then(|| faction.eras[0].clone()),
         horde: faction.is_horde.then_some(false),
     });
 
