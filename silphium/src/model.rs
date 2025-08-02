@@ -96,7 +96,6 @@ pub struct Unit {
 
     // M2TW
     pub is_militia: bool,
-    pub is_knight: bool,
     pub is_unique: bool,
 
     pub eras: IArray<IString>,
@@ -169,6 +168,7 @@ pub enum Ability {
     // LegionaryName, // TODO
     FormedCharge,
     Stakes,
+    Knight,
 }
 
 impl Display for Ability {
@@ -189,6 +189,7 @@ impl Display for Ability {
             Self::Chant => write!(f, "chant"),
             Self::FormedCharge => write!(f, "formed-charge"),
             Self::Stakes => write!(f, "stakes"),
+            Self::Knight => write!(f, "knight"),
         }
     }
 }

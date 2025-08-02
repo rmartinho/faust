@@ -63,7 +63,6 @@ pub fn build_model(
                     let mut mercenary = false;
                     let mut legionary_name = false;
                     let mut is_militia = false;
-                    let mut is_knight = false;
                     let mut is_unique = false;
                     for attr in u.stats.attributes.iter() {
                         match attr {
@@ -102,8 +101,8 @@ pub fn build_model(
                             Attr::InfiniteAmmo => infinite_ammo = true,
                             Attr::NonScaling => non_scaling = true,
                             Attr::FreeUpkeep => is_militia = true,
-                            Attr::Knight => is_knight = true,
                             Attr::Unique => is_unique = true,
+                            Attr::Knight => abilities.push(Ability::Knight),
                             Attr::Gunpowder => {} // TODO?
                             Attr::FormedCharge => abilities.push(Ability::FormedCharge),
                             Attr::Stakes => abilities.push(Ability::Stakes),
@@ -112,6 +111,7 @@ pub fn build_model(
                         }
                     }
                     if cant_hide {
+                        abilities.push(Ability::Knight);
                         abilities.push(Ability::CantHide)
                     }
                     if frighten_foot && frighten_mounted {
@@ -213,7 +213,6 @@ pub fn build_model(
                         mercenary,
                         legionary_name,
                         is_militia,
-                        is_knight,
                         is_unique,
 
                         abilities: abilities.into(),

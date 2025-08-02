@@ -69,6 +69,7 @@ pub fn unit_card(unit: Unit) -> Html {
             Ability::Chant => "Can chant to affect morale",
             Ability::FormedCharge => "Can do formed charge",
             Ability::Stakes => "Can lay defensive stakes",
+            Ability::Knight => "Receives knightly bonuses",
         };
         html! {
           <Icon class="ability" {title} src="/icons/ability.svg" symbol={ab.to_string()} />
@@ -105,8 +106,13 @@ pub fn unit_card(unit: Unit) -> Html {
             </div>
           </div>
           <div class="upkeep-row">
-            <Icon class="icon" title="Upkeep cost" src="/icons/stat.svg" symbol="upkeep" />
-            <div class="upkeep" title={format!("Upkeep: {}", unit.upkeep)}>
+            <Icon class="icon" src="/icons/stat.svg"
+                title={if unit.is_militia { "Upkeep cost (free in cities)" } else { "Upkeep cost"}}
+                symbol={if unit.is_militia { "upkeep-castle" } else { "upkeep" }}
+            />
+            <div class="upkeep"
+                title={format!("Upkeep{}: {}", if unit.is_militia { " (free in cities)" } else { "" }, unit.upkeep)}
+            >
               <span>{ unit.upkeep }</span>
             </div>
           </div>
