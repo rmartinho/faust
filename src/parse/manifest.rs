@@ -26,6 +26,8 @@ pub struct Manifest {
     pub eras: IndexMap<IString, EraSpec>,
     #[serde(default)]
     pub exclude: Vec<String>,
+    #[serde(default)]
+    pub unit_info_images: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

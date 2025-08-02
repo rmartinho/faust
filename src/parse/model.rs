@@ -154,11 +154,19 @@ pub fn build_model(
                         } else {
                             UnitClass::Sword
                         },
-                        image: format!(
-                            "data/ui/units/{}/#{}.tga",
-                            f.id.to_lowercase(),
-                            u.key.to_lowercase()
-                        )
+                        image: if cfg.manifest.unit_info_images {
+                            format!(
+                                "data/ui/unit_info/{}/{}_info.tga",
+                                f.id.to_lowercase(),
+                                u.key.to_lowercase()
+                            )
+                        } else {
+                            format!(
+                                "data/ui/units/{}/#{}.tga",
+                                f.id.to_lowercase(),
+                                u.key.to_lowercase()
+                            )
+                        }
                         .into(),
                         soldiers: u.stats.soldiers,
                         officers: u.stats.officers,

@@ -7,6 +7,7 @@
 - Horde units are now shown, with a button to select between horde and settled units
 - Generalized horde/non-horde and era filters to be a single filtering system; this will make adding future filters easier
 - The size of the icon files has been reduced significantly
+- Manifest file can now include `unit_info_images: false` in order to use unit images from data/ui/unit_info/ instead of data/ui/units/
 
 ## 0.2.1 2025-07-29
 
