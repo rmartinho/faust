@@ -26,29 +26,39 @@ body {
   font-weight: normal;
 }
 
-a {
-  all: unset;
+@layer reset {
+  a {
+    all: unset;
 
-  &[href] {
-    cursor: pointer;
-  }
-}
-
-button,
-label:has(input[type='radio'], input[type='checkbox']) {
-  all: unset;
-  display: flex;
-
-  &:disabled {
-    filter: grayscale(100%) opacity(30%);
-  }
-
-  &:not(:disabled) {
-    &:hover {
-      filter: drop-shadow(0 0 0.2rem black);
+    &[href] {
+      cursor: pointer;
     }
-    &:active {
-      filter: drop-shadow(0 0 0.1rem black);
+  }
+
+  button,
+  label:has(input[type='radio']),
+  label:has(input[type='checkbox']) {
+    all: unset;
+  }
+
+  button,
+  label:has(input[type='radio']),
+  label:has(input[type='checkbox']),
+  [role='button'] {
+    display: flex;
+    flex-direction: column;
+
+    &:disabled {
+      filter: grayscale(100%) opacity(30%);
+    }
+
+    &:not(:disabled) {
+      &:hover {
+        filter: drop-shadow(0 0 0.2rem black);
+      }
+      &:active {
+        filter: drop-shadow(0 0 0.1rem black);
+      }
     }
   }
 }
