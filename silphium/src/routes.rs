@@ -12,12 +12,6 @@ pub enum Route {
     Module { module: IString },
     #[at("/:module/:faction")]
     Faction { module: IString, faction: IString },
-    #[at("/:module/:faction/:era")]
-    FactionEra {
-        module: IString,
-        faction: IString,
-        era: IString,
-    },
     #[not_found]
     #[at("/404")]
     NotFound,
@@ -28,7 +22,7 @@ impl Route {
         match self {
             Route::Home => Route::Home,
             Route::Module { .. } => Route::Home,
-            Route::Faction { module, .. } | Route::FactionEra { module, .. } => Route::Module {
+            Route::Faction { module, .. } => Route::Module {
                 module: module.clone(),
             },
             _ => Route::Home,
@@ -43,13 +37,6 @@ pub fn switch(route: Route) -> Html {
         Route::Module { module } => html! { <ModulePage id={module} /> },
         Route::Faction { module, faction } => {
             html! { <FactionPage module_id={module} faction_id={faction} /> }
-        }
-        Route::FactionEra {
-            module,
-            faction,
-            era,
-        } => {
-            html! { <FactionPage module_id={module} faction_id={faction} {era} /> }
         }
         Route::NotFound => html! { <Redirect<Route> to={Route::Home} /> },
     }

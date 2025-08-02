@@ -423,54 +423,8 @@ fn collect_routes(modules: &ModuleMap) -> Vec<RenderRoute> {
                     },
                     route.clone(),
                 ));
-                for era in faction.eras.iter() {
-                    routes.push(prepare_redirect(
-                        Route::FactionEra {
-                            module: module.id.clone(),
-                            faction: faction.id.clone(),
-                            era: era.clone(),
-                        },
-                        Route::FactionEra {
-                            module: module.id.clone(),
-                            faction: id_or_alias.clone(),
-                            era,
-                        },
-                    ));
-                }
             }
-            if faction.eras.len() <= 1 {
-                if faction.eras.len() == 1 {
-                    routes.push(prepare_redirect(
-                        Route::FactionEra {
-                            module: module.id.clone(),
-                            faction: id_or_alias.clone(),
-                            era: faction.eras[0].clone(),
-                        },
-                        route.clone(),
-                    ))
-                }
-                routes.push(prepare_route(route, vec![]));
-            } else {
-                routes.push(prepare_redirect(
-                    route,
-                    Route::FactionEra {
-                        module: module.id.clone(),
-                        faction: faction.id_or_alias(),
-                        era: faction.eras[0].clone(),
-                    },
-                ))
-            }
-
-            for era in faction.eras.iter() {
-                routes.push(prepare_route(
-                    Route::FactionEra {
-                        module: module.id.clone(),
-                        faction: faction.id_or_alias(),
-                        era,
-                    },
-                    vec![],
-                ));
-            }
+            routes.push(prepare_route(route, vec![]));
         }
     }
     routes
