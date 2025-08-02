@@ -1,4 +1,4 @@
-## 0.3.0
+## 0.2.2
 
 - Parse EDB for Medieval II mods
 - Include some abilities in the output for Medieval II mods
