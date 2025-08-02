@@ -4678,8 +4678,10 @@ dependencies = [
  "serde_json",
  "thiserror 2.0.12",
  "wasm-bindgen",
+ "web-sys",
  "yew",
  "yew-autoprops",
+ "yew-hooks",
  "yew-router",
 ]
 
@@ -6251,6 +6253,22 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.104",
+]
+
+[[package]]
+name = "yew-hooks"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "640157ac2d80cf6bf5e7fe4143b90cd6c9ef61c9cb6180f60a50c3074521a142"
+dependencies = [
+ "gloo",
+ "js-sys",
+ "log",
+ "serde",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "yew",
 ]
 
 [[package]]

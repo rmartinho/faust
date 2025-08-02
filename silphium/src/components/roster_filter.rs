@@ -1,5 +1,7 @@
+use web_sys::HtmlImageElement;
 use yew::prelude::*;
 use yew_autoprops::autoprops;
+use yew_hooks::prelude::*;
 
 use crate::{
     components::{Icon, OptionButton, OptionGroup, Text, ToggleButton, UnitFilter},
@@ -17,6 +19,19 @@ pub fn roster_filter(module: Module, faction: Faction, filter: ModelHandle<UnitF
     let era = era
         .as_ref()
         .map(|_| era.map(|e| e.clone().unwrap(), Option::Some));
+
+    use_effect_once({
+        let m_eras = module.eras.clone();
+        let f_eras = faction.eras.clone();
+        move || {
+            f_eras.into_iter().for_each(|e| {
+                let info = &m_eras[e];
+                preload_image(&info.icon);
+                preload_image(&info.icoff);
+            });
+            || {}
+        }
+    });
 
     let era_options = faction.eras.iter().map(move |e| {
         let info = &module.eras[&e];
@@ -48,4 +63,9 @@ pub fn roster_filter(module: Module, faction: Faction, filter: ModelHandle<UnitF
         }
       </>
     }
+}
+
+fn preload_image(src: &str) {
+    let image = HtmlImageElement::new().unwrap();
+    image.set_src(src);
 }
