@@ -3,7 +3,11 @@ use yew_autoprops::autoprops;
 use yew_router::prelude::*;
 
 use crate::{
-    components::{BackLink, Button, FactionRoster, Icon, Link, Text, UnitFilter}, model::{Faction, Module}, routes::Route, AppContext
+    AppContext,
+    components::{BackLink, Button, FactionRoster, Link, RosterFilter, Text, UnitFilter},
+    hooks::ModelHandle,
+    model::{Faction, Module},
+    routes::Route,
 };
 
 #[autoprops]
@@ -30,22 +34,14 @@ pub fn faction_page(
         };
     }
 
-    let filter_state = use_state(|| UnitFilter {
+    let filter = use_state(|| UnitFilter {
         era: era.or(faction.eras.get(0)),
         horde: faction.is_horde.then_some(false),
-    });
-    let filter = &(*filter_state).clone();
-
-    let toggle_horde = Callback::from(move |_| {
-        filter_state.set(UnitFilter {
-            horde: filter_state.horde.map(|h| !h),
-            era: filter_state.era.clone(),
-        })
     });
 
     html! {
     <div class="faction-page">
-      <div class="header-container">
+      <header class="header-container">
         <div class="nav">
           <BackLink />
           <Button>
@@ -55,9 +51,11 @@ pub fn faction_page(
             <img class="help button" title="Help" src="/icons/ui/help.webp" />
           </Button>
         </div>
-        <FactionHeader class="header" {module} faction={faction.clone()} {filter} {toggle_horde} />
-      </div>
-      <FactionRoster roster={faction.roster} {filter} />
+        <FactionHeader class="header" {module} faction={faction.clone()} filter={&filter} />
+      </header>
+      <main>
+        <FactionRoster roster={faction.roster} filter={&*filter} />
+      </main>
     // <template v-if="faction.id == 'mercs'">
     //   <MercenaryRoster :pools />
     // </template>
@@ -75,37 +73,21 @@ pub fn faction_header(
     class: Classes,
     module: Module,
     faction: Faction,
-    #[prop_or_default] filter: UnitFilter,
-    toggle_horde: Callback<()>,
+    filter: ModelHandle<UnitFilter>,
 ) -> Html {
-    let _ = module;
-    let era_links = faction
-        .eras
-        .iter()
-        .map(|e| html! {<EraLink to={&e} active={filter.era == Some(e)}/>});
+    // let era_links = faction
+    //     .eras
+    //     .iter()
+    //     .map(|e| html! {<EraLink to={&e} active={filter.era == Some(e)}/>});
 
-    let onclick = Callback::from(move |_| toggle_horde.emit(()));
-
+    let faction = &faction;
     html! {
       <div class={classes!("faction-header", class)}>
-        <div class="main">
-          <div class="name"><Text text={faction.name} /></div>
-            if faction.eras.len() > 1 {
-              <div class="eras">
-                {for era_links}
-              </div>
-            }
-            if let Some(horde)= filter.horde {
-              <div class="eras">
-                <Button {onclick} title={if horde { "Show settled units" } else { "Show horde units" }}>
-                  <div class={classes!("era", horde.then_some("checked"))}>
-                    <Icon src="/icons/ui/horde.svg" symbol={if horde {"on"} else {"off"}} />
-                  </div>
-                </Button>
-              </div>
-            }
-          </div>
-        <img class="icon" src={faction.image} />
+        <div class="title">
+          <div class="name"><Text text={&faction.name} /></div>
+          <RosterFilter {module} {faction} {filter} />
+        </div>
+        <img class="icon" src={&faction.image} />
       </div>
     }
 }

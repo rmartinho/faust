@@ -14,6 +14,7 @@ use yew_autoprops::autoprops;
 use yew_router::prelude::*;
 
 mod components;
+mod hooks;
 pub mod model;
 mod routes;
 

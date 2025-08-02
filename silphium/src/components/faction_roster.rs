@@ -1,31 +1,11 @@
-use implicit_clone::{ImplicitClone, unsync::IArray};
+use implicit_clone::unsync::IArray;
 use yew::prelude::*;
 use yew_autoprops::autoprops;
 
 use crate::{
-    components::{Icon, UnitCard},
+    components::{Icon, UnitCard, UnitFilter},
     model::{Unit, UnitClass},
 };
-
-#[derive(PartialEq, Clone, ImplicitClone, Default)]
-pub struct UnitFilter {
-    pub era: Option<AttrValue>,
-    pub horde: Option<bool>,
-}
-
-impl UnitFilter {
-    fn apply(&self, unit: &Unit) -> bool {
-        (if let Some(ref era) = self.era {
-            unit.eras.contains(era)
-        } else {
-            true
-        }) && (if let Some(horde) = self.horde {
-            unit.horde == horde
-        } else {
-            true
-        })
-    }
-}
 
 #[autoprops]
 #[function_component(FactionRoster)]

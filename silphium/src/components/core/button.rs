@@ -9,7 +9,7 @@ pub fn button(
     #[prop_or_default] title: Option<AttrValue>,
     #[prop_or_default] onclick: Callback<()>,
 ) -> Html {
-    let onclick = Callback::from(move |_| onclick.emit(()));
+    let onclick = onclick.reform(|_| ());
     html! {
       <button {class} {title} {onclick}>
         {children}

@@ -3,17 +3,17 @@
   display: grid;
   gap: 8px;
   grid:
-    'icon main' auto
+    'icon title' auto
     / 128px auto;
   max-width: calc(100vw - 64px);
 
-  .main {
-    grid-area: main;
+  .title {
+    grid-area: title;
     justify-self: center;
     display: grid;
     grid:
       'name' auto
-      'eras' auto
+      'filter' auto
       / 1fr;
     align-content: center;
 
@@ -23,11 +23,16 @@
       text-align: center;
     }
     .eras {
-      grid-area: eras;
+      grid-area: filter;
       align-self: center;
       justify-self: center;
       display: flex;
       flex-direction: row;
+
+      input[type='radio'],
+      input[type='checkbox'] {
+        display: none;
+      }
 
       .era {
         font-size: 12pt;
@@ -55,9 +60,6 @@
         &:focus,
         &.checked {
           color: var(--color-text);
-        }
-        &.checked {
-          border: 1px dotted grey;
         }
       }
     }

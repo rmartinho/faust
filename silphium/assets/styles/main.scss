@@ -34,13 +34,9 @@ a {
   }
 }
 
-button {
-  all: unset;
-}
-
 button,
-a img,
-a svg {
+label:has(input[type='radio'], input[type='checkbox']) {
+  all: unset;
   display: flex;
 
   &:disabled {

@@ -41,9 +41,9 @@ windows-strings = "0.4.2"
 [build-dependencies]
 cargo-emit = "0.2.1"
 winresource = "0.1"
-trunk = { git = 'https://github.com/rmartinho/trunk-lib.git' }
+trunk = { git = "https://github.com/rmartinho/trunk-lib.git" }
 tokio = { version = "1" }
 
 [patch.crates-io]
-yew = { git = 'https://github.com/rmartinho/yew.git' }
+yew = { git = "https://github.com/rmartinho/yew.git" }
 yew-router = { git = 'https://github.com/rmartinho/yew.git' }
