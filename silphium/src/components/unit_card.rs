@@ -133,7 +133,7 @@ pub fn unit_card(unit: Unit) -> Html {
             <WeaponRow class="weapon2-row" unit={&unit} {weapon} />
           }
           <DefenseRow class="defense1-row" def={&unit.defense} hp={unit.hp} />
-          if unit.has_mount {
+          if unit.has_mount_stats {
             <DefenseRow class="defense2-row" mount={true} def={&unit.defense_mount} hp={unit.hp_mount} />
           }
           <div class="abilities">

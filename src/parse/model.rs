@@ -8,6 +8,7 @@ use crate::{
     args::Config,
     parse::{
         descr_mercenaries::Pool,
+        descr_mount::{Mount, MountClass},
         descr_regions::Region,
         descr_sm_factions,
         eval::{Evaluator, evaluate},
@@ -26,6 +27,7 @@ pub fn build_model(
     aliases: HashMap<String, Requires>,
     text: HashMap<String, String>,
     strat: HashMap<String, usize>,
+    mounts: HashMap<String, Mount>,
 ) -> IndexMap<IString, silphium::model::Faction> {
     let unit_map: IndexMap<_, _> = raw_units.into_iter().map(|u| (u.id.clone(), u)).collect();
     let requires = build_requires(&raw_buildings, &unit_map);
@@ -133,9 +135,7 @@ pub fn build_model(
                             .into(),
                         class: if is_general(u) {
                             UnitClass::General
-                        } else if let Some(mount) = &u.stats.mount
-                            && mount.contains("elephant")
-                        {
+                        } else if is_elephant(u, &mounts) {
                             UnitClass::Animal
                         } else if u.category.contains("cavalry") {
                             UnitClass::Cavalry
@@ -170,12 +170,7 @@ pub fn build_model(
                         .into(),
                         soldiers: u.stats.soldiers,
                         officers: u.stats.officers,
-                        has_mount: u
-                            .stats
-                            .mount
-                            .as_ref()
-                            .map(|m| !m.contains("horse"))
-                            .unwrap_or(false),
+                        has_mount_stats: has_mount_stats(u, &mounts),
                         formations: u.stats.formations.clone().into(),
                         hp: if u.stats.hp < 0 { 0 } else { u.stats.hp as u32 },
                         hp_mount: if u.stats.hp_mount < 0 {
@@ -343,6 +338,22 @@ fn is_general(unit: &export_descr_unit::Unit) -> bool {
 
 fn can_horde(unit: &export_descr_unit::Unit) -> bool {
     unit.stats.attributes.contains(&Attr::CanHorde)
+}
+
+fn is_elephant(unit: &export_descr_unit::Unit, mounts: &HashMap<String, Mount>) -> bool {
+    unit.stats.mount.as_ref().is_some_and(|mount| {
+        mounts
+            .get(mount)
+            .is_some_and(|mount| mount.class == MountClass::Elephant)
+    })
+}
+
+fn has_mount_stats(unit: &export_descr_unit::Unit, mounts: &HashMap<String, Mount>) -> bool {
+    unit.stats.mount.as_ref().is_some_and(|mount| {
+        mounts
+            .get(mount)
+            .is_some_and(|mount| mount.class != MountClass::Horse)
+    })
 }
 
 fn has_spears(unit: &export_descr_unit::Unit) -> bool {
