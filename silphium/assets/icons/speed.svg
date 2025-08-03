@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
+   <symbol id="speed-1" viewBox="0 0 512 512">
+      <path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="24"
+         d="m256 388 105 96H151z" />
+   </symbol>
+   <symbol id="speed-2" viewBox="0 0 512 512">
+      <use href="#speed-1" />
+      <use href="#speed-1" transform="translate(0 120)" />
+   </symbol>
+   <symbol id="speed-3" viewBox="0 0 512 512">
+      <use href="#speed-1" />
+      <use href="#speed-1" transform="translate(0 120)" />
+      <use href="#speed-1" transform="translate(0 240)" />
+   </symbol>
+   <symbol id="speed-4" viewBox="0 0 512 512">
+      <use href="#speed-1" />
+      <use href="#speed-1" transform="translate(0 120)" />
+      <use href="#speed-1" transform="translate(0 240)" />
+      <use href="#speed-1" transform="translate(0 360)" />
+   </symbol>
+</svg>

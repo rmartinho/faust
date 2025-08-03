@@ -148,6 +148,14 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
         preload_as: None,
     },
     StaticFile {
+        path: "icons/speed.svg",
+        contents: include_bytes!(concat!(
+            env!("OUT_DIR"),
+            "/silphium_template/icons/speed.svg"
+        )),
+        preload_as: None,
+    },
+    StaticFile {
         path: "icons/stat.svg",
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
