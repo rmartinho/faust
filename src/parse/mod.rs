@@ -15,6 +15,7 @@ use crate::{
     args::Config,
     parse::{
         descr_mercenaries::Pool,
+        descr_mount::Mount,
         descr_regions::Region,
         export_descr_buildings::{Building, Requires},
         manifest::ParserMode,
@@ -25,12 +26,14 @@ use crate::{
 pub use manifest::Manifest;
 
 mod descr_mercenaries;
+mod descr_mount;
 mod descr_regions;
 mod descr_sm_factions;
 mod descr_strat;
-mod eval;
 mod export_descr_buildings;
 mod export_descr_unit;
+
+mod eval;
 mod manifest;
 mod model;
 mod text;
@@ -91,6 +94,7 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
             "data/world/maps/base/descr_strat.txt",
         ],
     );
+    let descr_mount_path = path_fallback(cfg, "data/descr_mount.txt", None);
 
     let m = MultiProgress::new();
 
@@ -156,6 +160,13 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
         parse_descr_strat(descr_strat_path, cfg.manifest.mode),
     )
     .await?;
+    let mounts = parse_progress(
+        m.clone(),
+        3,
+        descr_mount_path.clone(),
+        parse_descr_mount(descr_mount_path, cfg.manifest.mode),
+    )
+    .await?;
 
     let pb = m.add(ProgressBar::new_spinner());
     pb.set_style(progress_style());
@@ -178,6 +189,7 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
         require_aliases,
         text,
         strat,
+        mounts,
     );
     let _ = m.clear();
 
@@ -298,6 +310,12 @@ async fn parse_descr_strat(path: PathBuf, mode: ParserMode) -> Result<HashMap<St
     let buf = read_file(&path).await?;
     let data = String::from_utf8_lossy(&buf);
     descr_strat::parse(data, mode)
+}
+
+async fn parse_descr_mount(path: PathBuf, mode: ParserMode) -> Result<HashMap<String, Mount>> {
+    let buf = read_file(&path).await?;
+    let data = String::from_utf8_lossy(&buf);
+    descr_mount::parse(data, mode)
 }
 
 const BOM: &str = "\u{feff}";

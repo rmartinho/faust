@@ -67,7 +67,7 @@ pub struct Unit {
     pub image: IString,
     pub soldiers: u32,
     pub officers: u32,
-    pub has_mount: bool,
+    pub has_mount_stats: bool,
     pub formations: IArray<Formation>,
     pub hp: u32,
     pub hp_mount: u32,
