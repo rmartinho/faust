@@ -53,4 +53,4 @@ jobs:
         env:
           VT_ANALYSIS: ${{ steps.virus_total.outputs.analysis }}
         run: |
-          echo "$VT_ANALYSIS" | cut -d = -f 2 - >> $GITHUB_STEP_SUMMARY
+          echo "$VT_ANALYSIS" | cut -d = -f 2- - >> $GITHUB_STEP_SUMMARY
