@@ -25,7 +25,6 @@ jobs:
           - os-name: macOS-aarch64
             runs-on: macOS-15
             target: aarch64-apple-darwin
-
     runs-on: ${{ matrix.platform.runs-on }}
     steps:
       - name: Checkout
@@ -37,7 +36,14 @@ jobs:
           target: ${{ matrix.platform.target }}
           args: "--locked --release"
       - name: Publish artifacts and release
+        id: publish
         uses: houseabsolute/actions-rust-release@v0
         with:
           executable-name: faust
           target: ${{ matrix.platform.target }}
+      - name: VirusTotal scan
+        if: ${{ matrix.platform.target == 'x86_64-pc-windows-msvc' }}
+        uses: crazy-max/ghaction-virustotal@v4
+        with:
+          vt_api_key: ${{ secrets.VT_API_KEY }}
+          files: target/**/*.exe
