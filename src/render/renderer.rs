@@ -33,15 +33,17 @@ impl From<PreloadType> for Preload {
     fn from(value: PreloadType) -> Self {
         Self {
             r#as: match value {
-                PreloadType::Wasm | PreloadType::Json => PreloadAs::Fetch,
+                PreloadType::Wasm | PreloadType::Json | PreloadType::Cbor => PreloadAs::Fetch,
                 PreloadType::Woff | PreloadType::Woff2 => PreloadAs::Font,
                 PreloadType::Svg | PreloadType::Png | PreloadType::Webp => PreloadAs::Image,
             },
             r#type: value,
             cors: match value {
-                PreloadType::Wasm | PreloadType::Json | PreloadType::Woff | PreloadType::Woff2 => {
-                    true
-                }
+                PreloadType::Wasm
+                | PreloadType::Json
+                | PreloadType::Cbor
+                | PreloadType::Woff
+                | PreloadType::Woff2 => true,
                 _ => false,
             },
         }
@@ -68,6 +70,7 @@ impl Display for PreloadAs {
 #[derive(Clone, Copy)]
 pub enum PreloadType {
     Wasm,
+    Cbor,
     Json,
     Woff,
     Woff2,
@@ -80,6 +83,7 @@ impl Display for PreloadType {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Wasm => write!(f, "application/wasm"),
+            Self::Cbor => write!(f, "application/cbor"),
             Self::Json => write!(f, "application/json"),
             Self::Woff => write!(f, "application/font-woff"),
             Self::Woff2 => write!(f, "font/woff2"),
@@ -262,7 +266,7 @@ impl Renderer {
             .await
             .context("writing mods.cbor")?;
         self.preload
-            .push(("/mods.cbor".into(), PreloadType::Json.into()));
+            .push(("/mods.cbor".into(), PreloadType::Cbor.into()));
         pb.finish_with_message(format!(
             "{PAPER}rendered mods.cbor ({})",
             HumanBytes(self.data.len() as u64)

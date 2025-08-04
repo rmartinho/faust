@@ -1,3 +1,7 @@
+## 0.3.0
+
+- Reduce size of serialized mod data by 80%; this saves bandwidth and improves loading speed
+
 ## 0.2.2 2025-08-02
 
 - Parse EDB for Medieval II mods
