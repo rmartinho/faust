@@ -5,7 +5,7 @@ use crate::routes::switch;
 use gloo::history::{AnyHistory, MemoryHistory};
 use gloo::net::http::Request;
 use implicit_clone::ImplicitClone;
-use implicit_clone::unsync::IString;
+use implicit_clone::unsync::{IArray, IString};
 use indexmap::IndexMap;
 use wasm_bindgen::prelude::wasm_bindgen;
 use yew::prelude::*;
@@ -30,7 +30,7 @@ struct AppContext {
 fn app_content() -> HtmlResult {
     let context = {
         let res = use_future(async || {
-            Request::get("/mods.json")
+            Request::get("/mods.cbor")
                 .send()
                 .await
                 .unwrap()
@@ -65,8 +65,8 @@ fn app() -> HtmlResult {
 
 #[autoprops]
 #[function_component(StaticAppContent)]
-fn static_app_content(route: &Route, data: IString) -> Html {
-    let modules: ModuleMap = serde_json::from_str(&data).unwrap();
+fn static_app_content(route: &Route, data: IArray<u8>) -> Html {
+    let modules: ModuleMap = ciborium::from_reader(data.as_slice()).unwrap();
     let context = AppContext { modules };
 
     let history: AnyHistory = {
@@ -86,7 +86,7 @@ fn static_app_content(route: &Route, data: IString) -> Html {
 
 #[autoprops(StaticAppProps)]
 #[function_component(StaticApp)]
-pub fn static_app(route: &Route, data: IString) -> HtmlResult {
+pub fn static_app(route: &Route, data: IArray<u8>) -> HtmlResult {
     let fallback = html! {<div>{"Loading..."}</div>};
 
     Ok(html! {

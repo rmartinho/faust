@@ -93,7 +93,7 @@ impl Display for PreloadType {
 #[derive(Clone)]
 pub struct Renderer {
     pub cfg: Config,
-    pub data: String,
+    pub data: Vec<u8>,
     pub modules: ModuleMap,
     pub preload: Vec<(String, Preload)>,
 }
@@ -102,7 +102,7 @@ impl Renderer {
     pub fn new(cfg: &Config, modules: ModuleMap) -> Self {
         Self {
             cfg: cfg.clone(),
-            data: String::new(),
+            data: Vec::new(),
             modules,
             preload: vec![],
         }
@@ -255,15 +255,16 @@ impl Renderer {
         pb.set_prefix("[4/5]");
         pb.tick();
         pb.set_message(format!("{PAPER}rendering mod data"));
-        let data = serde_json::to_string(&self.modules).context("generating JSON file")?;
+        let mut data = vec![];
+        ciborium::into_writer(&self.modules, &mut data).context("generating JSON file")?;
         self.data = data.clone();
-        write_file(&self.cfg.out_dir.join("mods.json"), data)
+        write_file(&self.cfg.out_dir.join("mods.cbor"), data)
             .await
-            .context("writing mods.json")?;
+            .context("writing mods.cbor")?;
         self.preload
-            .push(("/mods.json".into(), PreloadType::Json.into()));
+            .push(("/mods.cbor".into(), PreloadType::Json.into()));
         pb.finish_with_message(format!(
-            "{PAPER}rendered mods.json ({})",
+            "{PAPER}rendered mods.cbor ({})",
             HumanBytes(self.data.len() as u64)
         ));
         Ok(())
