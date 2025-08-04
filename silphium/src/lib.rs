@@ -34,13 +34,11 @@ fn app_content() -> HtmlResult {
                 .send()
                 .await
                 .unwrap()
-                .json::<ModuleMap>()
+                .binary()
                 .await
         })?;
-        let Ok(ref modules) = *res else { todo!() };
-        AppContext {
-            modules: modules.clone(),
-        }
+        let modules: ModuleMap = ciborium::from_reader(res.as_ref().unwrap().as_slice()).unwrap();
+        AppContext { modules }
     };
 
     Ok(html! {
