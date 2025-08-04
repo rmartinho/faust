@@ -28,9 +28,12 @@ pub struct Manifest {
     pub exclude: Vec<String>,
     #[serde(default)]
     pub unit_info_images: bool,
+    #[serde(default)]
+    pub speeds: HashMap<String, u32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct EraSpec {
     #[serde(default)]
     pub icon: Option<PathBuf>,

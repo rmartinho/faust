@@ -65,7 +65,19 @@ fn parse_statblock(entries: &UnitEntries, raw: &[(&str, Option<&str>)]) -> Resul
     let mental_line = split_line(entries, "stat_mental", OPT_COMMA)?;
     let cost_line = split_line(entries, "stat_cost", OPT_COMMA)?;
 
+    let speed_mod: f64 = require_line_value(entries, "move_speed_mod")
+        .unwrap_or("1.0")
+        .parse()?;
+
     Ok(StatBlock {
+        soldier_model: if let Ok(l) = &soldier_line {
+            l.get(0)
+                .copied()
+                .ok_or_else(|| anyhow!("missing soldier model"))
+                .map(Into::into)?
+        } else {
+            todo!()
+        },
         soldiers: if let Ok(l) = soldier_line {
             l.get(1)
                 .copied()
@@ -88,6 +100,7 @@ fn parse_statblock(entries: &UnitEntries, raw: &[(&str, Option<&str>)]) -> Resul
             .map(parse_attribute)
             .collect::<Result<_>>()
             .with_context(|| format!("parsing attributes from {attribute_line:?}"))?,
+        speed_mod,
         formations: formations_line[5..]
             .into_iter()
             .copied()
@@ -380,6 +393,8 @@ pub struct Unit {
 
 #[derive(Debug)]
 pub struct StatBlock {
+    pub soldier_model: String,
+    pub speed_mod: f64,
     pub soldiers: u32,
     pub officers: u32,
     pub mount: Option<String>,

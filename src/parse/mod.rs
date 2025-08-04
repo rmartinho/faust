@@ -17,6 +17,7 @@ use crate::{
         descr_mercenaries::Pool,
         descr_mount::Mount,
         descr_regions::Region,
+        descr_model_battle::Model,
         export_descr_buildings::{Building, Requires},
         manifest::ParserMode,
         model::build_model,
@@ -30,6 +31,7 @@ mod descr_mount;
 mod descr_regions;
 mod descr_sm_factions;
 mod descr_strat;
+mod descr_model_battle;
 mod export_descr_buildings;
 mod export_descr_unit;
 
@@ -95,6 +97,7 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
         ],
     );
     let descr_mount_path = path_fallback(cfg, "data/descr_mount.txt", None);
+    let descr_model_battle_path = path_fallback(cfg, "data/descr_model_battle.txt", None);
 
     let m = MultiProgress::new();
 
@@ -167,10 +170,17 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
         parse_descr_mount(descr_mount_path, cfg.manifest.mode),
     )
     .await?;
+    let models = parse_progress(
+        m.clone(),
+        3,
+        descr_model_battle_path.clone(),
+        parse_descr_model_battle(descr_model_battle_path, cfg.manifest.mode),
+    )
+    .await?;
 
     let pb = m.add(ProgressBar::new_spinner());
     pb.set_style(progress_style());
-    pb.set_prefix("[8/8]");
+    pb.set_prefix("[11/11]");
     pb.set_message(format!("{THINKING}processing mod data..."));
     pb.enable_steady_tick(Duration::from_millis(200));
     let aliases = cfg
@@ -190,6 +200,7 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
         text,
         strat,
         mounts,
+        models,
     );
     let _ = m.clear();
 
@@ -248,7 +259,7 @@ fn parse_progress<'a, T>(
 ) -> impl Future<Output = T> + 'a {
     let pb = m.add(ProgressBar::new_spinner());
     pb.set_style(progress_style());
-    pb.set_prefix(format!("[{}/7]", i));
+    pb.set_prefix(format!("[{}/11]", i));
     pb.set_message(format!("{LOOKING_GLASS}parsing {}...", path.display()));
 
     async move {
@@ -316,6 +327,12 @@ async fn parse_descr_mount(path: PathBuf, mode: ParserMode) -> Result<HashMap<St
     let buf = read_file(&path).await?;
     let data = String::from_utf8_lossy(&buf);
     descr_mount::parse(data, mode)
+}
+
+async fn parse_descr_model_battle(path: PathBuf, mode: ParserMode) -> Result<HashMap<String, Model>> {
+    let buf = read_file(&path).await?;
+    let data = String::from_utf8_lossy(&buf);
+    descr_model_battle::parse(data, mode)
 }
 
 const BOM: &str = "\u{feff}";

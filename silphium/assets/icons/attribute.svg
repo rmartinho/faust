@@ -30,11 +30,11 @@
     <path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="24"
       d="m316 484-35-313h83L194 28 20 171h87L72 484l122-68Z" />
   </symbol>
-  <symbol id="heat" viewBox="0 0 384 512">
+  <symbol id="heat" viewBox="0 0 256 512">
     <path fill="none" stroke="#000" stroke-width="24"
-      d="M255 248c-8-5-13-13-13-22V79c0-68-100-68-100 0v147c0 9-5 17-13 22-111 65-65 236 63 236s174-171 63-236z" />
+      d="M182 259c-7-4-11-11-11-19V92c0-59-86-59-86 0v148c0 8-4 15-11 19-96 57-56 205 54 205s150-148 54-205z" />
     <path
-      d="M267 357c0 62-68 98-118 63a76 76 0 0 1 18-134V79c0-34 50-34 50 0v207c30 11 50 39 50 71z" />
+      d="M193 354c0 54-59 85-102 54a66 66 0 0 1 15-116V92c0-29 44-29 44 0v200c25 10 43 34 43 62z" />
   </symbol>
   <symbol id="inexhaustible" viewBox="0 0 512 512">
     <defs>

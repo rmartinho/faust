@@ -10,61 +10,61 @@ use implicit_clone::{
 };
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
+use serde_with::serde_as;
 use thiserror::Error;
 use yew::Properties;
-use serde_with::serde_as;
-use serde_repr::{Serialize_repr, Deserialize_repr};
 
 #[derive(Properties, PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
 pub struct Module {
-	#[serde(rename = "i")]
+    #[serde(rename = "i")]
     pub id: IString,
-	#[serde(rename = "n")]
+    #[serde(rename = "n")]
     pub name: IString,
-	#[serde(rename = "b")]
+    #[serde(rename = "b")]
     pub banner: IString,
 
-	#[serde(rename = "f")]
+    #[serde(rename = "f")]
     pub factions: IndexMap<IString, Faction>,
-	#[serde(rename = "a")]
+    #[serde(rename = "a")]
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub aliases: HashMap<IString, IString>,
-	#[serde(rename = "e")]
+    #[serde(rename = "e")]
     #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
     pub eras: IndexMap<IString, Era>,
 }
 
 #[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
 pub struct Faction {
-	#[serde(rename = "i")]
+    #[serde(rename = "i")]
     pub id: IString,
-	#[serde(rename = "n")]
+    #[serde(rename = "n")]
     pub name: IString,
-	#[serde(rename = "b")]
+    #[serde(rename = "b")]
     pub image: IString,
-	#[serde(rename = "a")]
+    #[serde(rename = "a")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub alias: Option<IString>,
-	#[serde(rename = "e")]
+    #[serde(rename = "e")]
     #[serde(default, skip_serializing_if = "IArray::is_empty")]
     pub eras: IArray<IString>,
-	#[serde(rename = "h")]
+    #[serde(rename = "h")]
     #[serde(default, skip_serializing_if = "is_false")]
     pub is_horde: bool,
-	#[serde(rename = "r")]
+    #[serde(rename = "r")]
     pub roster: IArray<Unit>,
 }
 
 fn make_true() -> bool {
-	true
+    true
 }
 
 fn is_true(b: &bool) -> bool {
-	*b
+    *b
 }
 
 fn is_false(b: &bool) -> bool {
-	!*b
+    !*b
 }
 
 impl Faction {
@@ -78,13 +78,13 @@ impl Faction {
 
 #[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
 pub struct Era {
-	#[serde(rename = "i")]
+    #[serde(rename = "i")]
     pub id: IString,
-	#[serde(rename = "1")]
+    #[serde(rename = "1")]
     pub icon: IString,
-	#[serde(rename = "0")]
+    #[serde(rename = "0")]
     pub icoff: IString,
-	#[serde(rename = "n")]
+    #[serde(rename = "n")]
     pub name: IString,
 }
 
@@ -97,121 +97,133 @@ pub struct Era {
 )]
 #[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
 pub struct Unit {
-	#[serde(rename = "i")]
+    #[serde(rename = "i")]
     pub id: IString,
-	#[serde(rename = "n")]
+    #[serde(rename = "n")]
     pub name: IString,
-	#[serde(rename = "k")]
+    #[serde(rename = "k")]
     pub key: IString,
-	#[serde(rename = "c")]
+    #[serde(rename = "c")]
     pub class: UnitClass,
-	#[serde(rename = "b")]
+    #[serde(rename = "b")]
     pub image: IString,
-	#[serde(rename = "#")]
+    #[serde(rename = "#")]
     pub soldiers: u32,
-	#[serde(rename = "o")]
+    #[serde(rename = "o")]
     pub officers: u32,
-	#[serde(rename = "M")]
-    pub has_mount_stats: bool,
-	#[serde(rename = "f")]
+    #[serde(rename = "M")]
+    pub mount: MountType,
+    #[serde(rename = "f")]
     #[serde_as(as = "OneOrMany<_>")]
     pub formations: IArray<Formation>,
     #[serde_with(skip_apply)]
-	#[serde(rename = "h")]
+    #[serde(rename = "h")]
     #[serde(default = "one_u32", skip_serializing_if = "is_one_u32")]
     pub hp: u32,
-	#[serde(rename = "H")]
+    #[serde(rename = "H")]
     pub hp_mount: u32,
-	#[serde(rename = "w")]
+    #[serde(rename = "w")]
     pub primary_weapon: Option<Weapon>,
-	#[serde(rename = "W")]
+    #[serde(rename = "W")]
     pub secondary_weapon: Option<Weapon>,
-	#[serde(rename = "d")]
+    #[serde(rename = "d")]
     pub defense: Defense,
-	#[serde(rename = "D")]
+    #[serde(rename = "D")]
     #[serde(default, skip_serializing_if = "no_defense")]
     pub defense_mount: Defense,
-	#[serde(rename = "t")]
+    #[serde(rename = "t")]
     #[serde(default, skip_serializing_if = "is_zero_i32")]
     pub heat: i32,
-	#[serde(rename = "T")]
+    #[serde(rename = "T")]
     #[serde(default, skip_serializing_if = "no_ground_bonus")]
     pub ground_bonus: GroundBonus,
-	#[serde(rename = "m")]
+    #[serde(rename = "m")]
     pub morale: u32,
-	#[serde(rename = "s")]
+    #[serde(rename = "p")]
     pub discipline: Discipline,
-	#[serde(rename = "r")]
+    #[serde(rename = "r")]
     #[serde_with(skip_apply)]
     #[serde(default = "one_u32", skip_serializing_if = "is_one_u32")]
     pub turns: u32,
-	#[serde(rename = "$")]
+    #[serde(rename = "$")]
     pub cost: u32,
-	#[serde(rename = "u")]
+    #[serde(rename = "u")]
     pub upkeep: u32,
 
-	#[serde(rename = "F")]
+    #[serde(rename = "F")]
     pub stamina: u32,
-	#[serde(rename = "E")]
+    #[serde(rename = "E")]
     pub inexhaustible: bool,
-	#[serde(rename = "A")]
+    #[serde(rename = "A")]
     pub infinite_ammo: bool,
     #[serde_with(skip_apply)]
-    #[serde_as(as = "BoolFromInt")] 
-	#[serde(rename = "S")]
+    #[serde_as(as = "BoolFromInt")]
+    #[serde(rename = "S")]
     #[serde(default = "make_true", skip_serializing_if = "is_true")]
     pub scaling: bool,
-	#[serde(rename = "a")]
+    #[serde(rename = "a")]
     #[serde_as(as = "OneOrMany<_>")]
     pub abilities: IArray<Ability>,
 
-	#[serde(rename = "O")]
+    #[serde(rename = "O")]
     pub horde: bool,
-	#[serde(rename = "g")]
+    #[serde(rename = "g")]
     pub general: bool,
-	#[serde(rename = "")]
+    #[serde(rename = "R")]
     pub mercenary: bool,
-	#[serde(rename = "N")]
+    #[serde(rename = "N")]
     pub legionary_name: bool,
 
     // M2TW
-	#[serde(rename = "0")]
+    #[serde(rename = "0")]
     pub is_militia: bool,
-	#[serde(rename = "*")]
+    #[serde(rename = "*")]
     pub is_unique: bool,
 
-	#[serde(rename = "e")]
+    #[serde(rename = "e")]
     pub eras: IArray<IString>,
-	#[serde(rename = "l")]
+    #[serde(rename = "l")]
     pub tech_level: u32,
+
+    #[serde(rename = "s")]
+    pub move_speed: Option<u32>,
 }
 
 fn is_zero_u32(u: &u32) -> bool {
-	*u == 0
+    *u == 0
 }
 
 fn is_zero_i32(i: &i32) -> bool {
-	*i == 0
+    *i == 0
 }
 
 fn is_one_u32(u: &u32) -> bool {
-	*u == 1
+    *u == 1
 }
 
 fn is_one_f64(f: &f64) -> bool {
-	*f == 1.0
+    *f == 1.0
 }
 
 fn one_u32() -> u32 {
-	1
+    1
 }
 
 fn one_f64() -> f64 {
-	1.0
+    1.0
 }
 
 #[derive(
-    PartialEq, Eq, PartialOrd, Ord, Serialize_repr, Deserialize_repr, ImplicitClone, Clone, Copy, Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Serialize_repr,
+    Deserialize_repr,
+    ImplicitClone,
+    Clone,
+    Copy,
+    Debug,
 )]
 #[repr(u8)]
 pub enum UnitClass {
@@ -256,7 +268,45 @@ impl Display for UnitClass {
 }
 
 #[derive(
-    PartialEq, Eq, PartialOrd, Ord, Serialize_repr, Deserialize_repr, ImplicitClone, Clone, Copy, Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Serialize_repr,
+    Deserialize_repr,
+    ImplicitClone,
+    Clone,
+    Copy,
+    Debug,
+)]
+#[repr(u8)]
+pub enum MountType {
+    Foot = 0,
+    Horse = 1,
+    Other = 2,
+}
+
+impl MountType {
+    pub fn has_mount(&self) -> bool {
+        *self != MountType::Foot
+    }
+
+    pub fn has_mount_stats(&self) -> bool {
+        *self == MountType::Other
+    }
+}
+
+#[derive(
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Serialize_repr,
+    Deserialize_repr,
+    ImplicitClone,
+    Clone,
+    Copy,
+    Debug,
 )]
 #[repr(u8)]
 pub enum Ability {
@@ -310,37 +360,46 @@ impl Display for Ability {
 pub struct Weapon {
     #[serde(rename = "t")]
     pub class: WeaponType,
-	#[serde(rename = "f")]
+    #[serde(rename = "f")]
     pub factor: u32,
-	#[serde(rename = "m")]
+    #[serde(rename = "m")]
     pub is_missile: bool,
-	#[serde(rename = "c")]
+    #[serde(rename = "c")]
     pub charge: u32,
-	#[serde(rename = "r")]
+    #[serde(rename = "r")]
     pub range: u32,
-	#[serde(rename = "#")]
+    #[serde(rename = "#")]
     pub ammo: u32,
-	#[serde(rename = "l")]
+    #[serde(rename = "l")]
     #[serde(default = "one_f64", skip_serializing_if = "is_one_f64")]
     pub lethality: f64,
-	#[serde(rename = "a")]
+    #[serde(rename = "a")]
     pub armor_piercing: bool,
-	#[serde(rename = "b")]
+    #[serde(rename = "b")]
     pub body_piercing: bool,
-	#[serde(rename = "P")]
+    #[serde(rename = "P")]
     pub pre_charge: bool,
-	#[serde(rename = "L")]
+    #[serde(rename = "L")]
     pub launching: bool,
-	#[serde(rename = "A")]
+    #[serde(rename = "A")]
     pub area: bool,
-	#[serde(rename = "F")]
+    #[serde(rename = "F")]
     pub fire: bool,
-	#[serde(rename = "s")]
+    #[serde(rename = "s")]
     pub spear_bonus: u32,
 }
 
 #[derive(
-    PartialEq, Eq, PartialOrd, Ord, Serialize_repr, Deserialize_repr, ImplicitClone, Clone, Copy, Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Serialize_repr,
+    Deserialize_repr,
+    ImplicitClone,
+    Clone,
+    Copy,
+    Debug,
 )]
 #[repr(u8)]
 pub enum WeaponType {
@@ -373,25 +432,25 @@ pub struct GroundBonus {
 }
 
 impl From<[i32; 4]> for GroundBonus {
-	fn from(a: [i32; 4]) -> Self {
-		Self {
-			scrub: a[0],
-			sand: a[1],
-			forest: a[2],
-			snow: a[3],
-		}
-	}
+    fn from(a: [i32; 4]) -> Self {
+        Self {
+            scrub: a[0],
+            sand: a[1],
+            forest: a[2],
+            snow: a[3],
+        }
+    }
 }
 
 impl From<GroundBonus> for [i32; 4] {
-	fn from(g: GroundBonus) -> Self {
-		[g.scrub, g.sand, g.forest, g.snow]
-	}
+    fn from(g: GroundBonus) -> Self {
+        [g.scrub, g.sand, g.forest, g.snow]
+    }
 }
 
 fn no_ground_bonus(g: &GroundBonus) -> bool {
-	g.scrub == 0 && g.sand == 0 && g.forest == 0 && g.snow == 0
-} 
+    g.scrub == 0 && g.sand == 0 && g.forest == 0 && g.snow == 0
+}
 
 #[derive(Default, PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Copy, Debug)]
 #[serde(into = "[u32; 3]", from = "[u32; 3]")]
@@ -408,28 +467,36 @@ impl Defense {
 }
 
 impl From<[u32; 3]> for Defense {
-	fn from(a: [u32; 3]) -> Self {
-		Self {
-			armor: a[0],
-			skill: a[1],
-			shield: a[2],
-		}
-	}
+    fn from(a: [u32; 3]) -> Self {
+        Self {
+            armor: a[0],
+            skill: a[1],
+            shield: a[2],
+        }
+    }
 }
 
 impl From<Defense> for [u32; 3] {
-	fn from(d: Defense) -> Self {
-		[d.armor, d.skill, d.shield]
-	}
+    fn from(d: Defense) -> Self {
+        [d.armor, d.skill, d.shield]
+    }
 }
 
 fn no_defense(d: &Defense) -> bool {
-	d.total() == 0
-} 
-
+    d.total() == 0
+}
 
 #[derive(
-    PartialEq, Eq, PartialOrd, Ord, Serialize_repr, Deserialize_repr, ImplicitClone, Clone, Copy, Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Serialize_repr,
+    Deserialize_repr,
+    ImplicitClone,
+    Clone,
+    Copy,
+    Debug,
 )]
 #[repr(u8)]
 pub enum Formation {
@@ -483,7 +550,16 @@ impl Display for Formation {
 }
 
 #[derive(
-    PartialEq, Eq, PartialOrd, Ord, Serialize_repr, Deserialize_repr, ImplicitClone, Clone, Copy, Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Serialize_repr,
+    Deserialize_repr,
+    ImplicitClone,
+    Clone,
+    Copy,
+    Debug,
 )]
 #[repr(u8)]
 pub enum Discipline {

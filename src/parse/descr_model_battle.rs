@@ -1,10 +1,10 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, str::pattern::Pattern};
 
 use anyhow::{Context as _, Result, anyhow};
 
 use crate::parse::manifest::ParserMode;
 
-pub fn parse(data: impl AsRef<str>, _: ParserMode) -> Result<HashMap<String, Mount>> {
+pub fn parse(data: impl AsRef<str>, _: ParserMode) -> Result<HashMap<String, Model>> {
     data.as_ref()
         .lines() // split lines
         .filter_map(|l| l.split(';').nth(0)) // strip comments
@@ -20,11 +20,11 @@ pub fn parse(data: impl AsRef<str>, _: ParserMode) -> Result<HashMap<String, Mou
             acc
         })
         .into_iter()
-        .map(|s| parse_mount(&s).with_context(|| format!("parsing mount: {s:?}")))
+        .map(|s| parse_model(&s).with_context(|| format!("parsing model: {s:?}")))
         .collect()
 }
 
-fn parse_mount(lines: &[String]) -> Result<(String, Mount)> {
+fn parse_model(lines: &[String]) -> Result<(String, Model)> {
     let raw: Vec<_> = lines
         .iter()
         .map(|line| {
@@ -39,51 +39,43 @@ fn parse_mount(lines: &[String]) -> Result<(String, Mount)> {
         .collect::<Result<_>>()?;
     let entries: HashMap<_, _> = raw.iter().copied().collect();
     let id = require_line_value(&entries, "type")?;
+    let skeleton_line = split_line(&entries, "skeleton", ",")?;
     Ok((
         id.into(),
-        Mount {
+        Model {
             id: id.into(),
-            class: parse_class(require_line_value(&entries, "class")?),
-            model: get_line_value(&entries, "model").map(Into::into),
-            horse: get_line_value(&entries, "horse_type").map(Into::into),
+            skeleton: skeleton_line
+                .get(0)
+                .copied()
+                .ok_or_else(|| anyhow!("missing skeleton for {id}"))?
+                .into(),
         },
     ))
 }
 
-fn parse_class(string: &str) -> MountClass {
-    match string {
-        "horse" => MountClass::Horse,
-        "camel" => MountClass::Camel,
-        "elephant" => MountClass::Elephant,
-        "chariot" => MountClass::Chariot,
-        _ => MountClass::Unknown,
-    }
+type ModelEntries<'a> = HashMap<&'a str, Option<&'a str>>;
+
+fn split_line<'a, P>(entries: &'a ModelEntries, key: &str, pat: P) -> Result<Vec<&'a str>>
+where
+    P: Pattern,
+{
+    Ok(require_line_value(entries, key)?
+        .split(pat)
+        .map(|s| s.trim())
+        .filter(|s| s.len() > 0)
+        .collect())
 }
 
-type MountEntries<'a> = HashMap<&'a str, Option<&'a str>>;
-
-fn get_line_value<'a>(entries: &'a MountEntries, key: &str) -> Option<&'a str> {
+fn get_line_value<'a>(entries: &'a ModelEntries, key: &str) -> Option<&'a str> {
     entries.get(key).and_then(Option::as_deref)
 }
 
-fn require_line_value<'a>(entries: &'a MountEntries, key: &str) -> Result<&'a str> {
+fn require_line_value<'a>(entries: &'a ModelEntries, key: &str) -> Result<&'a str> {
     get_line_value(entries, key).ok_or_else(|| anyhow!("{key} not found"))
 }
 
-#[derive(Debug, Clone)]
-pub struct Mount {
+#[derive(Debug)]
+pub struct Model {
     pub id: String,
-    pub class: MountClass,
-    pub model: Option<String>,
-    pub horse: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum MountClass {
-    Horse,
-    Camel,
-    Elephant,
-    Chariot,
-    // ScorpionCart,
-    Unknown,
+    pub skeleton: String,
 }
