@@ -36,7 +36,6 @@ jobs:
           target: ${{ matrix.platform.target }}
           args: "--locked --release"
       - name: Publish artifacts and release
-        id: publish
         uses: houseabsolute/actions-rust-release@v0
         with:
           executable-name: faust
