@@ -31,7 +31,7 @@
     grid-area: card;
     display: grid;
     gap: $gap;
-    width: 190px;
+    width: 194px;
     border: 1px solid black;
     border-radius: 2px;
     align-items: center;
@@ -125,7 +125,7 @@
 
         .turns {
           display: flex;
-          gap: $gap;
+          gap: 1px;
           align-items: center;
           font-size: smaller;
 
@@ -163,7 +163,7 @@
       }
       .stamina {
         display: flex;
-        gap: $gap;
+        gap: 1px;
         font-size: smaller;
         justify-self: start;
         align-items: center;
@@ -270,7 +270,7 @@
         @extend %combat-stats;
         grid-area: details;
         display: flex;
-        gap: $gap;
+        gap: 1px;
         font-size: smaller;
         justify-self: start;
         align-items: center;

@@ -2,12 +2,13 @@ use std::collections::{HashMap, HashSet};
 
 use implicit_clone::unsync::{IArray, IString};
 use indexmap::IndexMap;
-use silphium::model::{Ability, UnitClass, WeaponType};
+use silphium::model::{Ability, MountType, UnitClass, WeaponType};
 
 use crate::{
     args::Config,
     parse::{
         descr_mercenaries::Pool,
+        descr_model_battle::Model,
         descr_mount::{Mount, MountClass},
         descr_regions::Region,
         descr_sm_factions,
@@ -28,6 +29,7 @@ pub fn build_model(
     text: HashMap<String, String>,
     strat: HashMap<String, usize>,
     mounts: HashMap<String, Mount>,
+    models: HashMap<String, Model>,
 ) -> IndexMap<IString, silphium::model::Faction> {
     let unit_map: IndexMap<_, _> = raw_units.into_iter().map(|u| (u.id.clone(), u)).collect();
     let requires = build_requires(&raw_buildings, &unit_map);
@@ -66,20 +68,23 @@ pub fn build_model(
                     let mut legionary_name = false;
                     let mut is_militia = false;
                     let mut is_unique = false;
+                    let mut hide_forest = false;
+                    let mut hide_grass = false;
+                    let mut hide_anywhere = false;
                     for attr in u.stats.attributes.iter() {
                         match attr {
                             Attr::HideForest => cant_hide = false,
                             Attr::HideImprovedForest => {
                                 cant_hide = false;
-                                abilities.push(Ability::HideImprovedForest)
+                                hide_forest = true;
                             }
                             Attr::HideLongGrass => {
                                 cant_hide = false;
-                                abilities.push(Ability::HideLongGrass)
+                                hide_grass = true;
                             }
                             Attr::HideAnywhere => {
                                 cant_hide = false;
-                                abilities.push(Ability::HideAnywhere)
+                                hide_anywhere = true;
                             }
                             Attr::FrightenFoot => frighten_foot = true,
                             Attr::FrightenMounted => frighten_mounted = true,
@@ -112,9 +117,33 @@ pub fn build_model(
                             _ => {}
                         }
                     }
+                    let class = if is_general(u) {
+                        UnitClass::General
+                    } else if is_elephant(u, &mounts) {
+                        UnitClass::Animal
+                    } else if u.category.contains("cavalry") {
+                        UnitClass::Cavalry
+                    } else if u.category.contains("handler") {
+                        UnitClass::Animal
+                    } else if u.category.contains("siege") {
+                        UnitClass::Artillery
+                    } else if u.category.contains("ship") {
+                        UnitClass::Ship
+                    } else if u.class.contains("missile") {
+                        UnitClass::Missile
+                    } else if u.class.contains("spearmen") || has_spears(u) {
+                        UnitClass::Spear
+                    } else {
+                        UnitClass::Sword
+                    };
                     if cant_hide {
-                        abilities.push(Ability::Knight);
                         abilities.push(Ability::CantHide)
+                    } else if hide_anywhere {
+                        abilities.push(Ability::HideAnywhere)
+                    } else if hide_forest {
+                        abilities.push(Ability::HideImprovedForest)
+                    } else if hide_grass {
+                        abilities.push(Ability::HideLongGrass)
                     }
                     if frighten_foot && frighten_mounted {
                         abilities.push(Ability::FrightenAll)
@@ -122,6 +151,10 @@ pub fn build_model(
                         abilities.push(Ability::FrightenFoot)
                     } else if frighten_mounted {
                         abilities.push(Ability::FrightenMounted)
+                    }
+                    let move_speed = get_move_speed(cfg, u, &mounts, &models);
+                    if class == UnitClass::Ship {
+                        abilities.clear();
                     }
                     silphium::model::Unit {
                         id: u.id.clone().into(),
@@ -133,27 +166,7 @@ pub fn build_model(
                             .trim()
                             .to_string()
                             .into(),
-                        class: if is_general(u) {
-                            UnitClass::General
-                        } else if is_elephant(u, &mounts) {
-                            UnitClass::Animal
-                        } else if u.category.contains("cavalry") {
-                            UnitClass::Cavalry
-                        } else if u.category.contains("handler") {
-                            UnitClass::Animal
-                        } else if u.category.contains("siege") {
-                            UnitClass::Artillery
-                        } else if u.category.contains("ship") {
-                            UnitClass::Ship
-                        } else if u.class.contains("missile") {
-                            UnitClass::Missile
-                        } else if u.class.contains("spearmen") {
-                            UnitClass::Spear
-                        } else if has_spears(u) {
-                            UnitClass::Spear
-                        } else {
-                            UnitClass::Sword
-                        },
+                        class,
                         image: if cfg.manifest.unit_info_images {
                             format!(
                                 "data/ui/unit_info/{}/{}_info.tga",
@@ -170,7 +183,7 @@ pub fn build_model(
                         .into(),
                         soldiers: u.stats.soldiers,
                         officers: u.stats.officers,
-                        has_mount_stats: has_mount_stats(u, &mounts),
+                        mount: mount_type(u, &mounts),
                         formations: u.stats.formations.clone().into(),
                         hp: if u.stats.hp < 0 { 0 } else { u.stats.hp as u32 },
                         hp_mount: if u.stats.hp_mount < 0 {
@@ -217,6 +230,8 @@ pub fn build_model(
                         legionary_name,
                         is_militia,
                         is_unique,
+
+                        move_speed,
 
                         abilities: abilities.into(),
                         tech_level: tech_levels.get(&u.id).copied().unwrap_or(99),
@@ -271,6 +286,79 @@ pub fn build_model(
 
     factions
 }
+
+fn get_move_skeleton<'a>(
+    unit: &export_descr_unit::Unit,
+    mounts: &HashMap<String, Mount>,
+    models: &'a HashMap<String, Model>,
+) -> Option<&'a str> {
+    if is_ship(unit) {
+        return None;
+    }
+    let model = get_move_model(unit, mounts);
+    model
+        .and_then(|m| models.get(m))
+        .map(|m| m.skeleton.as_str())
+}
+
+fn get_move_model<'a>(
+    unit: &'a export_descr_unit::Unit,
+    mounts: &'a HashMap<String, Mount>,
+) -> Option<&'a str> {
+    if let Some(mount) = get_mount(unit, mounts) {
+        let mount = if is_chariot(unit, mounts) {
+            &mounts[mount.horse.as_ref().unwrap()]
+        } else {
+            mount
+        };
+        mount.model.as_ref().map(String::as_str)
+    } else {
+        Some(&unit.stats.soldier_model)
+    }
+}
+
+fn get_move_speed(
+    cfg: &Config,
+    unit: &export_descr_unit::Unit,
+    mounts: &HashMap<String, Mount>,
+    models: &HashMap<String, Model>,
+) -> Option<u32> {
+    get_move_skeleton(unit, mounts, models).and_then(|s| {
+        cfg.manifest.speeds.get(s).copied().or_else(|| {
+            SKELETON_SPEED.iter().find_map(|&(sk, sp)| {
+                (sk == s).then_some((sp as f64 * unit.stats.speed_mod).round() as u32)
+            })
+        })
+    })
+}
+
+const SKELETON_SPEED: &[(&str, u32)] = &[
+    ("fs_slow_spearman", 26),
+    ("fs_spearman", 30),
+    ("fs_semi_fast_spearman", 32),
+    ("fs_dagger", 30),
+    ("fs_semi_fast_dagger", 32),
+    ("fs_slow_swordsman", 26),
+    ("fs_swordsman", 30),
+    ("fs_semi_fast_swordsman", 32),
+    ("fs_archer", 30),
+    ("fs_semi_fast_archer", 32),
+    ("fs_javelinman", 30),
+    ("fs_semi_fast_javelinman", 32),
+    ("fs_2handed", 30),
+    ("fs_2handed_berserker", 32),
+    ("fs_slinger_new", 35),
+    ("fs_standard_bearer", 30),
+    ("fs_indian_elephant", 39),
+    ("fs_african_elephant", 39),
+    ("fs_forest_elephant", 39),
+    ("fs_indian_giant_elephant", 39),
+    ("fs_camel", 40),
+    ("fs_cataphract_horse", 41),
+    ("fs_medium_horse", 50),
+    ("fs_horse", 54),
+    ("fs_fast_horse", 62),
+];
 
 fn build_weapon(weapon: &export_descr_unit::Weapon) -> Option<silphium::model::Weapon> {
     if weapon.weapon_type == "no" {
@@ -332,8 +420,30 @@ fn build_weapon(weapon: &export_descr_unit::Weapon) -> Option<silphium::model::W
     })
 }
 
+fn is_ship(unit: &export_descr_unit::Unit) -> bool {
+    unit.category.contains("ship")
+}
+
 fn is_general(unit: &export_descr_unit::Unit) -> bool {
     unit.stats.attributes.contains(&Attr::GeneralUnit)
+}
+
+fn has_mount(unit: &export_descr_unit::Unit) -> bool {
+    unit.stats.mount.is_some()
+}
+
+fn get_mount<'a>(
+    unit: &export_descr_unit::Unit,
+    mounts: &'a HashMap<String, Mount>,
+) -> Option<&'a Mount> {
+    unit.stats
+        .mount
+        .as_ref()
+        .and_then(|mount| mounts.get(mount))
+}
+
+fn is_chariot(unit: &export_descr_unit::Unit, mounts: &HashMap<String, Mount>) -> bool {
+    get_mount(unit, mounts).is_some_and(|mount| mount.class == MountClass::Chariot)
 }
 
 fn can_horde(unit: &export_descr_unit::Unit) -> bool {
@@ -341,18 +451,16 @@ fn can_horde(unit: &export_descr_unit::Unit) -> bool {
 }
 
 fn is_elephant(unit: &export_descr_unit::Unit, mounts: &HashMap<String, Mount>) -> bool {
-    unit.stats.mount.as_ref().is_some_and(|mount| {
-        mounts
-            .get(mount)
-            .is_some_and(|mount| mount.class == MountClass::Elephant)
-    })
+    get_mount(unit, mounts).is_some_and(|mount| mount.class == MountClass::Elephant)
 }
 
-fn has_mount_stats(unit: &export_descr_unit::Unit, mounts: &HashMap<String, Mount>) -> bool {
-    unit.stats.mount.as_ref().is_some_and(|mount| {
-        mounts
-            .get(mount)
-            .is_some_and(|mount| mount.class != MountClass::Horse)
+fn mount_type(unit: &export_descr_unit::Unit, mounts: &HashMap<String, Mount>) -> MountType {
+    get_mount(unit, mounts).map_or(MountType::Foot, |mount| {
+        if mount.class == MountClass::Horse {
+            MountType::Horse
+        } else {
+            MountType::Other
+        }
     })
 }
 

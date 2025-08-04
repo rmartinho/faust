@@ -7,7 +7,7 @@ use crate::{
 };
 
 fn pluralize<'a>(value: u32, singular: &'a str, plural: &'a str) -> &'a str {
-    if value > 1 { singular } else { plural }
+    if value == 1 { singular } else { plural }
 }
 
 #[autoprops]
@@ -120,7 +120,7 @@ pub fn unit_card(unit: Unit) -> Html {
             <Icon class="icon" title={discipline_tooltip} src="/icons/discipline.svg" symbol={unit.discipline.to_string()} />
             <div class="mental" title={format!("Morale: {}", unit.morale)}>
               <span class="morale">{ unit.morale }</span>
-              if unit.stamina > 0 || unit.inexhaustible {
+              if unit.move_speed.is_some() || unit.stamina > 0 || unit.inexhaustible {
                 <StaminaDetails unit={&unit} />
               }
             </div>
@@ -133,7 +133,7 @@ pub fn unit_card(unit: Unit) -> Html {
             <WeaponRow class="weapon2-row" unit={&unit} {weapon} />
           }
           <DefenseRow class="defense1-row" def={&unit.defense} hp={unit.hp} />
-          if unit.has_mount_stats {
+          if unit.mount.has_mount_stats() {
             <DefenseRow class="defense2-row" mount={true} def={&unit.defense_mount} hp={unit.hp_mount} />
           }
           <div class="abilities">
@@ -182,10 +182,36 @@ pub fn terrain_details(unit: Unit) -> Html {
 pub fn stamina_details(unit: Unit) -> Html {
     use std::fmt::Write as _;
 
-    let title = if unit.inexhaustible {
-        "Inexhaustible".into()
+    let speed = unit.move_speed.map(|s| {
+        (
+            s,
+            if unit.mount.has_mount() {
+                match s {
+                    ..44 => 1,
+                    ..51 => 2,
+                    ..58 => 3,
+                    _ => 4,
+                }
+            } else {
+                match s {
+                    ..28 => 1,
+                    ..31 => 2,
+                    ..34 => 3,
+                    _ => 4,
+                }
+            },
+        )
+    });
+
+    let mut title = if let Some((speed, _)) = &speed {
+        format!("Speed: {speed}\n")
     } else {
-        let mut title = format!("{} stamina", unit.stamina);
+        String::new()
+    };
+    if unit.inexhaustible {
+        let _ = write!(title, "Inexhaustible");
+    } else {
+        let _ = write!(title, "Stamina: {}", unit.stamina);
         if unit.heat != 0 {
             let _ = write!(
                 title,
@@ -194,20 +220,26 @@ pub fn stamina_details(unit: Unit) -> Html {
                 -unit.heat,
             );
         }
-        title
     };
 
     html! {
       <div class="stamina" {title}>
-        if unit.stamina > 0 {
-          <Icon class="attribute" height={512} width={256} src="/icons/attribute.svg" symbol="stamina" />
+        if let Some(speed) = speed {
+          <Icon class="attribute" src="/icons/speed.svg" height={512} width={256} symbol={format!("speed-{}", speed.1)} />
+          <span>{ format!("{}", speed.0) }</span>
+        }
+        if unit.inexhaustible {
+          <Icon class="attribute" height={512} width={512} src="/icons/attribute.svg" symbol="inexhaustible" />
+        } else {
+          if unit.stamina > 0 {
+            <Icon class="attribute" height={512} width={256} src="/icons/attribute.svg" symbol="stamina" />
+            <span>{ format!("{}", unit.stamina) }</span>
+          }
           if unit.heat != 0 {
-            <Icon class="attribute" height={512} width={384} src="/icons/attribute.svg" symbol="heat" />
+            <Icon class="attribute" height={512} width={256} src="/icons/attribute.svg" symbol="heat" />
             <span>{ format!("{:+}", -unit.heat) }</span>
           }
-        } else {
-          <Icon class="attribute" height={512} width={512} src="/icons/attribute.svg" symbol="inexhaustible" />
-        }
+      }
       </div>
     }
 }

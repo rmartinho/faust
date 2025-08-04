@@ -70,6 +70,14 @@ fn parse_statblock(entries: &UnitEntries, raw: &[(&str, Option<&str>)]) -> Resul
         .parse()?;
 
     Ok(StatBlock {
+        soldier_model: if let Ok(l) = &soldier_line {
+            l.get(0)
+                .copied()
+                .ok_or_else(|| anyhow!("missing soldier model"))
+                .map(Into::into)?
+        } else {
+            todo!()
+        },
         soldiers: if let Ok(l) = soldier_line {
             l.get(1)
                 .copied()
@@ -385,6 +393,8 @@ pub struct Unit {
 
 #[derive(Debug)]
 pub struct StatBlock {
+    pub soldier_model: String,
+    pub speed_mod: f64,
     pub soldiers: u32,
     pub officers: u32,
     pub mount: Option<String>,
@@ -403,7 +413,6 @@ pub struct StatBlock {
     pub turns: u32,
     pub cost: u32,
     pub upkeep: u32,
-    pub speed_mod: f64,
 }
 
 #[derive(Debug)]

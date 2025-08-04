@@ -1,6 +1,7 @@
 ## 0.3.0
 
-- Reduce size of serialized mod data by 80%; this saves bandwidth and improves loading speed
+- Estimate and display speed
+- Reduce size of internal data structures by 80%; this saves bandwidth and improves loading speed
 
 ## 0.2.2 2025-08-02
 
