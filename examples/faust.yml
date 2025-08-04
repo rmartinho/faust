@@ -1,0 +1,59 @@
+# This file uses YAML syntax
+# All text after # are comments and are ignored by FAUST
+# This is an example file, meant for use with the base game
+# This file is more verbose than necessary, for demonstration purposes
+# Unless specified otherwise, all entries are optional
+
+id: vanilla # (required) the ID of the mod; should be unique, as this is used in URLs and internally in scripts
+name: Vanilla # (required) the name of the mod; this is shown in the page title
+campaign: imperial_campaign # (required) the campaign folder to parse
+
+mode: remastered # which game is this mod for? original, remastered, or medieval2 (default: remastered)
+unit_info_images: true # whether to use the unit info images instead of the unit card images (default: false)
+
+aliases: # alternative IDs for factions; this is used in URLs (default: no aliases)
+  julii: romans_julii # this means that at the URL /mod/julii the site will display the romans_julii faction
+  brutii: romans_brutii
+  scipii: romans_scipii
+  spqr: romans_senate
+  gaul: gauls
+  germania: germans
+  britannia: britons
+  rebels: slave
+
+eras: # era definitions (default: no eras)
+  pre_marian: # era ID; should be unique as this is used internally in scripts and maybe in URLs
+    name: Before the Marian reforms # era name; this is shown in the era selection buttons
+    major_event: # the game state necessary for this era; at present only major_event conditions are supported
+      marian_reforms: false # this era is active when the marian_reforms event has not been triggered
+  post_marian:
+    name: After the Marian reforms
+    major_event:
+      marian_reforms: true # this era is active when the marian_reforms event *has* been triggered
+
+speeds: # skeleton speed overrides; this is not necessary unless there have been changes made to the animations
+  fs_slow_spearman: 26 # these specified here are all of the default speeds; they can be omitted
+  fs_spearman: 30 # the speed arrow icons are chosen relative to these speeds, with different intervals for foot and for mounted troops
+  fs_semi_fast_spearman: 32
+  fs_dagger: 30
+  fs_semi_fast_dagger: 32
+  fs_slow_swordsman: 26
+  fs_swordsman: 30
+  fs_semi_fast_swordsman: 32
+  fs_archer: 30
+  fs_semi_fast_archer: 32
+  fs_javelinman: 30
+  fs_semi_fast_javelinman: 32
+  fs_2handed: 30
+  fs_2handed_berserker: 32
+  fs_slinger_new: 35
+  fs_standard_bearer: 30
+  fs_indian_elephant: 39
+  fs_african_elephant: 39
+  fs_forest_elephant: 39
+  fs_indian_giant_elephant: 39
+  fs_camel: 40
+  fs_cataphract_horse: 41
+  fs_medium_horse: 50
+  fs_horse: 54
+  fs_fast_horse: 62
