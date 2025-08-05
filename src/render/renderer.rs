@@ -1,17 +1,19 @@
 use std::{
     fmt::{self, Display, Formatter, Write as _},
-    io::Cursor,
     path::{Component, Path, PathBuf},
 };
 
 use anyhow::{Context as _, Result};
 use askama::Template as _;
-use image::{ImageFormat, ImageReader, imageops::FilterType};
+use image::{
+    DynamicImage, Rgba, RgbaImage,
+    imageops::{FilterType, filter3x3, overlay},
+};
 use implicit_clone::unsync::IString;
 use indicatif::{HumanBytes, MultiProgress, ProgressBar};
 use silphium::{
     ModuleMap, Route, StaticApp, StaticAppProps,
-    model::{Era, Faction, Module, Unit},
+    model::{Era, Faction, Module, Pool, Region, Unit},
 };
 use tokio::fs;
 use yew_router::Routable as _;
@@ -19,7 +21,10 @@ use yew_router::Routable as _;
 use crate::{
     args::Config,
     render::templates::{FILESYSTEM_STATIC, IndexHtml, PrefetchHtml, RedirectHtml},
-    utils::{FOLDER, LINK, PAPER, PICTURE, path_fallback, progress_style, read_file, write_file},
+    utils::{
+        FOLDER, LINK, PAPER, PICTURE, path_fallback, progress_style, read_image, try_paths,
+        write_file, write_image,
+    },
 };
 
 #[derive(Clone)]
@@ -137,19 +142,59 @@ impl Renderer {
             pb.set_message(format!("{PICTURE}rendering {}", web_path(&banner_path)));
             Self::render_image(&src, &dst, MOD_BANNER_SIZE).await?;
 
+            let radar_map_path = try_paths(
+                &self.cfg,
+                [
+                    &format!(
+                        "data/world/maps/campaign/{}/feral_radar_map.tga",
+                        self.cfg.manifest.campaign
+                    ),
+                    "data/world/maps/base/feral_radar_map.tga",
+                ],
+            );
+            let regions_map_path = try_paths(
+                &self.cfg,
+                [
+                    &format!(
+                        "data/world/maps/campaign/{}/map_regions.tga",
+                        self.cfg.manifest.campaign
+                    ),
+                    "data/world/maps/base/map_regions.tga",
+                ],
+            );
+            let radar = read_image(radar_map_path).await?.into_rgba8().into();
+            let mut areas = read_image(regions_map_path).await?.into_rgba8().into();
+            erase_cities_and_ports(&mut areas);
+            let pools = m.pools.make_mut();
+            for p in pools.iter_mut() {
+                let pool_path = Self::pool_path(&m.id, p);
+                let dst = self.cfg.out_dir.join(&pool_path);
+                pb.tick();
+                pb.set_message(format!("{PICTURE}rendering {}", web_path(&pool_path)));
+                Self::render_map(
+                    &radar,
+                    &areas,
+                    &dst,
+                    m.regions.values().filter(|r| p.regions.contains(&r.id)),
+                    (0xFF, 0x71, 0x00),
+                    (0x00, 0x00, 0x00),
+                )
+                .await?;
+            }
+
             for e in m.eras.values_mut() {
                 let src = self.cfg.manifest_dir.join(e.icon.as_ref());
                 let icon_path = Self::era_icon_path(&m.id, e);
                 let dst = self.cfg.out_dir.join(&icon_path);
                 pb.tick();
-                pb.set_message(format!("{PICTURE}rendering {}", web_path(&banner_path)));
+                pb.set_message(format!("{PICTURE}rendering {}", web_path(&icon_path)));
                 Self::render_image(&src, &dst, ERA_ICON_SIZE).await?;
 
                 let src = self.cfg.manifest_dir.join(e.icoff.as_ref());
                 let icoff_path = Self::era_icoff_path(&m.id, e);
                 let dst = self.cfg.out_dir.join(&icoff_path);
                 pb.tick();
-                pb.set_message(format!("{PICTURE}rendering {}", web_path(&banner_path)));
+                pb.set_message(format!("{PICTURE}rendering {}", web_path(&icoff_path)));
                 Self::render_image(&src, &dst, ERA_ICON_SIZE).await?;
             }
 
@@ -234,23 +279,58 @@ impl Renderer {
         path
     }
 
-    async fn render_image(from: &Path, to: &Path, (height, width): (u32, u32)) -> Result<()> {
-        let buf = read_file(from)
-            .await
-            .with_context(|| format!("reading image {}", from.display()))?;
-        let format = ImageFormat::from_path(from)
-            .with_context(|| format!("selecting image format for {}", from.display()))?;
-        let img = ImageReader::with_format(Cursor::new(buf), format)
-            .decode()
-            .with_context(|| format!("reading image {}", from.display()))?;
-        let img = img.resize(height, width, FilterType::Lanczos3);
-        let mut buf = vec![];
-        img.write_to(&mut Cursor::new(&mut buf), ImageFormat::WebP)
-            .with_context(|| format!("converting image {}", from.display()))?;
-        write_file(&to, buf)
-            .await
-            .with_context(|| format!("writing image {}", to.display()))?;
-        Ok(())
+    fn pool_path(module_id: &IString, pool: &mut Pool) -> PathBuf {
+        let path = PathBuf::from("images")
+            .join(module_id.as_ref())
+            .join("pools")
+            .join(pool.id.as_ref())
+            .with_extension("webp");
+        pool.map = web_path(&path).into();
+        path
+    }
+
+    async fn render_image(from: &Path, to: &Path, (width, height): (u32, u32)) -> Result<()> {
+        let img = read_image(from).await?;
+        let img = img.resize(width, height, FilterType::Lanczos3);
+        write_image(to, &img).await
+    }
+
+    async fn render_map<'a>(
+        radar: &RgbaImage,
+        areas: &RgbaImage,
+        to: &Path,
+        regions: impl IntoIterator<Item = &'a Region>,
+        color: (u8, u8, u8),
+        border_color: (u8, u8, u8),
+    ) -> Result<()> {
+        let mut image = DynamicImage::from(radar.clone());
+        let regions: Vec<_> = regions.into_iter().collect();
+        let color = Rgba([color.0, color.1, color.2, 0xFF]);
+        let border_color = Rgba([border_color.0, border_color.1, border_color.2, 0xFF]);
+        let regions = regions.into_iter();
+        let mut blots = DynamicImage::from(RgbaImage::from_pixel(
+            areas.width(),
+            areas.height(),
+            Rgba([0, 0, 0, 0]),
+        ));
+        for region in regions {
+            let mut blot = RgbaImage::from_pixel(areas.width(), areas.height(), Rgba([0, 0, 0, 0]));
+            let mut border =
+                RgbaImage::from_pixel(areas.width(), areas.height(), Rgba([0, 0, 0, 0]));
+            let region_color = Rgba([region.color.0, region.color.1, region.color.2, 0xFF]);
+            areas
+                .enumerate_pixels()
+                .filter_map(|(x, y, p)| (region_color == *p).then_some((x, y)))
+                .for_each(|(x, y)| {
+                    blot.put_pixel(x, y, color);
+                    border.put_pixel(x, y, border_color)
+                });
+            overlay(&mut blots, &blot, 0, 0);
+            overlay(&mut blots, &filter3x3(&border, EDGE_KERNEL), 0, 0);
+        }
+        let blots = blots.resize(image.width(), image.height(), FilterType::Lanczos3);
+        overlay(&mut image, &blots, 0, 0);
+        write_image(to, &DynamicImage::from(image)).await
     }
 
     async fn render_data(&mut self, m: MultiProgress) -> Result<()> {
@@ -435,6 +515,40 @@ fn collect_routes(modules: &ModuleMap) -> Vec<RenderRoute> {
     routes
 }
 
+fn erase_cities_and_ports(image: &mut RgbaImage) {
+    let copy = image.clone();
+    for (x, y, p) in image.enumerate_pixels_mut() {
+        if *p == CITY_COLOR || *p == PORT_COLOR {
+            for n in get_neighbors(&copy, x, y) {
+                *p = n;
+                break;
+            }
+        }
+    }
+}
+
+fn get_neighbors(image: &RgbaImage, x: u32, y: u32) -> impl Iterator<Item = Rgba<u8>> {
+    let x = x as i64;
+    let y = y as i64;
+    let coordinates = [
+        (x, y - 1),
+        (x, y + 1),
+        (x - 1, y),
+        (x + 1, y),
+        (x - 1, y - 1),
+        (x + 1, y - 1),
+        (x - 1, y + 1),
+        (x + 1, y + 1),
+    ];
+    coordinates.into_iter().filter_map(|(x, y)| {
+        if x < 0 || y < 0 || x as u32 >= image.width() || y as u32 >= image.height() {
+            return None;
+        }
+        let p = image.get_pixel(x as u32, y as u32);
+        (*p != WATER_COLOR).then_some(*p)
+    })
+}
+
 fn prepare_route(route: Route, preload: Vec<(String, Preload)>) -> RenderRoute {
     let path = route.to_path();
     let path = PathBuf::from(&path[1..]).join("index.html");
@@ -458,7 +572,13 @@ fn prepare_redirect(from: Route, to: Route) -> RenderRoute {
     }
 }
 
-const MOD_BANNER_SIZE: (u32, u32) = (512, 256);
+const MOD_BANNER_SIZE: (u32, u32) = (256, 512);
 const ERA_ICON_SIZE: (u32, u32) = (64, 64);
 const FACTION_SYMBOL_SIZE: (u32, u32) = (128, 128);
-const UNIT_PORTRAIT_SIZE: (u32, u32) = (82, 112);
+const UNIT_PORTRAIT_SIZE: (u32, u32) = (112, 82);
+
+const EDGE_KERNEL: &[f32] = &[-1.0, -1.0, -1.0, -1.0, 8.0, -1.0, -1.0, -1.0, -1.0];
+
+const WATER_COLOR: Rgba<u8> = Rgba([0x29, 0x8C, 0xE9, 0xFF]);
+const CITY_COLOR: Rgba<u8> = Rgba([0x00, 0x00, 0x00, 0xFF]);
+const PORT_COLOR: Rgba<u8> = Rgba([0xFF, 0xFF, 0xFF, 0xFF]);

@@ -75,7 +75,7 @@ pub struct Region {
     pub id: String,
     pub legion: Option<String>,
     pub city: String,
-    pub color: (u32, u32, u32),
+    pub color: (u8, u8, u8),
     pub hidden_resources: Vec<String>,
     // pub religions: HashMap<String, u32>,
 }

@@ -15,6 +15,12 @@ use serde_with::serde_as;
 use thiserror::Error;
 use yew::Properties;
 
+#[serde_with::apply(
+    Option => #[serde(default, skip_serializing_if = "Option::is_none")],
+    IArray => #[serde(default, skip_serializing_if = "IArray::is_empty")],
+    HashMap => #[serde(default, skip_serializing_if = "HashMap::is_empty")],
+    IndexMap => #[serde(default, skip_serializing_if = "IndexMap::is_empty")],
+)]
 #[derive(Properties, PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
 pub struct Module {
     #[serde(rename = "i")]
@@ -26,14 +32,23 @@ pub struct Module {
 
     #[serde(rename = "f")]
     pub factions: IndexMap<IString, Faction>,
+    #[serde(rename = "r")]
+    pub regions: IndexMap<IString, Region>,
+    #[serde(rename = "p")]
+    pub pools: IArray<Pool>,
+
     #[serde(rename = "a")]
-    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub aliases: HashMap<IString, IString>,
     #[serde(rename = "e")]
-    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
     pub eras: IndexMap<IString, Era>,
 }
 
+#[serde_with::apply(
+    Option => #[serde(default, skip_serializing_if = "Option::is_none")],
+    IArray => #[serde(default, skip_serializing_if = "IArray::is_empty")],
+    bool => #[serde_as(as = "BoolFromInt")]
+            #[serde(default, skip_serializing_if = "utils::is_false")],
+)]
 #[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
 pub struct Faction {
     #[serde(rename = "i")]
@@ -43,28 +58,13 @@ pub struct Faction {
     #[serde(rename = "b")]
     pub image: IString,
     #[serde(rename = "a")]
-    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub alias: Option<IString>,
     #[serde(rename = "e")]
-    #[serde(default, skip_serializing_if = "IArray::is_empty")]
     pub eras: IArray<IString>,
     #[serde(rename = "h")]
-    #[serde(default, skip_serializing_if = "is_false")]
     pub is_horde: bool,
     #[serde(rename = "r")]
     pub roster: IArray<Unit>,
-}
-
-fn make_true() -> bool {
-    true
-}
-
-fn is_true(b: &bool) -> bool {
-    *b
-}
-
-fn is_false(b: &bool) -> bool {
-    !*b
 }
 
 impl Faction {
@@ -92,8 +92,8 @@ pub struct Era {
     Option => #[serde(default, skip_serializing_if = "Option::is_none")],
     IArray => #[serde(default, skip_serializing_if = "IArray::is_empty")],
     bool => #[serde_as(as = "BoolFromInt")]
-            #[serde(default, skip_serializing_if = "is_false")],
-    u32 => #[serde(default, skip_serializing_if = "is_zero_u32")],
+            #[serde(default, skip_serializing_if = "utils::is_false")],
+    u32 => #[serde(default, skip_serializing_if = "utils::is_zero_u32")],
 )]
 #[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
 pub struct Unit {
@@ -118,7 +118,7 @@ pub struct Unit {
     pub formations: IArray<Formation>,
     #[serde_with(skip_apply)]
     #[serde(rename = "h")]
-    #[serde(default = "one_u32", skip_serializing_if = "is_one_u32")]
+    #[serde(default = "utils::one_u32", skip_serializing_if = "utils::is_one_u32")]
     pub hp: u32,
     #[serde(rename = "H")]
     pub hp_mount: u32,
@@ -129,13 +129,13 @@ pub struct Unit {
     #[serde(rename = "d")]
     pub defense: Defense,
     #[serde(rename = "D")]
-    #[serde(default, skip_serializing_if = "no_defense")]
+    #[serde(default, skip_serializing_if = "utils::no_defense")]
     pub defense_mount: Defense,
     #[serde(rename = "t")]
-    #[serde(default, skip_serializing_if = "is_zero_i32")]
+    #[serde(default, skip_serializing_if = "utils::is_zero_i32")]
     pub heat: i32,
     #[serde(rename = "T")]
-    #[serde(default, skip_serializing_if = "no_ground_bonus")]
+    #[serde(default, skip_serializing_if = "utils::no_ground_bonus")]
     pub ground_bonus: GroundBonus,
     #[serde(rename = "m")]
     pub morale: u32,
@@ -143,7 +143,7 @@ pub struct Unit {
     pub discipline: Discipline,
     #[serde(rename = "r")]
     #[serde_with(skip_apply)]
-    #[serde(default = "one_u32", skip_serializing_if = "is_one_u32")]
+    #[serde(default = "utils::one_u32", skip_serializing_if = "utils::is_one_u32")]
     pub turns: u32,
     #[serde(rename = "$")]
     pub cost: u32,
@@ -159,7 +159,7 @@ pub struct Unit {
     #[serde_with(skip_apply)]
     #[serde_as(as = "BoolFromInt")]
     #[serde(rename = "S")]
-    #[serde(default = "make_true", skip_serializing_if = "is_true")]
+    #[serde(default = "utils::make_true", skip_serializing_if = "utils::is_true")]
     pub scaling: bool,
     #[serde(rename = "a")]
     #[serde_as(as = "OneOrMany<_>")]
@@ -187,30 +187,6 @@ pub struct Unit {
 
     #[serde(rename = "s")]
     pub move_speed: Option<u32>,
-}
-
-fn is_zero_u32(u: &u32) -> bool {
-    *u == 0
-}
-
-fn is_zero_i32(i: &i32) -> bool {
-    *i == 0
-}
-
-fn is_one_u32(u: &u32) -> bool {
-    *u == 1
-}
-
-fn is_one_f64(f: &f64) -> bool {
-    *f == 1.0
-}
-
-fn one_u32() -> u32 {
-    1
-}
-
-fn one_f64() -> f64 {
-    1.0
 }
 
 #[derive(
@@ -353,8 +329,8 @@ impl Display for Ability {
 }
 
 #[serde_with::apply(
-    bool => #[serde(default, skip_serializing_if = "is_false")],
-    u32 => #[serde(default, skip_serializing_if = "is_zero_u32")],
+    bool => #[serde(default, skip_serializing_if = "utils::is_false")],
+    u32 => #[serde(default, skip_serializing_if = "utils::is_zero_u32")],
 )]
 #[derive(PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
 pub struct Weapon {
@@ -371,7 +347,7 @@ pub struct Weapon {
     #[serde(rename = "#")]
     pub ammo: u32,
     #[serde(rename = "l")]
-    #[serde(default = "one_f64", skip_serializing_if = "is_one_f64")]
+    #[serde(default = "utils::one_f64", skip_serializing_if = "utils::is_one_f64")]
     pub lethality: f64,
     #[serde(rename = "a")]
     pub armor_piercing: bool,
@@ -423,7 +399,7 @@ impl Display for WeaponType {
 }
 
 #[derive(Default, PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Copy, Debug)]
-#[serde(into = "[i32; 4]", from = "[i32; 4]")]
+#[serde(into = "(i32, i32, i32, i32)", from = "(i32, i32, i32, i32)")]
 pub struct GroundBonus {
     pub scrub: i32,
     pub sand: i32,
@@ -431,29 +407,25 @@ pub struct GroundBonus {
     pub snow: i32,
 }
 
-impl From<[i32; 4]> for GroundBonus {
-    fn from(a: [i32; 4]) -> Self {
+impl From<(i32, i32, i32, i32)> for GroundBonus {
+    fn from(a: (i32, i32, i32, i32)) -> Self {
         Self {
-            scrub: a[0],
-            sand: a[1],
-            forest: a[2],
-            snow: a[3],
+            scrub: a.0,
+            sand: a.1,
+            forest: a.2,
+            snow: a.3,
         }
     }
 }
 
-impl From<GroundBonus> for [i32; 4] {
+impl From<GroundBonus> for (i32, i32, i32, i32) {
     fn from(g: GroundBonus) -> Self {
-        [g.scrub, g.sand, g.forest, g.snow]
+        (g.scrub, g.sand, g.forest, g.snow)
     }
 }
 
-fn no_ground_bonus(g: &GroundBonus) -> bool {
-    g.scrub == 0 && g.sand == 0 && g.forest == 0 && g.snow == 0
-}
-
 #[derive(Default, PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Copy, Debug)]
-#[serde(into = "[u32; 3]", from = "[u32; 3]")]
+#[serde(into = "(u32, u32, u32)", from = "(u32, u32, u32)")]
 pub struct Defense {
     pub armor: u32,
     pub skill: u32,
@@ -466,24 +438,20 @@ impl Defense {
     }
 }
 
-impl From<[u32; 3]> for Defense {
-    fn from(a: [u32; 3]) -> Self {
+impl From<(u32, u32, u32)> for Defense {
+    fn from(a: (u32, u32, u32)) -> Self {
         Self {
-            armor: a[0],
-            skill: a[1],
-            shield: a[2],
+            armor: a.0,
+            skill: a.1,
+            shield: a.2,
         }
     }
 }
 
-impl From<Defense> for [u32; 3] {
+impl From<Defense> for (u32, u32, u32) {
     fn from(d: Defense) -> Self {
-        [d.armor, d.skill, d.shield]
+        (d.armor, d.skill, d.shield)
     }
-}
-
-fn no_defense(d: &Defense) -> bool {
-    d.total() == 0
 }
 
 #[derive(
@@ -603,5 +571,124 @@ impl Display for Discipline {
             Self::Impetuous => write!(f, "impetuous"),
             Self::Berserker => write!(f, "berserker"),
         }
+    }
+}
+
+#[serde_with::apply(
+    Option => #[serde(default, skip_serializing_if = "Option::is_none")],
+    IArray => #[serde(default, skip_serializing_if = "IArray::is_empty")],
+)]
+#[derive(Properties, PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
+pub struct Pool {
+    #[serde(rename = "i")]
+    pub id: IString,
+    #[serde(rename = "r")]
+    pub regions: IArray<IString>,
+    #[serde(rename = "u")]
+    pub units: IArray<PoolEntry>,
+    #[serde(default, skip)]
+    pub map: IString,
+}
+
+#[serde_with::apply(
+    IArray => #[serde(default, skip_serializing_if = "IArray::is_empty")],
+    u32 => #[serde(default, skip_serializing_if = "utils::is_zero_u32")],
+)]
+#[derive(Properties, PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
+pub struct PoolEntry {
+    #[serde(rename = "i")]
+    pub unit: IString,
+    #[serde(rename = "x")]
+    pub exp: u32,
+    #[serde(rename = "c")]
+    pub cost: u32,
+    #[serde(rename = "r")]
+    pub replenish: Replenish,
+    #[serde(rename = "m")]
+    pub max: u32,
+    #[serde(rename = "s")]
+    pub initial: u32,
+    #[serde(rename = "R")]
+    pub restrict: IArray<IString>,
+}
+
+#[serde_with::apply(
+    Option => #[serde(default, skip_serializing_if = "Option::is_none")],
+    IArray => #[serde(default, skip_serializing_if = "IArray::is_empty")],
+)]
+#[derive(Properties, PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
+pub struct Region {
+    #[serde(rename = "i")]
+    pub id: IString,
+    #[serde(rename = "l")]
+    pub legion: Option<IString>,
+    #[serde(rename = "c")]
+    pub color: (u8, u8, u8),
+    #[serde(rename = "r")]
+    pub hidden_resources: IArray<IString>,
+}
+
+#[derive(Properties, PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
+#[serde(into = "(f64, f64)", from = "(f64, f64)")]
+pub struct Replenish {
+    pub min: f64,
+    pub max: f64,
+}
+
+impl From<(f64, f64)> for Replenish {
+    fn from(a: (f64, f64)) -> Self {
+        Self { min: a.0, max: a.1 }
+    }
+}
+
+impl From<Replenish> for (f64, f64) {
+    fn from(r: Replenish) -> Self {
+        (r.min, r.max)
+    }
+}
+
+mod utils {
+    pub fn make_true() -> bool {
+        true
+    }
+
+    pub fn is_true(b: &bool) -> bool {
+        *b
+    }
+
+    pub fn is_false(b: &bool) -> bool {
+        !*b
+    }
+
+    pub fn is_zero_u32(u: &u32) -> bool {
+        *u == 0
+    }
+
+    pub fn is_zero_i32(i: &i32) -> bool {
+        *i == 0
+    }
+
+    pub fn is_one_u32(u: &u32) -> bool {
+        *u == 1
+    }
+
+    pub fn is_one_f64(f: &f64) -> bool {
+        *f == 1.0
+    }
+
+    pub fn one_u32() -> u32 {
+        1
+    }
+
+    pub fn one_f64() -> f64 {
+        1.0
+    }
+
+    pub fn no_defense(d: &super::Defense) -> bool {
+        d.total() == 0
+    }
+
+    pub fn no_ground_bonus(g: &super::GroundBonus) -> bool {
+        g.scrub == 0 && g.sand == 0 && g.forest == 0 && g.snow == 0
     }
 }
