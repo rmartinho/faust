@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>FAUST</title>
+  </head>
+  <body class="container">
+    <header>
+      <hgroup>
+        <h1>FAUST</h1>
+        <p>Faction and Unit Stat Tables</p>
+      </hgroup>
+    </header>
+    <main>
+      <details open>
+        <summary role="button">What is FAUST?</summary>
+        <p>
+          FAUST is a website generator for visualizing unit stats for
+          <em>Rome:&nbsp;Total&nbsp;War</em> mods. It supports mods for the
+          original <em>Rome:&nbsp;Total&nbsp;War</em> as well as
+          <em>Total&nbsp;War:&nbsp;Rome&nbsp;Remastered</em>, and there is also
+          some support for <em>Medieval&nbsp;II:&nbsp;Total&nbsp;War</em> mods.
+        </p>
+      </details>
+      <details>
+        <summary role="button">How do I get FAUST?</summary>
+        <p>
+          You can download
+          <a href="https://github.com/rmartinho/faust/releases/latest"
+            >the latest version</a
+          >
+          of FAUST from the releases page. FAUST works on multiple operating
+          systems, so choose the one that matches yours and download the
+          corresponding zip file. Inside you will find an executable file, a
+          README with instructions, and a file describing what&rsquo;s changed
+          from previous versions.
+        </p>
+      </details>
+      <details>
+        <summary role="button">How do I use FAUST?</summary>
+        <p>
+          Once you have downloaded the latest release for your operating system,
+          you need to prepare a manifest. The manifest is a file that describes
+          how you want to process your mod. Inside the mod folder, create a
+          folder named
+          <code>faust</code>. This is, next to the <code>data</code> folder, not
+          inside it. All of the FAUST-specific files will go in that folder.
+        </p>
+        <p>
+          Inside the <code>faust</code> folder, create a text file named
+          <code>faust.yml</code>. This will be your manifest file. This file
+          will be written in YAML syntax. Don&rsquo;t worry if you&rsquo;re not
+          familiar with that; it should be quite straighforward once you see
+          examples. Here&rsquo;s an example of a simple manifest.
+        </p>
+
+        <pre>
+id: rome_partial_war
+name: "Rome: Partial War"
+game: original</pre
+        >
+
+        <p>
+          A manifest like this first declares an ID for the mod, which will be
+          used internally and also in URL. Then it declares the display name of
+          the mod. This will be shown in page content and page titles. And
+          lastly, it defines which game the mod is for, so FAUST knows how to
+          process the mod folder. The three possibilities are
+          <code>original</code>, <code>remastered</code>, and
+          <code>medieval2</code>.
+        </p>
+        <p>
+          There are more options available but they are optional and you may or
+          may not need to use them. These three are all that is required. If you
+          want to see what other options are available, you can scroll down to
+          that section.
+        </p>
+        <p>
+          Once you have a manifest file, you still need one more thing: a banner
+          image to represent your mod. This is just an image file named
+          <code>banner.png</code> next to the manifest file. This image can be
+          whatever you want, but you should know that ir will be displayed as a
+          512x256 image.
+        </p>
+        <p>
+          Now that you have everything ready, it&rsquo;s time to launch FAUST.
+          FAUST is a command-line application, but the Windows version has some
+          niceties that make it unnecessary to mess with the command-line
+          directly.
+        </p>
+        <details name="run-modes" open>
+          <summary role="group">Easy mode</summary>
+          <p>
+            If you&rsquo;re on Windows, you can just double-click the executable
+            file and it will show a dialog for you to select your manifest file.
+            Just navigate to the foldee where you created it earlier and select
+            it.
+          </p>
+        </details>
+        <details name="run-modes">
+          <summary role="group">Advanced mode</summary>
+          <p>
+            If you are not on Windows, or you prefer to use the command-line
+            directly, you can launch the <code>faust</code> executable passing
+            the path to manifest as an argument. Further down this document you
+            can find more details on the command-line options that are
+            available.
+          </p>
+        </details>
+        <p>
+          Once you launched FAUST with your manifest file, you will see some
+          progress displayed. If everything goes well, FAUST will read in the
+          files from your mod folder, build a catalog of all the factions and
+          units, and then write out a website that displays all of that
+          information.
+        </p>
+        <p>
+          If you launched FAUST in easy mode, or if you used the
+          <code>-s</code> command-line option, FAUST will then start a local web
+          server so that you can browse the website it generated. The address
+          will be copied to your clipboard, so you can just paste it in your
+          browser&rsquo;s address bar.
+        </p>
+      </details>
+      <details>
+        <summary role="button">What are the advanced manifest options?</summary>
+        <dl>
+          <dt><code>id</code></dt>
+          <dd>
+            <p>
+              <strong>Required.</strong> The mod ID. This is used internally in
+              scripts and in the URLs.
+            </p>
+            <h6>Example</h6>
+            <pre>id: rome</pre>
+          </dd>
+
+          <dt><code>name</code></dt>
+          <dd>
+            <p>
+              <strong>Required.</strong> The mod&rsquo;s display name. This is
+              used in the generates website as page title.
+            </p>
+            <h6>Example</h6>
+            <pre>name: "Rome: Total War"</pre>
+          </dd>
+
+          <dt><code>game</code></dt>
+          <dd>
+            <p>
+              <em>Optional.</em> Which game is this game for. This is used to
+              let FAUST know how to process the mod files.
+            </p>
+            <table>
+              <thead>
+                <td>Value</td>
+                <td>Meaning</td>
+              </thead>
+              <tr>
+                <td><code>original</code></td>
+                <td><em>Rome: Total War</em></td>
+              </tr>
+              <tr>
+                <td><code>remastered</code></td>
+                <td><em>Total War: Rome Remastered</em> (default)</td>
+              </tr>
+              <tr>
+                <td><code>medieval2</code></td>
+                <td><em>Medieval II: Total War</em></td>
+              </tr>
+            </table>
+            <h6>Example</h6>
+            <pre>game: original</pre>
+          </dd>
+
+          <dt><code>campaign</code></dt>
+          <dd>
+            <p>
+              <em>Optional</em> The campaign folder to process. Currently FAUST
+              only supports cataloguing one campaign. This option lets you
+              specify the name of the campaign folder that should be processed.
+              By default, the following folder names are tried in order:
+            </p>
+            <ol>
+              <li><code>imperial_campaign</code></li>
+              <li><code>barbarian_invasian</code></li>
+              <li><code>alexander</code></li>
+            </ol>
+            <aside>
+              Note: This option is likely to be changed or removed in a future
+              update.
+            </aside>
+            <h6>Example</h6>
+            <pre>campaign: sons_of_mars</pre>
+          </dd>
+
+          <dt><code>banner</code></dt>
+          <dd>
+            <p>
+              <em>Optional.</em> The banner image file. This can be an absolute
+              path or relative to the manifest folder. By default FAUST assumes
+              the banner is a file named <code>banner.png</code>
+              in the manifest folder.
+            </p>
+            <h6>Example</h6>
+            <pre>banner: rome.tga</pre>
+          </dd>
+
+          <dt><code>dir</code></dt>
+          <dd>
+            <p>
+              <em>Optional.</em> The mod folder. This can be an absolute path or
+              relative to the manifest folder. This is useful if you want to
+              keep the manifest outside of the mod folder. By default FAUST
+              assumes the manifest folder is at the root of the mod folder.
+            </p>
+            <h6>Example</h6>
+            <pre>dir: ../mod</pre>
+          </dd>
+
+          <dt><code>exclude</code></dt>
+          <dd>
+            <p>
+              <em>Optional.</em> Which factions to exclude when generating the
+              site. Sometimes mods need to keep factions that are not used, e.g.
+              to avoid some crashes. In order to exclude those factions from the
+              catalog, you can list those unused factions with this option in
+              the manifest. By default all factions that have units are
+              included.
+            </p>
+            <h6>Example</h6>
+            <pre>
+exclude:
+  - gauls
+  - britons
+  - germans</pre
+            >
+          </dd>
+
+          <dt><code>aliases</code></dt>
+          <dd>
+            <p>
+              <em>Optional.</em> Faction ID aliases. Sometimes mods reuse the
+              base game faction IDs but the factions are changed to something
+              completely different. Since the faction IDs are used in URLs, it
+              might be confusing to see those unrelated faction IDs. In order to
+              improve this, you can specify aliases that will be used the URLs
+              instead of the internal faction IDs. By default, no aliases are
+              used.
+            </p>
+            <h6>Example</h6>
+            <pre>
+aliases:
+  britannia: britons
+  germania: germans</pre
+            >
+          </dd>
+
+          <dt><code>eras</code></dt>
+          <dd>
+            <p>
+              <em>Optional.</em> Many mods have units that become available only
+              after certain events occur. The most notable example is the Marian
+              reforms in the base game. The mod files don't have an explicit
+              concept of eras like this, but you can define them yourself with
+              this option.
+            </p>
+            <h6>Example</h6>
+            <pre>
+eras:
+  pre_marian:
+    name: "Before the Marian reforms"
+    major_event:
+      marian_reforms: false
+  post_marian:
+    name: "After the Marian reforms"
+    major_event:
+      marian_reforms: true</pre
+            >
+            <p>
+              Additionally, you should create a folder named
+              <code>eras</code> in the manifest folder, and create two image
+              files for each era in it: one to use when the era is selected, and
+              one to use when the era is not selected. For the example above,
+              the files would be named as follows.
+            </p>
+            <ol>
+              <li><code>pre_marian-on.png</code></li>
+              <li><code>pre_marian-off.png</code></li>
+              <li><code>post_marian-on.png</code></li>
+              <li><code>post_marian-off.png</code></li>
+            </ol>
+          </dd>
+
+          <dt><code>unit_info_images</code></dt>
+          <dd>
+            <p>
+              <em>Optional.</em> Whether to use images from
+              <code>ui/unit_info</code> instead of <code>ui/unit</code>. Use
+              this option if the mod has small unit card images (e.g. most mods
+              for the original game) that end up looking blurry at the scale
+              used in the site. This will instead use the unit info images which
+              are larger. By default, FAUST will use unit card images for
+              <code>remastered</code> mods, and unit info images for others.
+            </p>
+            <h6>Example</h6>
+            <pre>unit_info_images: true</pre>
+          </dd>
+
+          <dt><code>speeds</code></dt>
+          <dd>
+            <p>
+              <em>Optional.</em> Currently the unit move speeds are an
+              estimation based on the base game skeleton animations. Each
+              skeleton is internally mapled to a hardcoded speed. This option
+              exists to override this, in case there are different skeletons.
+            </p>
+            <h6>Example</h6>
+            <pre>
+speeds:
+  fs_dagger: 30
+  fs_semi_fast_dagger: 32</pre
+            >
+          </dd>
+        </dl>
+      </details>
+      <details>
+        <summary role="button">What about the command-line options?</summary>
+        <dl>
+          <pre>
+Usage: faust [OPTIONS] [MANIFEST]
+
+Arguments:
+  [MANIFEST]  the manifest file
+
+Options:
+  -o, --out-dir &lt;OUT_DIR&gt;                where to output the site
+  -b, --base-game-path &lt;BASE_GAME_PATH&gt;  base game path (for fallbacks)
+  -s, --serve                            serve the site after generation
+  -h, --help                             Print help
+  -V, --version                          Print version</pre
+          >
+        </dl>
+      </details>
+    </main>
+  </body>
+</html>

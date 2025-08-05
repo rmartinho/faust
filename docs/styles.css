@@ -1,0 +1,21 @@
+@import 'theme.css' layer(theme.base);
+
+@layer theme.tweaks {
+  * {
+    --pico-code-background-color: var(--pico-color);
+    --pico-code-color: var(--pico-background-color);
+  }
+
+  pre {
+    padding: 0.75rem;
+  }
+}
+
+@layer theme.transitions {
+  details {
+    transition: all 0.3s;
+  }
+  details[open] {
+    transition: all 0.6s;
+  }
+}
