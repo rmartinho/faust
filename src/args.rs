@@ -2,16 +2,13 @@ use std::{env, fs::File, path::PathBuf};
 
 use crate::{parse::Manifest, platform};
 use anyhow::{Context as _, Result};
-use clap::{Parser, Subcommand};
+use clap::Parser;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 pub struct Args {
     #[command(flatten)]
     pub generate: GenerateArgs,
-
-    #[command(subcommand)]
-    pub command: Option<Command>,
 }
 
 #[derive(clap::Args, Debug)]
@@ -29,12 +26,6 @@ pub struct GenerateArgs {
         help = "serve the site after generation"
     )]
     pub serve: bool,
-}
-
-#[derive(Subcommand, Debug)]
-pub enum Command {
-    #[command(about = "Generates a FAUST website")]
-    Generate(GenerateArgs),
 }
 
 #[derive(Debug, Clone)]

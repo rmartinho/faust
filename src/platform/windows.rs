@@ -12,7 +12,7 @@ use windows::{
 };
 use windows_strings::{HSTRING, PWSTR};
 
-use crate::args::{Args, Command, GenerateArgs};
+use crate::args::{Args, GenerateArgs};
 
 pub fn set_panic_hook() {
     std::panic::set_hook(Box::new(move |info| {
@@ -49,10 +49,7 @@ pub fn finish<E: Debug>(res: Result<(), E>) -> Result<(), E> {
 
 pub fn prepare_generation_arguments(args: Args) -> GenerateArgs {
     if has_args() {
-        match args.command {
-            Some(Command::Generate(a)) => a,
-            _ => args.generate,
-        }
+        args.generate
     } else {
         let mut file = vec![0; MAX_PATH as _];
         let mut ofn = OPENFILENAMEW {
@@ -67,7 +64,10 @@ pub fn prepare_generation_arguments(args: Args) -> GenerateArgs {
         if !success {
             panic!("canceled open file dialog")
         }
-        let n = file.iter().position(|c| *c == 0).expect("missing null terminator");
+        let n = file
+            .iter()
+            .position(|c| *c == 0)
+            .expect("missing null terminator");
         file.truncate(n);
         let path = String::from_utf16(&file).expect("invalid file name").into();
         GenerateArgs {
