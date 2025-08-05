@@ -12,7 +12,7 @@ use crate::parse::eval::Evaluator;
 pub struct Manifest {
     pub id: IString,
     pub name: IString,
-    #[serde(default, rename = "game")]
+    #[serde(default, alias = "game")]
     pub mode: ParserMode,
     #[serde(default)]
     pub dir: Option<PathBuf>,
