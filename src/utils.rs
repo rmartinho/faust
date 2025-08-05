@@ -1,7 +1,11 @@
-use std::path::{Path, PathBuf};
+use std::{
+    io::Cursor,
+    path::{Path, PathBuf},
+};
 
 use anyhow::{Context as _, Result};
 use console::Emoji;
+use image::{DynamicImage, ImageFormat, ImageReader};
 use indicatif::ProgressStyle;
 use tokio::fs;
 
@@ -17,6 +21,28 @@ pub const EARTH: Emoji = Emoji("🌍 ", "(#) ");
 pub const CLAMP: Emoji = Emoji("🗜️  ", "");
 pub const THINKING: Emoji = Emoji("💭  ", "");
 pub const PACKAGE: Emoji = Emoji("📦 ", "[+] ");
+
+pub async fn read_image(path: impl AsRef<Path>) -> Result<DynamicImage> {
+    let from = path.as_ref();
+    let buf = read_file(from)
+        .await
+        .with_context(|| format!("reading image {}", from.display()))?;
+    let format = ImageFormat::from_path(from)
+        .with_context(|| format!("selecting image format for {}", from.display()))?;
+    ImageReader::with_format(Cursor::new(buf), format)
+        .decode()
+        .with_context(|| format!("reading image {}", from.display()))
+}
+
+pub async fn write_image(path: impl AsRef<Path>, img: &DynamicImage) -> Result<()> {
+    let to = path.as_ref();
+    let mut buf = vec![];
+    img.write_to(&mut Cursor::new(&mut buf), ImageFormat::WebP)
+        .with_context(|| format!("converting to image {}", to.display()))?;
+    write_file(&to, buf)
+        .await
+        .with_context(|| format!("writing image {}", to.display()))
+}
 
 pub async fn write_file(path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> Result<()> {
     let path = path.as_ref();
@@ -42,6 +68,25 @@ pub fn progress_style() -> ProgressStyle {
     ProgressStyle::with_template("{prefix:.bold.dim} {spinner} {wide_msg}")
         .expect("invalid progress style")
         .tick_chars("⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏ ")
+}
+
+fn do_try_paths<'a>(root: &Path, paths: &[&'a str]) -> PathBuf {
+    for path in paths.as_ref().iter() {
+        let file = root.join(path);
+        if file.exists() {
+            return file;
+        }
+    }
+    return paths.as_ref()[0].into();
+}
+
+pub fn try_paths<'a>(cfg: &Config, paths: impl AsRef<[&'a str]>) -> PathBuf {
+    let first = do_try_paths(&cfg.src_dir, paths.as_ref());
+    if first.exists() {
+        first
+    } else {
+        do_try_paths(&cfg.fallback_dir, paths.as_ref())
+    }
 }
 
 pub fn path_fallback(cfg: &Config, path: &str, generic: Option<&str>) -> PathBuf {

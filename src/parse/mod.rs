@@ -1,8 +1,4 @@
-use std::{
-    collections::HashMap,
-    path::{Path, PathBuf},
-    time::Duration,
-};
+use std::{collections::HashMap, path::PathBuf, time::Duration};
 
 use anyhow::Result;
 use indicatif::{MultiProgress, ProgressBar};
@@ -15,23 +11,23 @@ use crate::{
     args::Config,
     parse::{
         descr_mercenaries::Pool,
+        descr_model_battle::Model,
         descr_mount::Mount,
         descr_regions::Region,
-        descr_model_battle::Model,
         export_descr_buildings::{Building, Requires},
         manifest::ParserMode,
         model::build_model,
     },
-    utils::{LOOKING_GLASS, THINKING, path_fallback, progress_style, read_file},
+    utils::{LOOKING_GLASS, THINKING, path_fallback, progress_style, read_file, try_paths},
 };
 pub use manifest::Manifest;
 
 mod descr_mercenaries;
+mod descr_model_battle;
 mod descr_mount;
 mod descr_regions;
 mod descr_sm_factions;
 mod descr_strat;
-mod descr_model_battle;
 mod export_descr_buildings;
 mod export_descr_unit;
 
@@ -39,25 +35,6 @@ mod eval;
 mod manifest;
 mod model;
 mod text;
-
-fn do_try_paths<'a>(root: &Path, paths: &[&'a str]) -> PathBuf {
-    for path in paths.as_ref().iter() {
-        let file = root.join(path);
-        if file.exists() {
-            return file;
-        }
-    }
-    return paths.as_ref()[0].into();
-}
-
-fn try_paths<'a>(cfg: &Config, paths: impl AsRef<[&'a str]>) -> PathBuf {
-    let first = do_try_paths(&cfg.src_dir, paths.as_ref());
-    if first.exists() {
-        first
-    } else {
-        do_try_paths(&cfg.fallback_dir, paths.as_ref())
-    }
-}
 
 pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     let expanded_path = path_fallback(cfg, "data/text/expanded.txt", None);
@@ -189,7 +166,7 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
         .iter()
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect();
-    let model = build_model(
+    let (factions, regions, pools) = build_model(
         &cfg,
         units,
         factions,
@@ -210,7 +187,9 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
             id: cfg.manifest.id.clone(),
             name: cfg.manifest.name.clone(),
             banner: cfg.manifest.banner.to_string_lossy().into_owned().into(),
-            factions: model,
+            factions,
+            regions,
+            pools,
             aliases,
             eras: cfg
                 .manifest
@@ -329,7 +308,10 @@ async fn parse_descr_mount(path: PathBuf, mode: ParserMode) -> Result<HashMap<St
     descr_mount::parse(data, mode)
 }
 
-async fn parse_descr_model_battle(path: PathBuf, mode: ParserMode) -> Result<HashMap<String, Model>> {
+async fn parse_descr_model_battle(
+    path: PathBuf,
+    mode: ParserMode,
+) -> Result<HashMap<String, Model>> {
     let buf = read_file(&path).await?;
     let data = String::from_utf8_lossy(&buf);
     descr_model_battle::parse(data, mode)

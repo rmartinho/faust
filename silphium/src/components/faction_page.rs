@@ -15,7 +15,7 @@ pub fn faction_page(module_id: AttrValue, faction_id: AttrValue) -> Html {
     let module = &ctx.modules[&module_id];
     let aliases = &module.aliases;
     let faction_id = aliases.get(&faction_id).unwrap_or(&faction_id);
-    let faction = module.factions[faction_id].clone();
+    let faction = module.factions.get(faction_id).unwrap();
 
     let filter = use_state(|| UnitFilter {
         era: (faction.eras.len() > 1).then(|| faction.eras[0].clone()),
@@ -37,15 +37,14 @@ pub fn faction_page(module_id: AttrValue, faction_id: AttrValue) -> Html {
         <FactionHeader class="header" {module} faction={faction.clone()} filter={&filter} />
       </header>
       <main>
-        <FactionRoster roster={faction.roster} filter={&*filter} />
+        <FactionRoster roster={&faction.roster} filter={&*filter} />
       </main>
-    // <template v-if="faction.id == 'mercs'">
-    //   <MercenaryRoster :pools />
-    // </template>
-    // <template v-else>
-    //   <FactionRoster :roster="faction.roster" />
-    //   <AorRoster :roster="faction.roster" />
-    // </template>
+      // if faction.id == "mercs" {
+      //   <MercenaryRoster :pools />
+      // } else {
+      //   <FactionRoster :roster="faction.roster" />
+      //   <AorRoster :roster="faction.roster" />
+      // }
     </div>
     }
 }

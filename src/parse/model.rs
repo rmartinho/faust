@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use implicit_clone::unsync::{IArray, IString};
 use indexmap::IndexMap;
-use silphium::model::{Ability, MountType, UnitClass, WeaponType};
+use silphium::model::{self, Ability, MountType, UnitClass, WeaponType};
 
 use crate::{
     args::Config,
@@ -22,18 +22,59 @@ pub fn build_model(
     cfg: &Config,
     raw_units: Vec<export_descr_unit::Unit>,
     mut raw_factions: Vec<descr_sm_factions::Faction>,
-    _raw_regions: Vec<Region>,
-    _raw_pools: Vec<Pool>,
+    raw_regions: Vec<Region>,
+    raw_pools: Vec<Pool>,
     raw_buildings: Vec<Building>,
     aliases: HashMap<String, Requires>,
     text: HashMap<String, String>,
     strat: HashMap<String, usize>,
     mounts: HashMap<String, Mount>,
     models: HashMap<String, Model>,
-) -> IndexMap<IString, silphium::model::Faction> {
+) -> (
+    IndexMap<IString, model::Faction>,
+    IndexMap<IString, model::Region>,
+    IArray<model::Pool>,
+) {
     let unit_map: IndexMap<_, _> = raw_units.into_iter().map(|u| (u.id.clone(), u)).collect();
     let requires = build_requires(&raw_buildings, &unit_map);
     let tech_levels = build_tech_levels(&raw_buildings);
+
+    let regions = raw_regions
+        .into_iter()
+        .map(|r| {
+            (
+                r.id.clone().into(),
+                model::Region {
+                    id: r.id.into(),
+                    legion: r.legion.map(Into::into),
+                    color: r.color,
+                    hidden_resources: r.hidden_resources.into_iter().map(Into::into).collect(),
+                },
+            )
+        })
+        .collect();
+
+    let pools = raw_pools
+        .into_iter()
+        .map(|p| model::Pool {
+            id: p.id.into(),
+            regions: p.regions.into_iter().map(Into::into).collect(),
+            units: p
+                .units
+                .into_iter()
+                .map(|e| model::PoolEntry {
+                    unit: e.id.into(),
+                    exp: e.exp,
+                    cost: e.cost,
+                    replenish: e.replenish.into(),
+                    max: e.max,
+                    initial: e.initial,
+                    restrict: e.restrict.into_iter().map(Into::into).collect(),
+                })
+                .collect(),
+            map: "".into(),
+        })
+        .collect();
 
     raw_factions
         .extract_if(.., |f| !strat.contains_key(&f.id))
@@ -156,7 +197,7 @@ pub fn build_model(
                     if class == UnitClass::Ship {
                         abilities.clear();
                     }
-                    silphium::model::Unit {
+                    model::Unit {
                         id: u.id.clone().into(),
                         key: u.key.clone().into(),
                         name: text
@@ -241,7 +282,7 @@ pub fn build_model(
                 .collect();
             (
                 f.id.clone().into(),
-                silphium::model::Faction {
+                model::Faction {
                     id: f.id.clone().into(),
                     name: text
                         .get(&f.name.to_lowercase())
@@ -284,7 +325,7 @@ pub fn build_model(
         })
         .collect();
 
-    factions
+    (factions, regions, pools)
 }
 
 fn get_move_skeleton<'a>(
@@ -360,7 +401,7 @@ const SKELETON_SPEED: &[(&str, u32)] = &[
     ("fs_fast_horse", 62),
 ];
 
-fn build_weapon(weapon: &export_descr_unit::Weapon) -> Option<silphium::model::Weapon> {
+fn build_weapon(weapon: &export_descr_unit::Weapon) -> Option<model::Weapon> {
     if weapon.weapon_type == "no" {
         return None;
     }
@@ -398,7 +439,7 @@ fn build_weapon(weapon: &export_descr_unit::Weapon) -> Option<silphium::model::W
         }
     }
 
-    Some(silphium::model::Weapon {
+    Some(model::Weapon {
         class,
         factor: weapon.factor,
         is_missile: weapon.missile != "no",
