@@ -1,8 +1,14 @@
-name: Security audit - nightly
+name: Audit dependencies
 
 on:
   schedule:
-    - cron: "50 1 * * *"
+    - cron: "0 0 * * *"
+  push:
+    paths:
+      - ".github/workflows/audit.yml"
+      - "audit.toml"
+      - "**/Cargo.toml"
+      - "**/Cargo.lock"
 
 jobs:
   security_audit:
