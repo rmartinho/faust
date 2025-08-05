@@ -8,7 +8,7 @@ This is a tool that generates static sites visualizing the unit stats for Rome: 
 
 ![Terminal demo](terminal-demo.gif)
 
-You probably want to go to [the releases page](https://github.com/rmartinho/faust/releases) or [the documentation page](https://rmartinho.github.io/faust).
+You probably want to go to [the releases page](https://github.com/rmartinho/faust/releases) or [the documentation page](https://faust.rmf.io).
 
 # when
 
