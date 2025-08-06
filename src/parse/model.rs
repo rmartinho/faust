@@ -91,7 +91,12 @@ pub fn build_model(
             )
         })
         .collect();
-    let pools = raw.pools.iter().map(|p| build_pool(p, cfg, &raw)).collect();
+    let pools = raw
+        .pools
+        .iter()
+        .enumerate()
+        .map(|(i, p)| build_pool(p, i, cfg, &raw))
+        .collect();
 
     raw.factions
         .extract_if(.., |f| !raw.strat.contains_key(&f.id))
@@ -297,7 +302,11 @@ fn build_unit(
         image: if cfg.manifest.unit_info_images {
             format!(
                 "data/ui/unit_info/{}/{}_info.tga",
-                f_id.to_lowercase(),
+                if f_id == "mercs" {
+                    "merc".into()
+                } else {
+                    f_id.to_lowercase()
+                },
                 u.key.to_lowercase()
             )
         } else {
@@ -365,7 +374,7 @@ fn build_unit(
     }
 }
 
-fn build_pool(p: &Pool, cfg: &Config, raw: &IntermediateModel) -> model::Pool {
+fn build_pool(p: &Pool, index: usize, cfg: &Config, raw: &IntermediateModel) -> model::Pool {
     model::Pool {
         id: p.id.clone().into(),
         regions: p.regions.iter().map(|s| s.clone().into()).collect(),
@@ -386,7 +395,7 @@ fn build_pool(p: &Pool, cfg: &Config, raw: &IntermediateModel) -> model::Pool {
                 }
             })
             .collect(),
-        map: "".into(),
+        map: format!("pool-{index}").into(),
     }
 }
 

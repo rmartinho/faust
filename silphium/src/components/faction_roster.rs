@@ -27,7 +27,7 @@ pub fn faction_roster(roster: IArray<Unit>, filter: UnitFilter) -> Html {
 
 #[autoprops]
 #[function_component(RosterGroup)]
-pub fn roster_group(roster: IArray<Unit>, group: UnitClass) -> Html {
+fn roster_group(roster: IArray<Unit>, group: UnitClass) -> Html {
     let cards: Vec<_> = roster
         .iter()
         .filter(|u| u.class == group)

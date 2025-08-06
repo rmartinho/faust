@@ -1,4 +1,5 @@
 use std::{
+    collections::HashSet,
     fmt::{self, Display, Formatter, Write as _},
     path::{Component, Path, PathBuf},
 };
@@ -9,7 +10,6 @@ use image::{
     DynamicImage, Rgba, RgbaImage,
     imageops::{FilterType, filter3x3, overlay},
 };
-use implicit_clone::unsync::IString;
 use indicatif::{HumanBytes, MultiProgress, ProgressBar};
 use silphium::{
     ModuleMap, Route, StaticApp, StaticAppProps,
@@ -165,7 +165,8 @@ impl Renderer {
             let radar = read_image(radar_map_path).await?.into_rgba8().into();
             let mut areas = read_image(regions_map_path).await?.into_rgba8().into();
             erase_cities_and_ports(&mut areas);
-            let pools = m.pools.make_mut();
+            let mut rendered_mercs = HashSet::new();
+            let mut pools = m.pools.to_vec();
             for p in pools.iter_mut() {
                 let pool_path = Self::pool_path(&m.id, p);
                 let dst = self.cfg.out_dir.join(&pool_path);
@@ -180,7 +181,26 @@ impl Renderer {
                     Rgba([0x00, 0x00, 0x00, 0xFF]),
                 )
                 .await?;
+
+                let mut units = p.units.to_vec();
+                for u in units.iter_mut() {
+                    let src = path_fallback(
+                        &self.cfg,
+                        u.unit.image.as_ref(),
+                        Some("data/ui/generic/generic_unit_card.tga"),
+                    );
+                    let portrait_path = Self::unit_portrait_path(&m.id, "mercs", &mut u.unit);
+                    if !rendered_mercs.contains(&u.unit.id) {
+                        rendered_mercs.insert(u.unit.id.clone());
+                        let dst = self.cfg.out_dir.join(&portrait_path);
+                        pb.tick();
+                        pb.set_message(format!("{PICTURE}rendering {}", web_path(&portrait_path)));
+                        Self::render_image(&src, &dst, UNIT_PORTRAIT_SIZE).await?;
+                    }
+                }
+                p.units = units.into();
             }
+            m.pools = pools.into();
 
             for e in m.eras.values_mut() {
                 let src = self.cfg.manifest_dir.join(e.icon.as_ref());
@@ -238,9 +258,9 @@ impl Renderer {
         path
     }
 
-    fn era_icon_path(module_id: &IString, era: &mut Era) -> PathBuf {
+    fn era_icon_path(module_id: &str, era: &mut Era) -> PathBuf {
         let path = PathBuf::from("images")
-            .join(module_id.as_ref())
+            .join(module_id)
             .join("eras")
             .join(era.icon.as_ref())
             .with_extension("webp");
@@ -248,9 +268,9 @@ impl Renderer {
         path
     }
 
-    fn era_icoff_path(module_id: &IString, era: &mut Era) -> PathBuf {
+    fn era_icoff_path(module_id: &str, era: &mut Era) -> PathBuf {
         let path = PathBuf::from("images")
-            .join(module_id.as_ref())
+            .join(module_id)
             .join("eras")
             .join(era.icoff.as_ref())
             .with_extension("webp");
@@ -258,9 +278,9 @@ impl Renderer {
         path
     }
 
-    fn faction_symbol_path(module_id: &IString, faction: &mut Faction) -> PathBuf {
+    fn faction_symbol_path(module_id: &str, faction: &mut Faction) -> PathBuf {
         let path = PathBuf::from("images")
-            .join(module_id.as_ref())
+            .join(module_id)
             .join("factions")
             .join(faction.id.as_ref())
             .with_extension("webp");
@@ -268,22 +288,22 @@ impl Renderer {
         path
     }
 
-    fn unit_portrait_path(module_id: &IString, faction_id: &IString, unit: &mut Unit) -> PathBuf {
+    fn unit_portrait_path(module_id: &str, faction_id: &str, unit: &mut Unit) -> PathBuf {
         let path = PathBuf::from("images")
-            .join(module_id.as_ref())
+            .join(module_id)
             .join("units")
-            .join(faction_id.as_ref())
+            .join(faction_id)
             .join(unit.key.as_ref())
             .with_extension("webp");
         unit.image = web_path(&path).into();
         path
     }
 
-    fn pool_path(module_id: &IString, pool: &mut Pool) -> PathBuf {
+    fn pool_path(module_id: &str, pool: &mut Pool) -> PathBuf {
         let path = PathBuf::from("images")
-            .join(module_id.as_ref())
+            .join(module_id)
             .join("pools")
-            .join(pool.id.as_ref())
+            .join(pool.map.as_ref())
             .with_extension("webp");
         pool.map = web_path(&path).into();
         path
@@ -492,6 +512,13 @@ fn collect_routes(modules: &ModuleMap) -> Vec<RenderRoute> {
             vec![],
         ));
 
+        routes.push(prepare_route(
+            Route::Mercenaries {
+                module: module.id.clone(),
+            },
+            vec![],
+        ));
+
         for faction in module.factions.values() {
             let id_or_alias = faction.id_or_alias();
             let route: Route = Route::Faction {
@@ -570,10 +597,10 @@ fn prepare_redirect(from: Route, to: Route) -> RenderRoute {
     }
 }
 
-const MOD_BANNER_SIZE: (u32, u32) = (256, 512);
+const MOD_BANNER_SIZE: (u32, u32) = (512, 256);
 const ERA_ICON_SIZE: (u32, u32) = (64, 64);
 const FACTION_SYMBOL_SIZE: (u32, u32) = (128, 128);
-const UNIT_PORTRAIT_SIZE: (u32, u32) = (112, 82);
+const UNIT_PORTRAIT_SIZE: (u32, u32) = (82, 112);
 
 const EDGE_KERNEL: &[f32] = &[-1.0, -1.0, -1.0, -1.0, 8.0, -1.0, -1.0, -1.0, -1.0];
 

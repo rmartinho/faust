@@ -586,7 +586,7 @@ pub struct Pool {
     pub regions: IArray<IString>,
     #[serde(rename = "u")]
     pub units: IArray<PoolEntry>,
-    #[serde(default, skip)]
+    #[serde(rename = "m")]
     pub map: IString,
 }
 
