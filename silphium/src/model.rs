@@ -586,7 +586,7 @@ pub struct Pool {
     pub regions: IArray<IString>,
     #[serde(rename = "u")]
     pub units: IArray<PoolEntry>,
-    #[serde(default, skip)]
+    #[serde(rename = "m")]
     pub map: IString,
 }
 
@@ -596,12 +596,10 @@ pub struct Pool {
 )]
 #[derive(Properties, PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
 pub struct PoolEntry {
-    #[serde(rename = "i")]
-    pub unit: IString,
+    #[serde(rename = "u")]
+    pub unit: Unit,
     #[serde(rename = "x")]
     pub exp: u32,
-    #[serde(rename = "c")]
-    pub cost: u32,
     #[serde(rename = "r")]
     pub replenish: Replenish,
     #[serde(rename = "m")]

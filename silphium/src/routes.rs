@@ -2,7 +2,7 @@ use implicit_clone::unsync::IString;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-use crate::components::{FactionPage, ModuleList, ModulePage};
+use crate::components::{FactionPage, MercenaryPage, ModuleList, ModulePage};
 
 #[derive(Clone, Routable, PartialEq)]
 pub enum Route {
@@ -10,6 +10,8 @@ pub enum Route {
     Home,
     #[at("/:module")]
     Module { module: IString },
+    #[at("/:module/mercs")]
+    Mercenaries { module: IString },
     #[at("/:module/:faction")]
     Faction { module: IString, faction: IString },
     #[not_found]
@@ -35,6 +37,9 @@ pub fn switch(route: Route) -> Html {
     match route {
         Route::Home => html! { <ModuleList /> },
         Route::Module { module } => html! { <ModulePage id={module} /> },
+        Route::Mercenaries { module } => {
+            html! { <MercenaryPage module_id={module} /> }
+        }
         Route::Faction { module, faction } => {
             html! { <FactionPage module_id={module} faction_id={faction} /> }
         }

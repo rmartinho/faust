@@ -20,7 +20,9 @@ pub fn module_page(id: IString) -> Html {
         .values()
         .filter(|f| f.roster.len() > 0)
         .map(|f| html! {<FactionLink to={f}/>});
-    let module = module.clone();
+    let merc_route = Route::Mercenaries {
+        module: module.id.clone(),
+    };
 
     html! {
       <div class="module-page">
@@ -32,6 +34,12 @@ pub fn module_page(id: IString) -> Html {
         </header>
         <main>
           {for links}
+        if module.pools.len() > 0 {
+          <Link to={merc_route}>
+            <img class="icon" src="/icons/ui/mercs.webp" title="Mercenaries" />
+            <div class="name">{"Mercenaries"}</div>
+          </Link>
+        }
         </main>
       </div>
     }

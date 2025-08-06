@@ -39,19 +39,13 @@ pub fn faction_page(module_id: AttrValue, faction_id: AttrValue) -> Html {
       <main>
         <FactionRoster roster={&faction.roster} filter={&*filter} />
       </main>
-      // if faction.id == "mercs" {
-      //   <MercenaryRoster :pools />
-      // } else {
-      //   <FactionRoster :roster="faction.roster" />
-      //   <AorRoster :roster="faction.roster" />
-      // }
     </div>
     }
 }
 
 #[autoprops]
 #[function_component(FactionHeader)]
-pub fn faction_header(
+fn faction_header(
     class: Classes,
     module: Module,
     faction: Faction,

@@ -11,7 +11,11 @@ use crate::{
 
 #[autoprops]
 #[function_component(RosterFilter)]
-pub fn roster_filter(module: Module, faction: Faction, filter: ModelHandle<UnitFilter>) -> Html {
+pub fn roster_filter(
+    module: Module,
+    #[prop_or_default] faction: Option<Faction>,
+    filter: ModelHandle<UnitFilter>,
+) -> Html {
     let horde = filter.horde_handle();
     let horde = (*horde).map(|_| horde.map(|h| h.unwrap(), Option::Some));
 
@@ -22,7 +26,9 @@ pub fn roster_filter(module: Module, faction: Faction, filter: ModelHandle<UnitF
 
     use_effect_once({
         let m_eras = module.eras.clone();
-        let f_eras = faction.eras.clone();
+        let f_eras = faction
+            .as_ref()
+            .map_or(Default::default(), |f| f.eras.clone());
         move || {
             f_eras.into_iter().for_each(|e| {
                 let info = &m_eras[e];
@@ -33,16 +39,19 @@ pub fn roster_filter(module: Module, faction: Faction, filter: ModelHandle<UnitF
         }
     });
 
-    let era_options = faction.eras.iter().map(move |e| {
-        let info = &module.eras[&e];
-        let active = filter.era == Some(e.clone());
-        html_nested! {
-          <OptionButton value={e} class={classes!("era", active.then_some("checked"))}>
-            <img src={if active { &info.icon } else { &info.icoff }} title={&info.name} />
-            <span><Text text={&info.name} /></span>
-          </OptionButton>
-        }
-    });
+    let era_options = faction
+        .map_or(Default::default(), |f| f.eras)
+        .iter()
+        .map(move |e| {
+            let info = &module.eras[&e];
+            let active = filter.era == Some(e.clone());
+            html_nested! {
+              <OptionButton value={e} class={classes!("era", active.then_some("checked"))}>
+                <img src={if active { &info.icon } else { &info.icoff }} title={&info.name} />
+                <span><Text text={&info.name} /></span>
+              </OptionButton>
+            }
+        });
 
     html! {
       <>

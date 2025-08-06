@@ -16,7 +16,7 @@ use crate::{
         descr_regions::Region,
         export_descr_buildings::{Building, Requires},
         manifest::ParserMode,
-        model::build_model,
+        model::{RawModel, build_model},
     },
     utils::{LOOKING_GLASS, THINKING, path_fallback, progress_style, read_file, try_paths},
 };
@@ -168,16 +168,18 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
         .collect();
     let (factions, regions, pools) = build_model(
         &cfg,
-        units,
-        factions,
-        regions,
-        pools,
-        buildings,
-        require_aliases,
-        text,
-        strat,
-        mounts,
-        models,
+        RawModel {
+            units,
+            factions,
+            regions,
+            pools,
+            buildings,
+            require_aliases,
+            text,
+            strat,
+            mounts,
+            models,
+        },
     );
     let _ = m.clear();
 

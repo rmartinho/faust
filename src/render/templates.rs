@@ -172,14 +172,6 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
         preload_as: None,
     },
     StaticFile {
-        path: "icons/ui/horde.svg",
-        contents: include_bytes!(concat!(
-            env!("OUT_DIR"),
-            "/silphium_template/icons/ui/horde.svg"
-        )),
-        preload_as: None,
-    },
-    StaticFile {
         path: "icons/weapon.svg",
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
@@ -196,6 +188,14 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
         preload_as: None,
     },
     StaticFile {
+        path: "icons/ui/mercs.webp",
+        contents: include_bytes!(concat!(
+            env!("OUT_DIR"),
+            "/silphium_template/icons/ui/mercs.webp"
+        )),
+        preload_as: None,
+    },
+    StaticFile {
         path: "icons/ui/help.webp",
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
@@ -208,6 +208,14 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
             "/silphium_template/icons/ui/settings.webp"
+        )),
+        preload_as: None,
+    },
+    StaticFile {
+        path: "icons/ui/horde.svg",
+        contents: include_bytes!(concat!(
+            env!("OUT_DIR"),
+            "/silphium_template/icons/ui/horde.svg"
         )),
         preload_as: None,
     },
