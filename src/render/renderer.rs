@@ -146,10 +146,10 @@ impl Renderer {
                 &self.cfg,
                 [
                     &format!(
-                        "data/world/maps/campaign/{}/feral_radar_map.tga",
+                        "data/world/maps/campaign/{}/radar_map2.tga",
                         self.cfg.manifest.campaign
                     ),
-                    "data/world/maps/base/feral_radar_map.tga",
+                    "data/world/maps/base/radar_map2.tga",
                 ],
             );
             let regions_map_path = try_paths(
@@ -176,8 +176,8 @@ impl Renderer {
                     &areas,
                     &dst,
                     m.regions.values().filter(|r| p.regions.contains(&r.id)),
-                    (0xFF, 0x71, 0x00),
-                    (0x00, 0x00, 0x00),
+                    Rgba([0xFF, 0x71, 0x00, 0xC0]),
+                    Rgba([0x00, 0x00, 0x00, 0xFF]),
                 )
                 .await?;
             }
@@ -300,13 +300,11 @@ impl Renderer {
         areas: &RgbaImage,
         to: &Path,
         regions: impl IntoIterator<Item = &'a Region>,
-        color: (u8, u8, u8),
-        border_color: (u8, u8, u8),
+        color: Rgba<u8>,
+        border_color: Rgba<u8>,
     ) -> Result<()> {
         let mut image = DynamicImage::from(radar.clone());
         let regions: Vec<_> = regions.into_iter().collect();
-        let color = Rgba([color.0, color.1, color.2, 0xFF]);
-        let border_color = Rgba([border_color.0, border_color.1, border_color.2, 0xFF]);
         let regions = regions.into_iter();
         let mut blots = DynamicImage::from(RgbaImage::from_pixel(
             areas.width(),
