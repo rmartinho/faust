@@ -1,5 +1,6 @@
-## 0.3.0
+## 0.3.0 2025-08-07
 
+- Display mercenaries
 - Estimate and display speed
 - Reduce size of internal data structures by 80%; this saves bandwidth and improves loading speed
 
