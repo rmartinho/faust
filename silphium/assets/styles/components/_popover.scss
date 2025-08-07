@@ -1,0 +1,29 @@
+[popover] {
+  background: var(--color-background);
+  border: none;
+  border-radius: 8px;
+  filter: drop-shadow(0 0 10px black);
+  margin: auto;
+  animation: view 100ms;
+
+  &[open] {
+    display: flex;
+  }
+
+  @keyframes view {
+    from {
+      opacity: 0%;
+    }
+    to {
+      opacity: 100%;
+    }
+  }
+
+  @media (orientation: landscape) {
+    max-height: 75vw;
+  }
+
+  @media (orientation: portrait) {
+    max-width: 90vw;
+  }
+}

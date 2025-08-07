@@ -40,7 +40,7 @@
       '. cost     cost     image    image     image     image' $row-height
       '. upkeep   upkeep   image    image     image     image' $row-height
       '. mental   mental   image    image     image     image' $row-height
-      '. terrain  terrain  .        abilities abilities .    ' $row-height
+      '. terrain  terrain  terrain  abilities abilities .    ' $row-height
       '. weapon1  weapon1  weapon1  abilities abilities .    ' $row-height
       '. weapon2  weapon2  weapon2  abilities abilities .    ' $row-height
       '. defense1 defense1 defense1 defense1  defense1  .    ' $row-height
@@ -217,6 +217,20 @@
       width: $small-icon-size;
     }
 
+    .weapons {
+      display: grid;
+      grid-template-rows: subgrid;
+      grid-row: weapon1 / weapon2;
+      grid-column: weapon1;
+    }
+
+    .defenses {
+      display: grid;
+      grid-template-rows: subgrid;
+      grid-row: defense1 / defense2;
+      grid-column: defense1;
+    }
+
     .weapon1-row,
     .weapon2-row,
     .defense1-row,
@@ -295,11 +309,13 @@
     }
     .abilities {
       grid-area: abilities;
-      align-self: start;
+      align-self: center;
       display: flex;
       flex-flow: row wrap;
+      align-content: start;
       align-items: center;
       justify-content: right;
+      height: 74px;
 
       .ability {
         @extend %stats;

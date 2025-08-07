@@ -13,6 +13,67 @@ fn pluralize<'a>(value: u32, singular: &'a str, plural: &'a str) -> &'a str {
 #[autoprops]
 #[function_component(UnitCard)]
 pub fn unit_card(unit: Unit) -> Html {
+    let abilities = unit.abilities.iter().map(|ab| {
+        let title = match ab {
+            Ability::CantHide => "Cannot hide",
+            Ability::HideImprovedForest => "Can hide well in forests",
+            Ability::HideLongGrass => "Can hide in long grass",
+            Ability::HideAnywhere => "Can hide anywhere",
+            Ability::FrightenFoot => "Frightens nearby infantry",
+            Ability::FrightenMounted => "Frightens nearby cavalry",
+            Ability::FrightenAll => "Frightens nearby units",
+            Ability::CanRunAmok => "Can run amok",
+            Ability::CantabrianCircle => "Can form Cantabrian circle",
+            Ability::Command => "Inspires nearby units",
+            Ability::Warcry => "Can perform warcry to increase attack",
+            Ability::PowerCharge => "Powerful charge",
+            Ability::Chant => "Can chant to affect morale",
+            Ability::FormedCharge => "Can do formed charge",
+            Ability::Stakes => "Can lay defensive stakes",
+            Ability::Knight => "Receives knightly bonuses",
+        };
+        html! {
+          <Icon class="ability" {title} src="/icons/ability.svg" symbol={ab.to_string()} />
+        }
+    });
+
+    let unit = &unit;
+
+    html! {
+      <div class="unit-card">
+        <div class="name row"><Text text={&unit.name} /></div>
+        <div class="frame">
+          <img class="image" title={&unit.name} src={&unit.image} />
+          <SizeRow class="size-row row" {unit} />
+          <CostRow class="cost-row row" {unit} />
+          <UpkeepRow class="upkeep-row row" {unit} />
+          <MentalRow class="mental-row row" {unit} />
+          <TerrainRow class="terrain row" {unit} />
+          <div class="weapons row">
+            if let Some(ref weapon) = unit.primary_weapon {
+              <WeaponRow class="weapon1-row" {unit} {weapon} />
+            }
+            if let Some(ref weapon) = unit.secondary_weapon {
+              <WeaponRow class="weapon2-row" {unit} {weapon} />
+            }
+          </div>
+          <div class="defenses row">
+            <DefenseRow class="defense1-row" def={&unit.defense} hp={unit.hp} />
+            if unit.mount.has_mount_stats() {
+              <DefenseRow class="defense2-row" mount={true} def={&unit.defense_mount} hp={unit.hp_mount} />
+            }
+          </div>
+          <div class="abilities row">
+            {for abilities}
+          </div>
+        </div>
+      </div>
+    }
+}
+
+#[autoprops]
+#[function_component(SizeRow)]
+pub fn size_row(#[prop_or_default] class: AttrValue, unit: Unit) -> Html {
     use std::fmt::Write as _;
 
     let mut soldiers_title = format!(
@@ -44,6 +105,62 @@ pub fn unit_card(unit: Unit) -> Html {
         }
     });
 
+    html! {
+      <div {class}>
+        <Icon class="icon" title="Soldiers" src="/icons/stat.svg" symbol="soldiers" />
+        <div class="size" title={soldiers_title}>
+          <span class="soldiers">{ unit.soldiers }</span>
+          if unit.officers > 0 {
+            <span class="officers">{ unit.officers }</span>
+          }
+          <div class="formations">
+            {for formations}
+          </div>
+        </div>
+      </div>
+    }
+}
+
+#[autoprops]
+#[function_component(CostRow)]
+pub fn cost_row(#[prop_or_default] class: AttrValue, unit: Unit) -> Html {
+    html! {
+      <div {class}>
+        <Icon class="icon" title="Recruitment cost" src="/icons/stat.svg" symbol="cost" />
+        <div class="cost" title={format!("Cost: {}", unit.cost)}>
+          <span>{ unit.cost }</span>
+          if unit.turns > 1 {
+            <div class="turns" title={format!("{} turns", unit.turns)}>
+              <Icon class="attribute" height={512} width={512} src="/icons/attribute.svg" symbol="turns" />
+              <span>{ unit.turns }</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+}
+
+#[autoprops]
+#[function_component(UpkeepRow)]
+pub fn upkeep_row(#[prop_or_default] class: AttrValue, unit: Unit) -> Html {
+    html! {
+      <div {class}>
+        <Icon class="icon" src="/icons/stat.svg"
+            title={if unit.is_militia { "Upkeep cost (free in cities)" } else { "Upkeep cost"}}
+            symbol={if unit.is_militia { "upkeep-castle" } else { "upkeep" }}
+        />
+        <div class="upkeep"
+            title={format!("Upkeep{}: {}", if unit.is_militia { " (free in cities)" } else { "" }, unit.upkeep)}
+        >
+          <span>{ unit.upkeep }</span>
+        </div>
+      </div>
+    }
+}
+
+#[autoprops]
+#[function_component(MentalRow)]
+pub fn mental_row(#[prop_or_default] class: AttrValue, unit: Unit) -> Html {
     let discipline_tooltip = match unit.discipline {
         Discipline::Low => "Low discipline",
         Discipline::Normal => "Normal discipline",
@@ -52,101 +169,22 @@ pub fn unit_card(unit: Unit) -> Html {
         Discipline::Berserker => "Berserker",
     };
 
-    let abilities = unit.abilities.iter().map(|ab| {
-        let title = match ab {
-            Ability::CantHide => "Cannot hide",
-            Ability::HideImprovedForest => "Can hide well in forests",
-            Ability::HideLongGrass => "Can hide in long grass",
-            Ability::HideAnywhere => "Can hide anywhere",
-            Ability::FrightenFoot => "Frightens nearby infantry",
-            Ability::FrightenMounted => "Frightens nearby cavalry",
-            Ability::FrightenAll => "Frightens nearby units",
-            Ability::CanRunAmok => "Can run amok",
-            Ability::CantabrianCircle => "Can form Cantabrian circle",
-            Ability::Command => "Inspires nearby units",
-            Ability::Warcry => "Can perform warcry to increase attack",
-            Ability::PowerCharge => "Powerful charge",
-            Ability::Chant => "Can chant to affect morale",
-            Ability::FormedCharge => "Can do formed charge",
-            Ability::Stakes => "Can lay defensive stakes",
-            Ability::Knight => "Receives knightly bonuses",
-        };
-        html! {
-          <Icon class="ability" {title} src="/icons/ability.svg" symbol={ab.to_string()} />
-        }
-    });
-
     html! {
-      <div class="unit-card">
-        <div class="name"><Text text={&unit.name} /></div>
-        <div class="frame">
-          <img class="image" title={&unit.name} src={&unit.image} />
-          <div class="size-row">
-            <Icon class="icon" title="Soldiers" src="/icons/stat.svg" symbol="soldiers" />
-            <div class="size" title={soldiers_title}>
-              <span class="soldiers">{ unit.soldiers }</span>
-              if unit.officers > 0 {
-                <span class="officers">{ unit.officers }</span>
-              }
-              <div class="formations">
-                {for formations}
-              </div>
-            </div>
-          </div>
-          <div class="cost-row">
-            <Icon class="icon" title="Recruitment cost" src="/icons/stat.svg" symbol="cost" />
-            <div class="cost" title={format!("Cost: {}", unit.cost)}>
-              <span>{ unit.cost }</span>
-              if unit.turns > 1 {
-                <div class="turns" title={format!("{} turns", unit.turns)}>
-                  <Icon class="attribute" height={512} width={512} src="/icons/attribute.svg" symbol="turns" />
-                  <span>{ unit.turns }</span>
-                </div>
-              }
-            </div>
-          </div>
-          <div class="upkeep-row">
-            <Icon class="icon" src="/icons/stat.svg"
-                title={if unit.is_militia { "Upkeep cost (free in cities)" } else { "Upkeep cost"}}
-                symbol={if unit.is_militia { "upkeep-castle" } else { "upkeep" }}
-            />
-            <div class="upkeep"
-                title={format!("Upkeep{}: {}", if unit.is_militia { " (free in cities)" } else { "" }, unit.upkeep)}
-            >
-              <span>{ unit.upkeep }</span>
-            </div>
-          </div>
-          <div class="mental-row">
-            <Icon class="icon" title={discipline_tooltip} src="/icons/discipline.svg" symbol={unit.discipline.to_string()} />
-            <div class="mental" title={format!("Morale: {}", unit.morale)}>
-              <span class="morale">{ unit.morale }</span>
-              if unit.move_speed.is_some() || unit.stamina > 0 || unit.inexhaustible {
-                <StaminaDetails unit={&unit} />
-              }
-            </div>
-          </div>
-          <TerrainDetails unit={&unit} />
-          if let Some(ref weapon) = unit.primary_weapon {
-            <WeaponRow class="weapon1-row" unit={&unit} {weapon} />
+      <div {class}>
+        <Icon class="icon" title={discipline_tooltip} src="/icons/discipline.svg" symbol={unit.discipline.to_string()} />
+        <div class="mental" title={format!("Morale: {}", unit.morale)}>
+          <span class="morale">{ unit.morale }</span>
+          if unit.move_speed.is_some() || unit.stamina > 0 || unit.inexhaustible {
+            <StaminaDetails unit={&unit} />
           }
-          if let Some(ref weapon) = unit.secondary_weapon {
-            <WeaponRow class="weapon2-row" unit={&unit} {weapon} />
-          }
-          <DefenseRow class="defense1-row" def={&unit.defense} hp={unit.hp} />
-          if unit.mount.has_mount_stats() {
-            <DefenseRow class="defense2-row" mount={true} def={&unit.defense_mount} hp={unit.hp_mount} />
-          }
-          <div class="abilities">
-            {for abilities}
-          </div>
         </div>
       </div>
     }
 }
 
 #[autoprops]
-#[function_component(TerrainDetails)]
-pub fn terrain_details(unit: Unit) -> Html {
+#[function_component(TerrainRow)]
+pub fn terrain_row(#[prop_or_default] class: AttrValue, unit: Unit) -> Html {
     use std::fmt::Write as _;
 
     let mut title = "".to_string();
@@ -168,7 +206,7 @@ pub fn terrain_details(unit: Unit) -> Html {
     }
 
     html! {
-      <div class="terrain" {title}>
+      <div {class} {title}>
         <GroundBonus class="scrub" ground="scrub" value={unit.ground_bonus.scrub} />
         <GroundBonus class="forest" ground="forest" value={unit.ground_bonus.forest} />
         <GroundBonus class="sand" ground="sand" value={unit.ground_bonus.sand} />
@@ -179,7 +217,7 @@ pub fn terrain_details(unit: Unit) -> Html {
 
 #[autoprops]
 #[function_component(StaminaDetails)]
-pub fn stamina_details(unit: Unit) -> Html {
+fn stamina_details(unit: Unit) -> Html {
     use std::fmt::Write as _;
 
     let speed = unit.move_speed.map(|s| {
@@ -226,7 +264,7 @@ pub fn stamina_details(unit: Unit) -> Html {
       <div class="stamina" {title}>
         if let Some(speed) = speed {
           <Icon class="attribute" src="/icons/speed.svg" height={512} width={256} symbol={format!("speed-{}", speed.1)} />
-          <span>{ format!("{}", speed.0) }</span>
+          // <span>{ format!("{}", speed.0) }</span>
         }
         if unit.inexhaustible {
           <Icon class="attribute" height={512} width={512} src="/icons/attribute.svg" symbol="inexhaustible" />
@@ -387,7 +425,7 @@ pub fn defense_row(
 
 #[autoprops]
 #[function_component(GroundBonus)]
-pub fn ground_bonus(#[prop_or_default] class: AttrValue, ground: AttrValue, value: i32) -> Html {
+fn ground_bonus(#[prop_or_default] class: AttrValue, ground: AttrValue, value: i32) -> Html {
     let up_or_down = if value > 0 { "up" } else { "down" };
     html! {
       <>

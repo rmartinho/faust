@@ -1,7 +1,7 @@
 use web_sys::HtmlElement;
 use yew::prelude::*;
 use yew_autoprops::autoprops;
-use yew_hooks::use_click_away;
+use yew_hooks::prelude::*;
 
 use crate::{components::UnitCard, model::Unit};
 
@@ -48,12 +48,27 @@ pub fn help_dialog(#[prop_or_default] control: Callback<Option<Box<dyn Dialog>>>
         }
     };
     use_click_away(popover_ref.clone(), hide.clone());
-    let hide = Callback::from(move |e| hide(Event::from(e)));
+    // let hide = Callback::from(move |e| hide(Event::from(e)));
 
     let unit: Unit = ciborium::from_reader(HELP_UNIT_CBOR).unwrap();
     html! {
-      <div ref={popover_ref} popover={true} class="help" onclick={hide}>
-        <UnitCard {unit} />
+      <div ref={popover_ref} popover="">
+        <div  class="help-dialog">
+          <div class="descr left">
+            <div class="name">{"Name"}</div>
+            <div class="soldiers">{"Formation"}</div>
+            <div class="cost">{"Recruitment"}</div>
+            <div class="upkeep">{"Upkeep"}</div>
+            <div class="mental">{"Soldiers"}</div>
+            <div class="terrain">{"Terrain"}</div>
+            <div class="weapons">{"Weapons"}</div>
+            <div class="defenses">{"Defense"}</div>
+          </div>
+          <UnitCard {unit} />
+          <div class="descr right">
+            <div class="abilities">{"Abilities"}</div>
+          </div>
+        </div>
       </div>
     }
 }

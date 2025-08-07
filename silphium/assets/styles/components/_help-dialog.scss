@@ -1,0 +1,151 @@
+.help-dialog {
+  display: grid;
+  padding: 1rem;
+  grid:
+    'help-l card help-r' min-content
+    / max-content min-content max-content;
+  gap: 18px;
+
+  .unit-card {
+    grid-area: card;
+    .frame {
+      .abilities {
+        position: relative;
+      }
+    }
+
+    .row {
+      border: 1px dashed;
+      border-radius: 4px;
+      position: relative;
+
+      &::before {
+        content: ' ';
+        position: absolute;
+        left: -20px;
+        display: inline-block;
+        width: 20px;
+        height: 0px;
+        border-top: 2px dotted;
+        grid-row: 1;
+        grid-column: 1;
+        place-self: center start;
+        border-color: inherit;
+      }
+
+      &.name {
+        border-color: var(--silphium-c-content-3);
+        &::before {
+          top: 0.5rem;
+          left: -18px;
+          width: 18px;
+        }
+      }
+
+      &.size-row {
+        border-color: var(--silphium-c-accent-5);
+      }
+      &.cost-row {
+        border-color: var(--silphium-c-accent-2);
+      }
+      &.upkeep-row {
+        border-color: var(--silphium-c-accent-7);
+      }
+      &.mental-row {
+        border-color: var(--silphium-c-accent-4);
+      }
+      &.terrain {
+        border-color: var(--silphium-c-accent-1);
+      }
+      &.weapons {
+        border-color: var(--silphium-c-accent-3);
+      }
+      &.defenses {
+        border-color: var(--silphium-c-accent-6);
+      }
+
+      &.abilities {
+        border-color: var(--silphium-c-accent-8);
+        &::before {
+          left: unset;
+          right: -20px;
+        }
+      }
+    }
+  }
+
+  .descr {
+    font-size: 14pt;
+    div,
+    button {
+      font-size: smaller;
+      cursor: pointer;
+    }
+
+    &.right {
+      grid-area: help-r;
+      display: grid;
+      gap: 2px;
+      grid:
+        '.' 3rem
+        '.' 28px
+        '.' 28px
+        '.' 28px
+        '.' 28px
+        'abilities' 28px
+        'abilities' 28px
+        'abilities' 28px
+        '.' 28px
+        / max-content;
+      place-items: center start;
+
+      .abilities {
+        grid-area: abilities;
+      }
+    }
+
+    &.left {
+      grid-area: help-l;
+      display: grid;
+      gap: 2px;
+      grid:
+        'name' 3rem
+        'soldiers' 28px
+        'cost' 28px
+        'upkeep' 28px
+        'mental' 28px
+        'terrain' 28px
+        'weapons' 28px
+        'weapons' 28px
+        'defense' 28px
+        / max-content;
+      place-items: center end;
+
+      .name {
+        grid-area: name;
+        align-self: end;
+      }
+      .soldiers {
+        grid-area: soldiers;
+      }
+      .cost {
+        grid-area: cost;
+      }
+      .upkeep {
+        grid-area: upkeep;
+      }
+      .mental {
+        grid-area: mental;
+      }
+      .terrain {
+        grid-area: terrain;
+      }
+      .weapons {
+        grid-area: weapons;
+      }
+      .defenses {
+        grid-area: defense;
+      }
+    }
+  }
+}
