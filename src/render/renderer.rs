@@ -352,6 +352,12 @@ impl Renderer {
     }
 
     async fn render_data(&mut self, m: MultiProgress) -> Result<()> {
+        let mut lfc = self.modules["vanilla"].factions["romans_julii"].roster.iter().find(|u| u.key == "roman_legionary_first_cohort_ii").unwrap();
+        lfc.image = "/images/ui/example-unit.webp".into();
+        lfc.eras = vec![].into();
+        let mut data = vec![];
+        ciborium::into_writer(&lfc, &mut data).context("generating JSON file")?;
+        let _ = write_file("legionary_first_cohort.cbor", data).await;
         let pb = m.add(ProgressBar::new_spinner());
         pb.set_style(progress_style());
         pb.set_prefix("[4/5]");
