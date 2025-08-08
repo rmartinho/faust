@@ -6,7 +6,7 @@ on:
   push:
     paths:
       - ".github/workflows/audit.yml"
-      - "audit.toml"
+      - ".cargo/audit.toml"
       - "**/Cargo.toml"
       - "**/Cargo.lock"
 
