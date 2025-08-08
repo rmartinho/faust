@@ -633,6 +633,39 @@ pub struct Replenish {
     pub max: f64,
 }
 
+impl Replenish {
+    pub fn p05(&self) -> u32 {
+        self.quantile(5).ceil() as _
+    }
+    pub fn p50(&self) -> u32 {
+        self.quantile(50).ceil() as _
+    }
+    pub fn p95(&self) -> u32 {
+        self.quantile(95).ceil() as _
+    }
+
+    fn quantile(&self, p: u32) -> f64 {
+        let phi: HashMap<u32, f64> = [(5, -1.645), (95, 1.645), (99, 2.326)].into();
+
+        let avg = (self.min + self.max) / 2.0;
+        if p == 50 {
+            avg.recip()
+        } else {
+            let a = -avg;
+            let d = self.max - self.min;
+            let b = phi[&p] * ((d * d) / 12.0).sqrt();
+            let c = 1.0;
+
+            let discr = (b * b - 4.0 * a * c).sqrt();
+            let rootp = (-b + discr) / (2.0 * a);
+            let rootm = (-b - discr) / (2.0 * a);
+            let root = if rootp > 0.0 { rootp } else { rootm };
+
+            root * root
+        }
+    }
+}
+
 impl From<(f64, f64)> for Replenish {
     fn from(a: (f64, f64)) -> Self {
         Self { min: a.0, max: a.1 }

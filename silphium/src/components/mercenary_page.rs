@@ -2,7 +2,10 @@ use yew::prelude::*;
 use yew_autoprops::autoprops;
 
 use crate::{
-    components::{BackLink, Button, MercenaryRoster, RosterFilter, UnitFilter}, hooks::ModelHandle, model::Module, AppContext
+    AppContext,
+    components::{BackLink, Button, Dialog, HelpDialog, MercenaryRoster, RosterFilter, UnitFilter},
+    hooks::ModelHandle,
+    model::Module,
 };
 
 #[autoprops]
@@ -13,17 +16,28 @@ pub fn mercenary_page(module_id: AttrValue) -> Html {
 
     let filter = use_state(|| UnitFilter::default());
 
+    // TODO refactor this out in common with FactionPage
+    let help_dialog = use_state(|| None as Option<Box<dyn Dialog>>);
+
+    let show_help = Callback::from({
+        let help_dialog = help_dialog.clone();
+        move |()| {
+            help_dialog.as_ref().unwrap().show();
+        }
+    });
+
     html! {
     <div class="faction-page">
       <header class="header-container">
         <div class="nav">
           <BackLink />
-          <Button>
-            <img class="settings button" title="Configure" src="/icons/ui/settings.webp" />
-          </Button>
-          <Button>
+          // <Button>
+          //   <img class="settings button" title="Configure" src="/icons/ui/settings.webp" />
+          // </Button>
+          <Button onclick={show_help}>
             <img class="help button" title="Help" src="/icons/ui/help.webp" />
           </Button>
+          <HelpDialog control={help_dialog.setter().to_callback()} />
         </div>
         <MercenaryHeader class="header" {module} filter={&filter} />
       </header>
