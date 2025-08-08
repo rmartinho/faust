@@ -416,10 +416,10 @@ pub fn help_dialog(#[prop_or_default] control: Callback<Option<Box<dyn Dialog>>>
               </summary>
               <div class="help-table">
                 <Icon class="icon" src="/icons/attribute.svg" symbol="turns" />
-                <span><span class="replenish">{"turns"}</span>{" to replenish ("}<span class="interval">{"95% interval"}</span>{")"}</span>
+                <span><span class="replenish"><strong>{"turns"}</strong></span>{" to replenish ("}<span class="interval">{"95% interval"}</span>{")"}</span>
 
                 <span class="cross">{"×"}</span>
-                <span class="max">{"max pool size"}</span>
+                <span><span class="max"><strong>{"max"}</strong></span>{" pool size"}</span>
 
                 <Icon class="icon" src="/icons/exp.svg" symbol="exp-blank" />
                 <span>{"experience (0-9)"}</span>
