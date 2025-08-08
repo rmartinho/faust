@@ -24,8 +24,8 @@
   $image-height: 112px;
   $image-width: 82px;
   $frame-columns: // padding icon leftover image+ability+ability padding
-    0 $icon-size 1fr calc($image-width - 2 * $icon-size - 2 * $gap) $icon-size
-    $icon-size 0;
+    $icon-size 1fr calc($image-width - 2 * $icon-size - 2 * $gap) $icon-size
+    $icon-size;
 
   .frame {
     grid-area: card;
@@ -35,16 +35,18 @@
     border: 1px solid black;
     border-radius: 2px;
     align-items: center;
+    padding-left: 2px;
+    padding-right: 2px;
     grid:
-      '. size     size     image    image     image     image' $row-height
-      '. cost     cost     image    image     image     image' $row-height
-      '. upkeep   upkeep   image    image     image     image' $row-height
-      '. mental   mental   image    image     image     image' $row-height
-      '. terrain  terrain  terrain  abilities abilities .    ' $row-height
-      '. weapon1  weapon1  weapon1  abilities abilities .    ' $row-height
-      '. weapon2  weapon2  weapon2  abilities abilities .    ' $row-height
-      '. defense1 defense1 defense1 defense1  defense1  .    ' $row-height
-      '. defense2 defense2 defense2 defense2  defense2  .    ' minmax(0, 1fr)
+      'size     size     image    image     image    ' $row-height
+      'cost     cost     image    image     image    ' $row-height
+      'upkeep   upkeep   image    image     image    ' $row-height
+      'mental   mental   image    image     image    ' $row-height
+      'terrain  terrain  terrain  abilities abilities' $row-height
+      'weapon1  weapon1  weapon1  abilities abilities' $row-height
+      'weapon2  weapon2  weapon2  abilities abilities' $row-height
+      'defense1 defense1 defense1 defense1  defense1 ' $row-height
+      'defense2 defense2 defense2 defense2  defense2 ' minmax(0, 1fr)
       / $frame-columns;
     user-select: none;
 
@@ -53,6 +55,7 @@
       width: $image-width;
       height: $image-height;
       place-self: start right;
+      margin-right: -2px;
     }
 
     .stat {
@@ -227,7 +230,6 @@
       grid-template-rows: subgrid;
       grid-row: weapon1 / weapon2;
       grid-column: weapon1;
-      justify-content: start;
     }
 
     .defenses {
@@ -235,7 +237,6 @@
       grid-template-rows: subgrid;
       grid-row: defense1 / defense2;
       grid-column: defense1;
-      justify-content: start;
     }
 
     .weapon1-row,

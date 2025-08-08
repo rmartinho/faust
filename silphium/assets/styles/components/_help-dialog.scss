@@ -165,12 +165,7 @@
     }
 
     &.details {
-      $gap: 2px;
       $icon-size: 24px;
-      $image-width: 82px;
-      $frame-columns: // padding icon leftover image+ability+ability padding
-        0px $icon-size 1fr calc($image-width - 2 * $icon-size - 2 * $gap)
-        $icon-size $icon-size 0px;
       display: flex;
       flex-flow: column;
       height: 100%;
@@ -235,8 +230,8 @@
           }
 
           .icon {
-            height: 24px;
-            width: 24px;
+            height: $icon-size;
+            width: $icon-size;
           }
 
           .soldiers {
@@ -387,7 +382,7 @@
             }
             &:has(.abilities) {
               grid-template-rows: 0 0 0 0 28px 0 0 0 0;
-              grid-template-columns: 0 0 0 0 24px 24px 0;
+              grid-template-columns: 0 0 0 $icon-size $icon-size;
             }
           }
 
