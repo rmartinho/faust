@@ -24,8 +24,8 @@
   $image-height: 112px;
   $image-width: 82px;
   $frame-columns: // padding icon leftover image+ability+ability padding
-    0px $icon-size 1fr calc($image-width - 2 * $icon-size - 2 * $gap) $icon-size
-    $icon-size 0px;
+    0 $icon-size 1fr calc($image-width - 2 * $icon-size - 2 * $gap) $icon-size
+    $icon-size 0;
 
   .frame {
     grid-area: card;
@@ -53,6 +53,12 @@
       width: $image-width;
       height: $image-height;
       place-self: start right;
+    }
+
+    .stat {
+      display: flex;
+      gap: 1px;
+      align-items: center;
     }
 
     %stat-icon {
@@ -125,7 +131,6 @@
 
         .turns {
           display: flex;
-          gap: 1px;
           align-items: center;
           font-size: smaller;
 
@@ -222,6 +227,7 @@
       grid-template-rows: subgrid;
       grid-row: weapon1 / weapon2;
       grid-column: weapon1;
+      justify-content: start;
     }
 
     .defenses {
@@ -229,6 +235,7 @@
       grid-template-rows: subgrid;
       grid-row: defense1 / defense2;
       grid-column: defense1;
+      justify-content: start;
     }
 
     .weapon1-row,
@@ -257,7 +264,7 @@
           }
           span {
             position: absolute;
-            font-size: x-small;
+            font-size: smaller;
             top: 36%;
             left: 50%;
             transform: translate(-50%, -50%);

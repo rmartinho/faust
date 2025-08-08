@@ -13,30 +13,6 @@ fn pluralize<'a>(value: u32, singular: &'a str, plural: &'a str) -> &'a str {
 #[autoprops]
 #[function_component(UnitCard)]
 pub fn unit_card(unit: Unit) -> Html {
-    let abilities = unit.abilities.iter().map(|ab| {
-        let title = match ab {
-            Ability::CantHide => "Cannot hide",
-            Ability::HideImprovedForest => "Can hide well in forests",
-            Ability::HideLongGrass => "Can hide in long grass",
-            Ability::HideAnywhere => "Can hide anywhere",
-            Ability::FrightenFoot => "Frightens nearby infantry",
-            Ability::FrightenMounted => "Frightens nearby cavalry",
-            Ability::FrightenAll => "Frightens nearby units",
-            Ability::CanRunAmok => "Can run amok",
-            Ability::CantabrianCircle => "Can form Cantabrian circle",
-            Ability::Command => "Inspires nearby units",
-            Ability::Warcry => "Can perform warcry to increase attack",
-            Ability::PowerCharge => "Powerful charge",
-            Ability::Chant => "Can chant to affect morale",
-            Ability::FormedCharge => "Can do formed charge",
-            Ability::Stakes => "Can lay defensive stakes",
-            Ability::Knight => "Receives knightly bonuses",
-        };
-        html! {
-          <Icon class="ability" {title} src="/icons/ability.svg" symbol={ab.to_string()} />
-        }
-    });
-
     let unit = &unit;
 
     html! {
@@ -63,9 +39,7 @@ pub fn unit_card(unit: Unit) -> Html {
               <DefenseRow class="defense2-row" mount={true} def={&unit.defense_mount} hp={unit.hp_mount} />
             }
           </div>
-          <div class="abilities row">
-            {for abilities}
-          </div>
+          <AbilitiesRow class="abilities row" {unit} />
         </div>
       </div>
     }
@@ -436,5 +410,39 @@ fn ground_bonus(#[prop_or_default] class: AttrValue, ground: AttrValue, value: i
           </div>
         }
       </>
+    }
+}
+
+#[autoprops]
+#[function_component(AbilitiesRow)]
+pub fn abilities_row(#[prop_or_default] class: AttrValue, unit: Unit) -> Html {
+    let abilities = unit.abilities.iter().map(|ab| {
+        let title = match ab {
+            Ability::CantHide => "Cannot hide",
+            Ability::HideImprovedForest => "Can hide well in forests",
+            Ability::HideLongGrass => "Can hide in long grass",
+            Ability::HideAnywhere => "Can hide anywhere",
+            Ability::FrightenFoot => "Frightens nearby infantry",
+            Ability::FrightenMounted => "Frightens nearby cavalry",
+            Ability::FrightenAll => "Frightens nearby units",
+            Ability::CanRunAmok => "Can run amok",
+            Ability::CantabrianCircle => "Can form Cantabrian circle",
+            Ability::Command => "Inspires nearby units",
+            Ability::Warcry => "Can perform warcry to increase attack",
+            Ability::PowerCharge => "Powerful charge",
+            Ability::Chant => "Can chant to affect morale",
+            Ability::FormedCharge => "Can do formed charge",
+            Ability::Stakes => "Can lay defensive stakes",
+            Ability::Knight => "Receives knightly bonuses",
+        };
+        html! {
+          <Icon class="ability" {title} src="/icons/ability.svg" symbol={ab.to_string()} />
+        }
+    });
+
+    html! {
+      <div {class}>
+        {for abilities}
+      </div>
     }
 }

@@ -2,9 +2,11 @@
   display: grid;
   padding: 1rem;
   grid:
-    'help-l card help-r' min-content
-    / max-content min-content max-content;
-  gap: 18px;
+    'help-l card help-r details' 430px
+    / 1fr min-content 1fr 256px;
+  gap: 12px;
+  align-content: center;
+  align-items: center;
 
   .unit-card {
     grid-area: card;
@@ -22,9 +24,9 @@
       &::before {
         content: ' ';
         position: absolute;
-        left: -20px;
+        left: -14px;
         display: inline-block;
-        width: 20px;
+        width: 14px;
         height: 0px;
         border-top: 2px dotted;
         grid-row: 1;
@@ -37,8 +39,8 @@
         border-color: var(--silphium-c-content-3);
         &::before {
           top: 0.5rem;
-          left: -18px;
-          width: 18px;
+          left: -12px;
+          width: 12px;
         }
       }
 
@@ -76,10 +78,9 @@
 
   .descr {
     font-size: 14pt;
-    div,
-    button {
+
+    > button {
       font-size: smaller;
-      cursor: pointer;
     }
 
     &.right {
@@ -96,6 +97,7 @@
         'abilities' 28px
         'abilities' 28px
         '.' 28px
+        '.' minmax(0, 1fr)
         / max-content;
       place-items: center start;
 
@@ -118,6 +120,7 @@
         'weapons' 28px
         'weapons' 28px
         'defense' 28px
+        'defense' minmax(0, 1fr)
         / max-content;
       place-items: center end;
 
@@ -145,6 +148,203 @@
       }
       .defenses {
         grid-area: defense;
+      }
+    }
+
+    &.details {
+      $gap: 2px;
+      $icon-size: 24px;
+      $image-width: 82px;
+      $frame-columns: // padding icon leftover image+ability+ability padding
+        0px $icon-size 1fr calc($image-width - 2 * $icon-size - 2 * $gap)
+        $icon-size $icon-size 0px;
+      display: flex;
+      flex-flow: column;
+      height: 100%;
+      overflow: hidden;
+      justify-content: center;
+
+      $soldiers-color: var(--silphium-c-accent-4);
+      $officers-color: var(--silphium-c-accent-6);
+      $cost-color: var(--silphium-c-accent-1);
+      $turns-color: var(--silphium-c-accent-7);
+      $upkeep-color: var(--silphium-c-accent-4);
+      $morale-color: var(--silphium-c-accent-2);
+      $strength-color: var(--silphium-c-accent-3);
+      $lethality-color: var(--silphium-c-accent-5);
+      $defense-color: var(--silphium-c-accent-8);
+
+      details {
+        display: flex;
+        flex-flow: column;
+        gap: 0.2rem;
+
+        &:has(~ details[open]) {
+          display: none;
+        }
+
+        .weapon1-row {
+          border-color: var(--silphium-c-accent-3);
+        }
+        .defense1-row {
+          border-color: var(--silphium-c-accent-6);
+        }
+
+        .abilities {
+          height: unset;
+        }
+
+        summary {
+          display: flex;
+          align-items: center;
+          font-size: smaller;
+          cursor: pointer;
+        }
+
+        + details {
+          margin-top: 8px;
+        }
+
+        .help-table {
+          display: grid;
+          grid-template-columns: 28px max-content;
+          grid-template-rows: 28px;
+          column-gap: 0.5rem;
+          row-gap: 2px;
+          place-items: center start;
+          font-size: smaller;
+          margin-left: 1rem;
+
+          strong {
+            font-weight: bold;
+          }
+
+          .icon {
+            height: 24px;
+            width: 24px;
+          }
+
+          .soldiers {
+            color: $soldiers-color;
+          }
+          .officers {
+            color: $officers-color;
+          }
+          //   .cost {
+          //     color: $cost-color;
+          //   }
+          //   .turns {
+          //     color: $turns-color;
+          //   }
+          //   .upkeep {
+          //     color: $upkeep-color;
+          //   }
+          .morale {
+            color: $morale-color;
+          }
+          .strength {
+            color: $strength-color;
+          }
+          .lethality {
+            color: $lethality-color;
+          }
+          .defense {
+            color: $defense-color;
+          }
+        }
+
+        &[open] {
+          & ~ details {
+            display: none;
+          }
+
+          summary {
+            .size-row {
+              .soldiers {
+                color: $soldiers-color;
+              }
+              .officers {
+                color: $officers-color;
+              }
+            }
+
+            // .cost-row {
+            //   .cost {
+            //     color: $cost-color;
+            //   }
+            //   .turns {
+            //     color: $turns-color;
+            //   }
+            // }
+
+            // .upkeep-row {
+            //   .upkeep {
+            //     color: $upkeep-color;
+            //   }
+            // }
+
+            .mental-row {
+              .morale {
+                color: $morale-color;
+              }
+            }
+
+            .weapon1-row {
+              .strength {
+                color: $strength-color;
+              }
+              .lethality {
+                color: $lethality-color;
+              }
+            }
+
+            .defense1-row {
+              .strength {
+                color: $defense-color;
+              }
+            }
+          }
+        }
+
+        .unit-card {
+          row-gap: 0;
+          grid-template-rows: 0 min-content;
+
+          .frame {
+            border: none;
+            row-gap: 0;
+
+            .row::before {
+              content: unset;
+            }
+
+            &:has(.size-row) {
+              grid-template-rows: 28px 0 0 0 0 0 0 0 0;
+            }
+            &:has(.cost-row) {
+              grid-template-rows: 0 28px 0 0 0 0 0 0 0;
+            }
+            &:has(.upkeep-row) {
+              grid-template-rows: 0 0 28px 0 0 0 0 0 0;
+            }
+            &:has(.mental-row) {
+              grid-template-rows: 0 0 0 28px 0 0 0 0 0;
+            }
+            &:has(.terrain) {
+              grid-template-rows: 0 0 0 0 28px 0 0 0 0;
+            }
+            &:has(.weapon1-row) {
+              grid-template-rows: 0 0 0 0 0 28px 0 0 0;
+            }
+            &:has(.defense1-row) {
+              grid-template-rows: 0 0 0 0 0 0 0 28px 0;
+            }
+            &:has(.abilities) {
+              grid-template-rows: 0 0 0 0 28px 0 0 0 0;
+              grid-template-columns: 0 0 0 0 24px 24px 0;
+            }
+          }
+        }
       }
     }
   }
