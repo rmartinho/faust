@@ -15,7 +15,7 @@
       </hgroup>
     </header>
     <main>
-      <details open>
+      <details name="questions" open>
         <summary role="button">What is FAUST?</summary>
         <p>
           FAUST is a website generator for visualizing unit stats for
@@ -24,8 +24,12 @@
           <em>Total&nbsp;War:&nbsp;Rome&nbsp;Remastered</em>, and there is also
           some support for <em>Medieval&nbsp;II:&nbsp;Total&nbsp;War</em> mods.
         </p>
+        <p>
+          If you want to see what that looks like, take a look at
+          <a href="https://dev.silphium.pages.dev/">this example</a>.
+        </p>
       </details>
-      <details>
+      <details name="questions">
         <summary role="button">How do I get FAUST?</summary>
         <p>
           You can download
@@ -39,7 +43,7 @@
           from previous versions.
         </p>
       </details>
-      <details>
+      <details name="questions">
         <summary role="button">How do I use FAUST?</summary>
         <p>
           Once you have downloaded the latest release for your operating system,
@@ -125,7 +129,7 @@ game: original</pre
           browser&rsquo;s address bar.
         </p>
       </details>
-      <details>
+      <details name="questions">
         <summary role="button">What are the advanced manifest options?</summary>
         <dl>
           <dt><code>id</code></dt>
@@ -142,7 +146,7 @@ game: original</pre
           <dd>
             <p>
               <strong>Required.</strong> The mod&rsquo;s display name. This is
-              used in the generates website as page title.
+              used in the generated website as the page title.
             </p>
             <h6>Example</h6>
             <pre>name: "Rome: Total War"</pre>
@@ -151,7 +155,7 @@ game: original</pre
           <dt><code>game</code></dt>
           <dd>
             <p>
-              <em>Optional.</em> Which game is this game for. This is used to
+              <em>Optional.</em> Which game this mod is for. This is used to
               let FAUST know how to process the mod files.
             </p>
             <table>
@@ -315,7 +319,7 @@ eras:
             <p>
               <em>Optional.</em> Currently the unit move speeds are an
               estimation based on the base game skeleton animations. Each
-              skeleton is internally mapled to a hardcoded speed. This option
+              skeleton is internally mapped to a hardcoded speed. This option
               exists to override this, in case there are different skeletons.
             </p>
             <h6>Example</h6>
@@ -327,7 +331,7 @@ speeds:
           </dd>
         </dl>
       </details>
-      <details>
+      <details name="questions">
         <summary role="button">What about the command-line options?</summary>
         <dl>
           <pre>
