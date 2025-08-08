@@ -1,9 +1,11 @@
+use std::cmp::max;
+
 use yew::prelude::*;
 use yew_autoprops::autoprops;
 
 use crate::{
     components::{Icon, Text},
-    model::{Ability, Defense, Discipline, Formation, Unit, Weapon, WeaponType},
+    model::{Ability, Defense, Discipline, Formation, PoolEntry, Unit, Weapon, WeaponType},
 };
 
 fn pluralize<'a>(value: u32, singular: &'a str, plural: &'a str) -> &'a str {
@@ -12,7 +14,7 @@ fn pluralize<'a>(value: u32, singular: &'a str, plural: &'a str) -> &'a str {
 
 #[autoprops]
 #[function_component(UnitCard)]
-pub fn unit_card(unit: Unit) -> Html {
+pub fn unit_card(unit: Unit, #[prop_or_default] pool: Option<PoolEntry>) -> Html {
     let unit = &unit;
 
     html! {
@@ -41,6 +43,9 @@ pub fn unit_card(unit: Unit) -> Html {
           </div>
           <AbilitiesRow class="abilities row" {unit} />
         </div>
+        if let Some(pool) = pool {
+          <PoolRow class="pool row" {pool} />
+        }
       </div>
     }
 }
@@ -443,6 +448,36 @@ pub fn abilities_row(#[prop_or_default] class: AttrValue, unit: Unit) -> Html {
     html! {
       <div {class}>
         {for abilities}
+      </div>
+    }
+}
+
+#[autoprops]
+#[function_component(PoolRow)]
+pub fn pool_row(#[prop_or_default] class: AttrValue, pool: PoolEntry) -> Html {
+    let p05 = pool.replenish.p05();
+    let p50 = pool.replenish.p50();
+    let p95 = pool.replenish.p95();
+    let details: AttrValue = format!("Units replenish:\nin {p05} turns (5% of the time)\nin {p50} turns (50% of the time)\nin {p95} turns (95% of the time)").into();
+    let range = max(p95 - p50, p50 - p05);
+    let max = pool.max;
+    let exp = pool.exp;
+
+    html! {
+      <div {class}>
+        <div class="turns" title={details}>
+          <Icon class="icon" src="/icons/attribute.svg" symbol="turns" />
+          <div class="average">{ p50 }</div>
+          <div class="interval">{ format!("±{range}") }</div>
+        </div>
+        <div class="max" title={format!("Max: {max} units")} >{ format!("×{max}") }</div>
+        if pool.exp > 0 {
+          <Icon class="exp" title={format!("{exp} experience")} src="/icons/exp.svg" symbol={format!("exp-{exp}")} />
+        }
+        // TODO restricts
+        // <template v-if="faction">
+        //   <img class="faction" :src="faction" :title="`${factionName} only`" />
+        // </template>
       </div>
     }
 }

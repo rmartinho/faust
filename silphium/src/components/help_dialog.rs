@@ -7,10 +7,9 @@ use yew_hooks::prelude::*;
 
 use crate::{
     components::{
-        AbilitiesRow, CostRow, DefenseRow, Icon, MentalRow, SizeRow, TerrainRow, UnitCard,
-        UpkeepRow, WeaponRow,
+        AbilitiesRow, CostRow, DefenseRow, Icon, MentalRow, PoolRow, SizeRow, TerrainRow, UnitCard, UpkeepRow, WeaponRow
     },
-    model::{Ability, GroundBonus, Unit, Weapon, WeaponType},
+    model::{Ability, GroundBonus, PoolEntry, Replenish, Unit, Weapon, WeaponType},
 };
 
 const HELP_UNIT_CBOR: &[u8] = include_bytes!("help-unit.cbor");
@@ -81,6 +80,18 @@ pub fn help_dialog(#[prop_or_default] control: Callback<Option<Box<dyn Dialog>>>
         ..unit.clone()
     };
 
+    let display_pool = PoolEntry {
+        unit: unit.clone(),
+        exp: 2,
+        replenish: Replenish {
+            min: 0.06,
+            max: 0.19,
+        },
+        max: 2,
+        initial: 1,
+        restrict: vec![].into(),
+    };
+
     let refs: HashMap<_, _> = [
         ("soldiers", use_node_ref()),
         ("cost", use_node_ref()),
@@ -90,6 +101,7 @@ pub fn help_dialog(#[prop_or_default] control: Callback<Option<Box<dyn Dialog>>>
         ("weapons", use_node_ref()),
         ("defenses", use_node_ref()),
         ("abilities", use_node_ref()),
+        ("pool", use_node_ref()),
     ]
     .into();
     let open_details = |s: &str| {
@@ -120,9 +132,10 @@ pub fn help_dialog(#[prop_or_default] control: Callback<Option<Box<dyn Dialog>>>
             <button onclick={open_details("weapons")} class="weapons">{"Weapons"}</button>
             <button onclick={open_details("defenses")} class="defenses">{"Defense"}</button>
           </div>
-          <UnitCard {unit} />
+          <UnitCard {unit} pool={&display_pool} />
           <div class="descr right">
             <button onclick={open_details("abilities")} class="abilities">{"Abilities"}</button>
+            <button onclick={open_details("pool")} class="pool">{"Merc pool"}</button>
           </div>
           <div class="descr details">
             <details ref={&refs["soldiers"]} name="help-section">
@@ -136,7 +149,7 @@ pub fn help_dialog(#[prop_or_default] control: Callback<Option<Box<dyn Dialog>>>
               </summary>
               <div class="help-table">
                 <Icon class="icon" src="/icons/stat.svg" symbol="soldiers" />
-                <span>{"unit size: "}<span class="soldiers">{"soldiers"}</span>{" and "}<span class="officers">{"officers"}</span></span>
+                <span>{"unit size ("}<span class="soldiers">{"soldiers"}</span>{" and "}<span class="officers">{"officers"}</span>{")"}</span>
 
                 <Icon class="icon" src="/icons/formation.svg" symbol="square" />
                 <span>{"square"}</span>
@@ -202,19 +215,19 @@ pub fn help_dialog(#[prop_or_default] control: Callback<Option<Box<dyn Dialog>>>
               </summary>
               <div class="help-table">
                 <Icon class="icon" src="/icons/discipline.svg" symbol="normal" />
-                <span>{"medium discipline: "}<span class="morale">{"morale"}</span></span>
+                <span>{"medium discipline ("}<span class="morale">{"morale"}</span>{")"}</span>
 
                 <Icon class="icon" src="/icons/discipline.svg" symbol="low" />
-                <span>{"low discipline: morale"}</span>
+                <span>{"low discipline (morale)"}</span>
 
                 <Icon class="icon" src="/icons/discipline.svg" symbol="disciplined" />
-                <span>{"high discipline: morale"}</span>
+                <span>{"high discipline (morale)"}</span>
 
                 <Icon class="icon" src="/icons/discipline.svg" symbol="impetuous" />
-                <span>{"impetuous: morale"}</span>
+                <span>{"impetuous (morale)"}</span>
 
                 <Icon class="icon" src="/icons/discipline.svg" symbol="berserker" />
-                <span>{"berserker: morale"}</span>
+                <span>{"berserker (morale)"}</span>
 
                 <Icon class="icon" src="/icons/speed.svg" symbol="speed-1" />
                 <span>{"slow"}</span>
@@ -272,20 +285,20 @@ pub fn help_dialog(#[prop_or_default] control: Callback<Option<Box<dyn Dialog>>>
               </summary>
               <div class="help-table">
                 <Icon class="icon" src="/icons/weapon.svg" symbol="melee" />
-                <span>{"blade: "}<span class="strength"><strong>{"strength"}</strong></span>
-                  {" and "}<span class="lethality">{"lethality"}</span></span>
+                <span>{"blade ("}<span class="strength"><strong>{"strength"}</strong></span>
+                  {" and "}<span class="lethality">{"lethality"}</span>{")"}</span>
 
                 <Icon class="icon" src="/icons/weapon.svg" symbol="spear" />
-                <span>{"spear: strength and lethality"}</span>
+                <span>{"spear (strength and lethality)"}</span>
 
                 <Icon class="icon" src="/icons/weapon.svg" symbol="missile" />
-                <span>{"missile: strength and lethality"}</span>
+                <span>{"missile (strength and lethality)"}</span>
 
                 <Icon class="icon" src="/icons/weapon.svg" symbol="thrown" />
-                <span>{"thrown: strength and lethality"}</span>
+                <span>{"thrown (strength and lethality)"}</span>
 
                 <Icon class="icon" src="/icons/weapon.svg" symbol="gunpowder" />
-                <span>{"firearm: strength and lethality"}</span>
+                <span>{"firearm (strength and lethality)"}</span>
 
                 <Icon class="icon" src="/icons/attribute.svg" symbol="range" />
                 <span>{"range"}</span>
@@ -317,10 +330,10 @@ pub fn help_dialog(#[prop_or_default] control: Callback<Option<Box<dyn Dialog>>>
               </summary>
               <div class="help-table">
                 <Icon class="icon" src="/icons/stat.svg" symbol="defense" />
-                <span>{"soldier defenses: "}<span class="defense"><strong>{"total"}</strong></span></span>
+                <span>{"soldier defenses ("}<span class="defense"><strong>{"total"}</strong></span>{")"}</span>
 
                 <Icon class="icon" src="/icons/stat.svg" symbol="defense-mount" />
-                <span>{"mount defenses: total"}</span>
+                <span>{"mount defenses (total)"}</span>
 
                 <Icon class="icon" src="/icons/attribute.svg" symbol="armor" />
                 <span>{"armor"}</span>
@@ -392,6 +405,28 @@ pub fn help_dialog(#[prop_or_default] control: Callback<Option<Box<dyn Dialog>>>
 
                 <Icon class="icon" src="/icons/ability.svg" symbol="knight" />
                 <span>{"knight"}</span>
+              </div>
+            </details>
+            <details ref={&refs["pool"]} name="help-section">
+              <summary>
+                {"Merc pool"}
+                <div class="unit-card">
+                  <PoolRow class="pool row" pool={display_pool} />
+                </div>
+              </summary>
+              <div class="help-table">
+                <Icon class="icon" src="/icons/attribute.svg" symbol="turns" />
+                <span><span class="replenish">{"turns"}</span>{" to replenish ("}<span class="interval">{"95% interval"}</span>{")"}</span>
+
+                <span class="cross">{"×"}</span>
+                <span class="max">{"max pool size"}</span>
+
+                <Icon class="icon" src="/icons/exp.svg" symbol="exp-blank" />
+                <span>{"experience (0-9)"}</span>
+
+                // TODO restricts
+                // <Icon class="icon" src="/icons/exp.svg" symbol="exp-3" />
+                // <span>{"experience (0-9)"}</span>
               </div>
             </details>
           </div>

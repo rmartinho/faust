@@ -2,7 +2,7 @@
   display: grid;
   padding: 1rem;
   grid:
-    'help-l card help-r details' 430px
+    'help-l card help-r details' 460px
     / 1fr min-content 1fr 256px;
   gap: 12px;
   align-content: center;
@@ -70,7 +70,15 @@
         border-color: var(--silphium-c-accent-8);
         &::before {
           left: unset;
-          right: -20px;
+          right: -14px;
+        }
+      }
+
+      &.pool {
+        border-color: var(--silphium-c-content-2);
+        &::before {
+          left: unset;
+          right: -14px;
         }
       }
     }
@@ -97,12 +105,16 @@
         'abilities' 28px
         'abilities' 28px
         '.' 28px
-        '.' minmax(0, 1fr)
+        '.' 0
+        'pool' 28px
         / max-content;
       place-items: center start;
 
       .abilities {
         grid-area: abilities;
+      }
+      .pool {
+        grid-area: pool;
       }
     }
 
@@ -120,7 +132,8 @@
         'weapons' 28px
         'weapons' 28px
         'defense' 28px
-        'defense' minmax(0, 1fr)
+        'defense' 0
+        '.' 28px
         / max-content;
       place-items: center end;
 
@@ -173,6 +186,8 @@
       $strength-color: var(--silphium-c-accent-3);
       $lethality-color: var(--silphium-c-accent-5);
       $defense-color: var(--silphium-c-accent-8);
+      $interval-color: var(--silphium-c-accent-3);
+      $max-color: var(--silphium-c-accent-5);
 
       details {
         display: flex;
@@ -251,6 +266,25 @@
           .defense {
             color: $defense-color;
           }
+
+          .replenish {
+            color: $turns-color;
+          }
+
+          .interval {
+            color: $interval-color;
+          }
+
+          .cross {
+            font-weight: bold;
+            font-size: larger;
+            margin-left: 4px;
+            place-self: center;
+          }
+
+          .max {
+            color: $max-color;
+          }
         }
 
         &[open] {
@@ -303,6 +337,18 @@
                 color: $defense-color;
               }
             }
+
+            .pool {
+              .average {
+                color: $turns-color;
+              }
+              .interval {
+                color: $interval-color;
+              }
+              .max {
+                color: $max-color;
+              }
+            }
           }
         }
 
@@ -310,13 +356,13 @@
           row-gap: 0;
           grid-template-rows: 0 min-content;
 
+          .row::before {
+            content: unset;
+          }
+
           .frame {
             border: none;
             row-gap: 0;
-
-            .row::before {
-              content: unset;
-            }
 
             &:has(.size-row) {
               grid-template-rows: 28px 0 0 0 0 0 0 0 0;
@@ -343,6 +389,10 @@
               grid-template-rows: 0 0 0 0 28px 0 0 0 0;
               grid-template-columns: 0 0 0 0 24px 24px 0;
             }
+          }
+
+          &:has(.pool) {
+            grid-template-rows: 0 0 min-content;
           }
         }
       }

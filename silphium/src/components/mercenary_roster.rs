@@ -29,7 +29,7 @@ pub fn mercenary_pool(pool: Pool, filter: UnitFilter) -> Html {
         .iter()
         .map(|u| {
             html! {
-              <UnitCard unit={u.unit}/>
+              <UnitCard unit={&u.unit} pool={u}/>
             }
         })
         .collect();

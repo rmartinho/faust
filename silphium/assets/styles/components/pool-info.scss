@@ -1,0 +1,45 @@
+.pool {
+  display: flex;
+  gap: 4px;
+  justify-content: left;
+  align-items: center;
+  user-select: none;
+  grid-area: pool;
+
+  .turns {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    margin-left: 4px;
+
+    .icon {
+      width: 24px;
+      height: 24px;
+    }
+
+    .average {
+      font-weight: bold;
+      font-size: larger;
+    }
+
+    .interval {
+      font-size: smaller;
+    }
+  }
+
+  .max {
+    font-weight: bold;
+    font-size: larger;
+    margin-left: 4px;
+  }
+
+  .exp {
+    width: 24px;
+    height: 24px;
+  }
+
+  .faction {
+    height: 24px;
+    object-fit: contain;
+  }
+}
