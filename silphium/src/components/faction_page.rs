@@ -3,7 +3,9 @@ use yew_autoprops::autoprops;
 
 use crate::{
     AppContext,
-    components::{BackLink, Button, FactionRoster, RosterFilter, Text, UnitFilter},
+    components::{
+        BackLink, Button, Dialog, FactionRoster, HelpDialog, RosterFilter, Text, UnitFilter,
+    },
     hooks::ModelHandle,
     model::{Faction, Module},
 };
@@ -22,17 +24,27 @@ pub fn faction_page(module_id: AttrValue, faction_id: AttrValue) -> Html {
         horde: faction.is_horde.then_some(false),
     });
 
+    let help_dialog = use_state(|| None as Option<Box<dyn Dialog>>);
+
+    let show_help = Callback::from({
+        let help_dialog = help_dialog.clone();
+        move |()| {
+            help_dialog.as_ref().unwrap().show();
+        }
+    });
+
     html! {
     <div class="faction-page">
       <header class="header-container">
         <div class="nav">
           <BackLink />
-          <Button>
-            <img class="settings button" title="Configure" src="/icons/ui/settings.webp" />
-          </Button>
-          <Button>
+          // <Button>
+          //   <img class="settings button" title="Configure" src="/icons/ui/settings.webp" />
+          // </Button>
+          <Button onclick={show_help}>
             <img class="help button" title="Help" src="/icons/ui/help.webp" />
           </Button>
+          <HelpDialog control={help_dialog.setter().to_callback()} />
         </div>
         <FactionHeader class="header" {module} faction={faction.clone()} filter={&filter} />
       </header>

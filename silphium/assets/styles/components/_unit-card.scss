@@ -24,8 +24,8 @@
   $image-height: 112px;
   $image-width: 82px;
   $frame-columns: // padding icon leftover image+ability+ability padding
-    0px $icon-size 1fr calc($image-width - 2 * $icon-size - 2 * $gap) $icon-size
-    $icon-size 0px;
+    0 $icon-size 1fr calc($image-width - 2 * $icon-size - 2 * $gap) $icon-size
+    $icon-size 0;
 
   .frame {
     grid-area: card;
@@ -40,7 +40,7 @@
       '. cost     cost     image    image     image     image' $row-height
       '. upkeep   upkeep   image    image     image     image' $row-height
       '. mental   mental   image    image     image     image' $row-height
-      '. terrain  terrain  .        abilities abilities .    ' $row-height
+      '. terrain  terrain  terrain  abilities abilities .    ' $row-height
       '. weapon1  weapon1  weapon1  abilities abilities .    ' $row-height
       '. weapon2  weapon2  weapon2  abilities abilities .    ' $row-height
       '. defense1 defense1 defense1 defense1  defense1  .    ' $row-height
@@ -53,6 +53,12 @@
       width: $image-width;
       height: $image-height;
       place-self: start right;
+    }
+
+    .stat {
+      display: flex;
+      gap: 1px;
+      align-items: center;
     }
 
     %stat-icon {
@@ -125,7 +131,6 @@
 
         .turns {
           display: flex;
-          gap: 1px;
           align-items: center;
           font-size: smaller;
 
@@ -217,6 +222,22 @@
       width: $small-icon-size;
     }
 
+    .weapons {
+      display: grid;
+      grid-template-rows: subgrid;
+      grid-row: weapon1 / weapon2;
+      grid-column: weapon1;
+      justify-content: start;
+    }
+
+    .defenses {
+      display: grid;
+      grid-template-rows: subgrid;
+      grid-row: defense1 / defense2;
+      grid-column: defense1;
+      justify-content: start;
+    }
+
     .weapon1-row,
     .weapon2-row,
     .defense1-row,
@@ -243,7 +264,7 @@
           }
           span {
             position: absolute;
-            font-size: x-small;
+            font-size: smaller;
             top: 36%;
             left: 50%;
             transform: translate(-50%, -50%);
@@ -295,11 +316,13 @@
     }
     .abilities {
       grid-area: abilities;
-      align-self: start;
+      align-self: center;
       display: flex;
       flex-flow: row wrap;
+      align-content: start;
       align-items: center;
       justify-content: right;
+      height: 74px;
 
       .ability {
         @extend %stats;

@@ -3,6 +3,7 @@ pub use core::*;
 
 mod faction_page;
 mod faction_roster;
+mod help_dialog;
 mod mercenary_page;
 mod mercenary_roster;
 mod module_list;
@@ -13,6 +14,7 @@ mod unit_filter;
 
 pub use faction_page::*;
 pub use faction_roster::*;
+pub use help_dialog::*;
 pub use mercenary_page::*;
 pub use mercenary_roster::*;
 pub use module_list::*;

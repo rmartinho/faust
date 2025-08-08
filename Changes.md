@@ -1,3 +1,7 @@
+## 0.4.0
+
+- Added help page
+
 ## 0.3.0 2025-08-07
 
 - Display mercenaries

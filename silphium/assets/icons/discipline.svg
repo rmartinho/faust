@@ -25,7 +25,7 @@
     <circle id="face" cx="256" cy="256" r="228" fill="none" stroke="#000" stroke-width="24" />
     <circle id="l-eye" cx="180" cy="205" r="40" />
     <circle id="r-eye" cx="332" cy="205" r="40" />
-    <path fill="none" stroke="#000" stroke-linecap="round" stroke-width="24"
+    <path id="flat-mouth" fill="none" stroke="#000" stroke-linecap="round" stroke-width="24"
       d="M333 355c-77 0-77 33-154 33" />
   </symbol>
   <symbol id="impetuous" viewBox="0 0 512 512">

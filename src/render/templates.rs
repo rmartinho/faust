@@ -219,4 +219,12 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
         )),
         preload_as: None,
     },
+    StaticFile {
+        path: "images/ui/example-unit.webp",
+        contents: include_bytes!(concat!(
+            env!("OUT_DIR"),
+            "/silphium_template/images/ui/example-unit.webp"
+        )),
+        preload_as: None,
+    },
 ];
