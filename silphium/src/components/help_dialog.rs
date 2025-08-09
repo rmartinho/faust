@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use implicit_clone::unsync::IArray;
+use serde::{Deserialize, Serialize};
 use web_sys::{HtmlDetailsElement, HtmlElement};
 use yew::prelude::*;
 use yew_autoprops::autoprops;
@@ -7,12 +9,13 @@ use yew_hooks::prelude::*;
 
 use crate::{
     components::{
-        AbilitiesRow, CostRow, DefenseRow, Icon, MentalRow, PoolRow, SizeRow, TerrainRow, UnitCard, UpkeepRow, WeaponRow
+        AbilitiesRow, CostRow, DefenseRow, Icon, MentalRow, PoolRow, SizeRow, TerrainRow, UnitCard,
+        UpkeepRow, WeaponRow,
     },
-    model::{Ability, GroundBonus, PoolEntry, Replenish, Unit, Weapon, WeaponType},
+    model::{Ability, GroundBonus, PoolEntry, Unit, Weapon},
 };
 
-const HELP_UNIT_CBOR: &[u8] = include_bytes!("help-unit.cbor");
+const HELP_DATA_CBOR: &[u8] = include_bytes!("help-data.cbor");
 
 pub trait Dialog {
     fn show(&self);
@@ -32,6 +35,20 @@ impl Dialog for PopOver {
     fn hide(&self) {
         let _ = self.el.hide_popover();
     }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct HelpData {
+    #[serde(rename = "w")]
+    display_weapon: Weapon,
+    #[serde(rename = "h")]
+    display_hp: u32,
+    #[serde(rename = "g")]
+    display_terrain: GroundBonus,
+    #[serde(rename = "a")]
+    display_abilities: IArray<Ability>,
+    #[serde(rename = "p")]
+    display_pool: PoolEntry,
 }
 
 #[autoprops]
@@ -57,39 +74,17 @@ pub fn help_dialog(#[prop_or_default] control: Callback<Option<Box<dyn Dialog>>>
     use_click_away(popover_ref.clone(), hide.clone());
     // let hide = Callback::from(move |e| hide(Event::from(e)));
 
-    let unit: &Unit = &ciborium::from_reader(HELP_UNIT_CBOR).unwrap();
-    let display_weapon = Weapon {
-        class: WeaponType::Spear,
-        lethality: 0.75,
-        armor_piercing: true,
-        spear_bonus: 4,
-        ..unit.secondary_weapon.clone().unwrap()
-    };
-    let display_hp = 2;
+    let HelpData {
+      display_weapon, display_hp, display_terrain, display_abilities, display_pool
+    } = ciborium::from_reader(HELP_DATA_CBOR).unwrap();
+    let unit: &Unit = &display_pool.unit;
     let display_terrain = Unit {
-        ground_bonus: GroundBonus {
-            scrub: 2,
-            sand: -4,
-            forest: -6,
-            snow: 1,
-        },
+        ground_bonus: display_terrain,
         ..unit.clone()
     };
     let display_abilities = Unit {
-        abilities: vec![Ability::Command, Ability::HideImprovedForest].into(),
+        abilities: display_abilities,
         ..unit.clone()
-    };
-
-    let display_pool = PoolEntry {
-        unit: unit.clone(),
-        exp: 2,
-        replenish: Replenish {
-            min: 0.06,
-            max: 0.19,
-        },
-        max: 2,
-        initial: 1,
-        restrict: vec![].into(),
     };
 
     let refs: HashMap<_, _> = [

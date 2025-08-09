@@ -19,6 +19,9 @@ pub fn roster_filter(
     let horde = filter.horde_handle();
     let horde = (*horde).map(|_| horde.map(|h| h.unwrap(), Option::Some));
 
+    let regional = filter.regional_handle();
+    let regional = (*regional).map(|_| regional.map(|h| h.unwrap(), Option::Some));
+
     let era = filter.era_handle();
     let era = era
         .as_ref()
@@ -54,7 +57,7 @@ pub fn roster_filter(
         });
 
     html! {
-      <>
+      <div class="eras">
         if let Some(era) = era {
           <OptionGroup class="eras" name="era" value={era}>
             {for era_options}
@@ -66,11 +69,23 @@ pub fn roster_filter(
                 class={classes!("era", horde.then_some("checked"))}
                 title={if *horde { "Show settled units" } else { "Show horde units" }}
             >
-              <Icon src="/icons/ui/horde.svg" symbol={if *horde {"on"} else {"off"}} />
+              <Icon src="/icons/ui/horde.svg" symbol={if *horde { "on" } else { "off" }} />
+              <span>{if *horde { "Horde" } else { "" }}</span>
             </ToggleButton>
           </div>
         }
-      </>
+        if let Some(regional) = regional {
+          <div class="eras">
+            <ToggleButton value={&regional}
+                class={classes!("era", regional.then_some("checked"))}
+                title={if *regional { "Show global units" } else { "Show regional units" }}
+            >
+              <Icon src="/icons/ui/regional.svg" symbol={if *regional { "on" } else { "off" }} />
+              <span>{if *regional { "Regional" } else { "Global" }}</span>
+            </ToggleButton>
+          </div>
+        }
+      </div>
     }
 }
 

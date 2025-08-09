@@ -12,8 +12,7 @@ use image::{
 };
 use indicatif::{HumanBytes, MultiProgress, ProgressBar};
 use silphium::{
-    ModuleMap, Route, StaticApp, StaticAppProps,
-    model::{Era, Faction, Module, Pool, Region, Unit},
+    model::{Aor, Era, Faction, Module, Pool, Region, Unit}, ModuleMap, Route, StaticApp, StaticAppProps
 };
 use tokio::fs;
 use yew_router::Routable as _;
@@ -201,6 +200,23 @@ impl Renderer {
                 p.units = units.into();
             }
             m.pools = pools.into();
+            let mut aors = m.aors.to_vec();
+            for aor in aors.iter_mut() {
+                let aor_path = Self::aor_path(&m.id, aor);
+                let dst = self.cfg.out_dir.join(&aor_path);
+                pb.tick();
+                pb.set_message(format!("{PICTURE}rendering {}", web_path(&aor_path)));
+                Self::render_map(
+                    &radar,
+                    &areas,
+                    &dst,
+                    m.regions.values().filter(|r| aor.regions.contains(&r.id)),
+                    Rgba([0xFF, 0x71, 0x00, 0xC0]),
+                    Rgba([0x00, 0x00, 0x00, 0xFF]),
+                )
+                .await?;
+            }
+            m.aors = aors.into();
 
             for e in m.eras.values_mut() {
                 let src = self.cfg.manifest_dir.join(e.icon.as_ref());
@@ -309,6 +325,16 @@ impl Renderer {
         path
     }
 
+    fn aor_path(module_id: &str, aor: &mut Aor) -> PathBuf {
+        let path = PathBuf::from("images")
+            .join(module_id)
+            .join("aors")
+            .join(aor.map.as_ref())
+            .with_extension("webp");
+        aor.map = web_path(&path).into();
+        path
+    }
+
     async fn render_image(from: &Path, to: &Path, (width, height): (u32, u32)) -> Result<()> {
         let img = read_image(from).await?;
         let img = img.resize(width, height, FilterType::Lanczos3);
@@ -352,19 +378,13 @@ impl Renderer {
     }
 
     async fn render_data(&mut self, m: MultiProgress) -> Result<()> {
-        let mut lfc = self.modules["vanilla"].factions["romans_julii"].roster.iter().find(|u| u.key == "roman_legionary_first_cohort_ii").unwrap();
-        lfc.image = "/images/ui/example-unit.webp".into();
-        lfc.eras = vec![].into();
-        let mut data = vec![];
-        ciborium::into_writer(&lfc, &mut data).context("generating JSON file")?;
-        let _ = write_file("legionary_first_cohort.cbor", data).await;
         let pb = m.add(ProgressBar::new_spinner());
         pb.set_style(progress_style());
         pb.set_prefix("[4/5]");
         pb.tick();
-        pb.set_message(format!("{PAPER}rendering mod data"));
+        pb.set_message(format!("{PAPER}rendering catalog data"));
         let mut data = vec![];
-        ciborium::into_writer(&self.modules, &mut data).context("generating JSON file")?;
+        ciborium::into_writer(&self.modules, &mut data).context("generating catalog file")?;
         self.data = data.clone();
         write_file(&self.cfg.out_dir.join("mods.cbor"), data)
             .await
@@ -372,7 +392,7 @@ impl Renderer {
         self.preload
             .push(("/mods.cbor".into(), PreloadType::Cbor.into()));
         pb.finish_with_message(format!(
-            "{PAPER}rendered mods.cbor ({})",
+            "{PAPER}rendered catalog ({})",
             HumanBytes(self.data.len() as u64)
         ));
         Ok(())

@@ -37,7 +37,7 @@ impl Evaluator {
         }
     }
 
-    pub fn region(region: &Region) -> Self {
+    pub fn region(region: &Region, faction: Option<&Faction>) -> Self {
         Self {
             hidden_resource: Some(EvaluatorChoices {
                 map: region
@@ -47,7 +47,11 @@ impl Evaluator {
                     .collect(),
                 default: Some(false),
             }),
-            ..Default::default()
+            ..if let Some(faction) = faction {
+                Self::faction(faction)
+            } else {
+                Default::default()
+            }
         }
     }
 }

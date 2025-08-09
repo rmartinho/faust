@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+   <symbol id="on" viewBox="0 0 512 512">
+      <path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="24"
+         d="M167 77h317v396H167z" />
+      <path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round"
+         stroke-width="24"
+         d="M403 268v-75m1 38h-2c-41-14-58-53 1-98 60 45 42 84 1 98zm-55 168 40 40m0-40-40 40m135-23c-20-12-45-25-72-46-36-28-58-15-85 0-15 8-10 17-85 15-25 0-50 4-75 13m0 73Z" />
+      <path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round"
+         stroke-width="24"
+         d="M484 351c-33-17-44-48-109-44-29 2-55 12-82-37-10-18-11-38 9-58 13-14 14-30 17-54 3-30 25-51 60-82m-108 0c2 27-1 53-5 79-4 36-21 17-26 45-2 11 0 23 9 42 11 22 5 43 5 64-1 24-12 39-35 38h-52m0 128-68-39-71 42V79l71-42 68 39" />
+      <path fill="none" stroke="#000" stroke-dasharray="32 32" stroke-linecap="round"
+         stroke-width="24" d="M99 37v396" />
+   </symbol>
+   <symbol id="off" viewBox="0 0 512 512">
+      <circle cx="256" cy="256" r="228" fill="none" stroke="#000" stroke-width="24" />
+      <path fill="none" stroke="#000" stroke-width="24"
+         d="M327 40a114 271 0 0 1 43 212 114 271 0 0 1-49 223m-130 0a114 271 0 0 1-49-223 114 271 0 0 1 43-212m71-12v456m228-232H28" />
+      <path fill="none" stroke="#000" stroke-width="24"
+         d="M67 383a270 114 0 0 1 194-35 270 114 0 0 1 187 31M76 117a270 114 0 0 0 184 31 270 114 0 0 0 178-29" />
+   </symbol>
+   <use href="#on" />
+</svg>

@@ -7,6 +7,7 @@ use crate::{hooks::ModelHandle, model::Unit};
 pub struct UnitFilter {
     pub era: Option<AttrValue>,
     pub horde: Option<bool>,
+    pub regional: Option<bool>,
 }
 
 impl UnitFilter {
@@ -19,6 +20,10 @@ impl UnitFilter {
             unit.horde == horde
         } else {
             true
+        }) && (if let Some(regional) = self.regional {
+            unit.is_regional == regional
+        } else {
+            true
         })
     }
 }
@@ -28,12 +33,24 @@ impl ModelHandle<UnitFilter> {
         let model = self.clone();
         self.map(|f| f.era.clone(), move |e| UnitFilter { era: e, ..*model })
     }
+
     pub fn horde_handle(&self) -> ModelHandle<Option<bool>> {
         let model = self.clone();
         self.map(
             |f| f.horde,
             move |h| UnitFilter {
                 horde: h,
+                ..(*model).clone()
+            },
+        )
+    }
+
+    pub fn regional_handle(&self) -> ModelHandle<Option<bool>> {
+        let model = self.clone();
+        self.map(
+            |f| f.regional,
+            move |h| UnitFilter {
+                regional: h,
                 ..(*model).clone()
             },
         )
