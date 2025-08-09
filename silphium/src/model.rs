@@ -67,6 +67,8 @@ pub struct Faction {
     pub is_horde: bool,
     #[serde(rename = "r")]
     pub roster: IArray<Unit>,
+    #[serde(rename = "A")]
+    pub has_aors: bool,
 }
 
 impl Faction {
@@ -176,12 +178,6 @@ pub struct Unit {
     #[serde(rename = "N")]
     pub legionary_name: bool,
 
-    // M2TW
-    #[serde(rename = "0")]
-    pub is_militia: bool,
-    #[serde(rename = "*")]
-    pub is_unique: bool,
-
     #[serde(rename = "e")]
     pub eras: IArray<IString>,
     #[serde(rename = "l")]
@@ -189,6 +185,15 @@ pub struct Unit {
 
     #[serde(rename = "s")]
     pub move_speed: Option<u32>,
+
+    #[serde(rename = "L")]
+    pub is_regional: bool,
+
+    // M2TW
+    #[serde(rename = "0")]
+    pub is_militia: bool,
+    #[serde(rename = "*")]
+    pub is_unique: bool,
 }
 
 #[derive(
@@ -730,6 +735,8 @@ mod utils {
 pub struct Aor {
     #[serde(rename = "m")]
     pub map: IString,
+    #[serde(rename = "f")]
+    pub faction: IString,
     #[serde(rename = "r")]
     pub regions: IArray<IString>,
     #[serde(rename = "u")]

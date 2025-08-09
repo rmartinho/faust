@@ -22,6 +22,7 @@ pub fn faction_page(module_id: AttrValue, faction_id: AttrValue) -> Html {
     let filter = use_state(|| UnitFilter {
         era: (faction.eras.len() > 1).then(|| faction.eras[0].clone()),
         horde: faction.is_horde.then_some(false),
+        regional: faction.has_aors.then_some(false),
     });
 
     let help_dialog = use_state(|| None as Option<Box<dyn Dialog>>);
