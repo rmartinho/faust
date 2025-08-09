@@ -158,7 +158,7 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     let pb = m.add(ProgressBar::new_spinner());
     pb.set_style(progress_style());
     pb.set_prefix("[11/11]");
-    pb.set_message(format!("{THINKING}processing mod data..."));
+    pb.set_message(format!("{THINKING}building catalog..."));
     pb.enable_steady_tick(Duration::from_millis(200));
     let aliases = cfg
         .manifest
@@ -166,7 +166,7 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
         .iter()
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect();
-    let (factions, regions, pools) = build_model(
+    let (factions, regions, pools, aors) = build_model(
         &cfg,
         RawModel {
             units,
@@ -193,6 +193,7 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
             regions,
             pools,
             aliases,
+            aors,
             eras: cfg
                 .manifest
                 .eras

@@ -41,6 +41,8 @@ pub struct Module {
     pub aliases: HashMap<IString, IString>,
     #[serde(rename = "e")]
     pub eras: IndexMap<IString, Era>,
+    #[serde(rename = "R")]
+    pub aors: IArray<Aor>,
 }
 
 #[serde_with::apply(
@@ -722,4 +724,14 @@ mod utils {
     pub fn no_ground_bonus(g: &super::GroundBonus) -> bool {
         g.scrub == 0 && g.sand == 0 && g.forest == 0 && g.snow == 0
     }
+}
+
+#[derive(Properties, PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
+pub struct Aor {
+    #[serde(rename = "m")]
+    pub map: IString,
+    #[serde(rename = "r")]
+    pub regions: IArray<IString>,
+    #[serde(rename = "u")]
+    pub units: IArray<IString>,
 }
