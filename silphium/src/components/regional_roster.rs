@@ -43,11 +43,17 @@ pub fn area_of_recruitment(faction: Faction, aor: Aor, filter: UnitFilter) -> Ht
             }
         })
         .collect();
+
     html! {
       <>
         if cards.len() > 0 {
           <div class="roster-group">
-            <img class="map" src={aor.map} />
+            <div class="map">
+              if aor.name.len() > 0 {
+                <span class="name">{aor.name}</span>
+              }
+              <img src={aor.map} />
+            </div>
             <div class="unit-cards">
               {for cards}
             </div>
