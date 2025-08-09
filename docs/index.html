@@ -351,6 +351,44 @@ pools:
   - "Central Europe"
   - "Gaul"</pre>
           </dd>
+          
+          <dt><code>aors</code></dt>
+          <dd>
+            <p>
+              <em>Optional.</em> Area of recruitment information. The game
+              doesn't have any text strings for areas of recruitment; like
+              <code>pools</code> above, this option lets you specify names
+              for the areas of recruitment to be displayed in the regional
+              units pages.
+            </p>
+            <p>
+              This is also a list of names in order. However,
+              because areas of recruitment have no explicit realization in
+              the game (they're defined with the hidden resources system),
+              this order is arbitrary, but it's fixed for each mod. You can
+              generate the site once and look in <code>images/&lt;mod-id&gt;/aors</code>
+              to see what the correct order is.
+            </p>
+            <h6>Example</h6>
+            <pre>
+aors:
+  - "Spartans"
+  - "Latins"</pre>
+            <p>
+              Alternatively, you can use a more involved syntax to specify the
+              AOR names by specifying the IDs of one or more regions in that AOR.
+              You don't need to specify all of the regions in an AOR, but you need
+              to specify enough regions to make it unambiguous (so if two separate
+              AORs both have region A, you cannot identify them using that region
+              alone).
+            </p>
+            <pre>
+aors:
+  - with: Latium
+    name: "Latins"
+  - with: [Laconia, Sicilia_Graecus]
+    name: "Spartans"</pre>
+          </dd>
         </dl>
       </details>
       <details name="questions">
