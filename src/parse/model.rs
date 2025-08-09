@@ -395,6 +395,12 @@ fn build_unit(
 fn build_pool(p: &Pool, index: usize, cfg: &Config, raw: &IntermediateModel) -> model::Pool {
     model::Pool {
         id: p.id.clone().into(),
+        name: cfg
+            .manifest
+            .pools
+            .get(index)
+            .cloned()
+            .unwrap_or_else(|| p.id.clone().into()),
         regions: p.regions.iter().map(|s| s.clone().into()).collect(),
         units: p
             .units
@@ -737,7 +743,7 @@ fn available_in_region(
     evaluate(req, aliases, &Evaluator::region(region, faction))
 }
 
-fn calculate_aors<'a>(_cfg: &Config, raw: &'a IntermediateModel) -> IArray<model::Aor> {
+fn calculate_aors<'a>(cfg: &Config, raw: &'a IntermediateModel) -> IArray<model::Aor> {
     let mut unit_aors = HashMap::new();
     for region in raw.regions.iter() {
         for (unit, req) in raw.requires.iter() {
@@ -797,6 +803,7 @@ fn calculate_aors<'a>(_cfg: &Config, raw: &'a IntermediateModel) -> IArray<model
                     .collect();
 
                 (units.len() > 0).then(|| model::Aor {
+                    name: cfg.manifest.aors.get(i).cloned().unwrap_or_default(),
                     map: format!("aor-{}", i + 1).into(),
                     faction: f.id.clone().into(),
                     units: units,

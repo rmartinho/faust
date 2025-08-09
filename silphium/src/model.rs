@@ -589,6 +589,8 @@ impl Display for Discipline {
 pub struct Pool {
     #[serde(rename = "i")]
     pub id: IString,
+    #[serde(rename = "n")]
+    pub name: IString,
     #[serde(rename = "r")]
     pub regions: IArray<IString>,
     #[serde(rename = "u")]
@@ -733,6 +735,8 @@ mod utils {
 
 #[derive(Properties, PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
 pub struct Aor {
+    #[serde(rename = "n")]
+    pub name: IString,
     #[serde(rename = "m")]
     pub map: IString,
     #[serde(rename = "f")]
