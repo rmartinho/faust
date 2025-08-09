@@ -1,8 +1,8 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 
 use implicit_clone::unsync::{IArray, IString};
 use indexmap::IndexMap;
-use silphium::model::{self, Ability, MountType, UnitClass, WeaponType};
+use silphium::model;
 
 use crate::{
     args::Config,
@@ -53,6 +53,7 @@ pub fn build_model(
     IndexMap<IString, model::Faction>,
     IndexMap<IString, model::Region>,
     IArray<model::Pool>,
+    IArray<model::Aor>,
 ) {
     let unit_map: IndexMap<_, _> = raw.units.into_iter().map(|u| (u.id.clone(), u)).collect();
     let requires = build_requires(&raw.buildings, &unit_map);
@@ -98,6 +99,8 @@ pub fn build_model(
         .map(|(i, p)| build_pool(p, i, cfg, &raw))
         .collect();
 
+    let aors = calculate_aors(cfg, &raw);
+
     raw.factions
         .extract_if(.., |f| !raw.strat.contains_key(&f.id))
         .count();
@@ -106,18 +109,20 @@ pub fn build_model(
         .factions
         .iter()
         .filter(|f| !cfg.manifest.exclude.contains(&f.id))
-        .map(|f| build_faction(f, cfg, &raw))
+        .map(|f| build_faction(f, cfg, &raw, aors.as_slice()))
         .collect();
 
-    (factions, regions, pools)
+    (factions, regions, pools, aors)
 }
 
 fn build_faction(
     f: &descr_sm_factions::Faction,
     cfg: &Config,
     raw: &IntermediateModel,
+    aors: &[model::Aor],
 ) -> (IString, model::Faction) {
     let mut is_horde = false;
+    let mut has_aors = false;
     let roster: IArray<_> = raw
         .unit_map
         .values()
@@ -129,9 +134,12 @@ fn build_faction(
             )
         })
         .map(|u| {
-            let u = build_unit(u, cfg, &f.id, raw);
+            let u = build_unit(u, cfg, &f.id, raw, aors);
             if u.horde {
-                is_horde = true
+                is_horde = true;
+            }
+            if u.is_regional {
+                has_aors = true;
             }
             u
         })
@@ -162,6 +170,7 @@ fn build_faction(
                 .find(|(_, v)| *v == &f.id)
                 .map(|(k, _)| k.clone()),
             is_horde,
+            has_aors,
             eras: {
                 let redundant_eras = roster.iter().fold(
                     HashSet::from_iter(cfg.manifest.eras.keys().cloned()),
@@ -187,6 +196,7 @@ fn build_unit(
     cfg: &Config,
     f_id: &str,
     raw: &IntermediateModel,
+    aors: &[model::Aor],
 ) -> model::Unit {
     let mut inexhaustible = false;
     let mut stamina = 0;
@@ -222,73 +232,79 @@ fn build_unit(
             }
             Attr::FrightenFoot => frighten_foot = true,
             Attr::FrightenMounted => frighten_mounted = true,
-            Attr::CanRunAmok => abilities.push(Ability::CanRunAmok),
+            Attr::CanRunAmok => abilities.push(model::Ability::CanRunAmok),
             Attr::GeneralUnit => general = true,
-            Attr::CantabrianCircle => abilities.push(Ability::CantabrianCircle),
-            Attr::Command => abilities.push(Ability::Command),
-            Attr::Druid | Attr::ScreechingWomen => abilities.push(Ability::Chant),
+            Attr::CantabrianCircle => abilities.push(model::Ability::CantabrianCircle),
+            Attr::Command => abilities.push(model::Ability::Command),
+            Attr::Druid | Attr::ScreechingWomen => abilities.push(model::Ability::Chant),
             Attr::MercenaryUnit => mercenary = true,
             Attr::Hardy => stamina += 2,
             Attr::VeryHardy => stamina += 4,
             Attr::ExtremelyHardy => stamina += 8,
             Attr::Inexhaustible => inexhaustible = true,
-            Attr::Warcry => abilities.push(Ability::Warcry),
-            Attr::PowerCharge => abilities.push(Ability::PowerCharge),
+            Attr::Warcry => abilities.push(model::Ability::Warcry),
+            Attr::PowerCharge => abilities.push(model::Ability::PowerCharge),
             Attr::CanHorde => horde = true,
             Attr::LegionaryName => legionary_name = true,
             Attr::InfiniteAmmo => infinite_ammo = true,
             Attr::NonScaling => non_scaling = true,
             Attr::FreeUpkeep => is_militia = true,
             Attr::Unique => is_unique = true,
-            Attr::Knight => abilities.push(Ability::Knight),
+            Attr::Knight => abilities.push(model::Ability::Knight),
             Attr::Gunpowder => {} // TODO?
-            Attr::FormedCharge => abilities.push(Ability::FormedCharge),
-            Attr::Stakes => abilities.push(Ability::Stakes),
+            Attr::FormedCharge => abilities.push(model::Ability::FormedCharge),
+            Attr::Stakes => abilities.push(model::Ability::Stakes),
 
             _ => {}
         }
     }
     let class = if is_general(u) {
-        UnitClass::General
+        model::UnitClass::General
     } else if is_elephant(u, cfg, raw) {
-        UnitClass::Animal
+        model::UnitClass::Animal
     } else if u.category.contains("cavalry") {
-        UnitClass::Cavalry
+        model::UnitClass::Cavalry
     } else if u.category.contains("handler") {
-        UnitClass::Animal
+        model::UnitClass::Animal
     } else if u.category.contains("siege") {
-        UnitClass::Artillery
+        model::UnitClass::Artillery
     } else if u.category.contains("ship") {
-        UnitClass::Ship
+        model::UnitClass::Ship
     } else if u.class.contains("missile") {
-        UnitClass::Missile
+        model::UnitClass::Missile
     } else if u.class.contains("spearmen") || has_spears(u) {
-        UnitClass::Spear
+        model::UnitClass::Spear
     } else {
-        UnitClass::Sword
+        model::UnitClass::Sword
     };
     if cant_hide {
-        abilities.push(Ability::CantHide)
+        abilities.push(model::Ability::CantHide)
     } else if hide_anywhere {
-        abilities.push(Ability::HideAnywhere)
+        abilities.push(model::Ability::HideAnywhere)
     } else if hide_forest {
-        abilities.push(Ability::HideImprovedForest)
+        abilities.push(model::Ability::HideImprovedForest)
     } else if hide_grass {
-        abilities.push(Ability::HideLongGrass)
+        abilities.push(model::Ability::HideLongGrass)
     }
     if frighten_foot && frighten_mounted {
-        abilities.push(Ability::FrightenAll)
+        abilities.push(model::Ability::FrightenAll)
     } else if frighten_foot {
-        abilities.push(Ability::FrightenFoot)
+        abilities.push(model::Ability::FrightenFoot)
     } else if frighten_mounted {
-        abilities.push(Ability::FrightenMounted)
+        abilities.push(model::Ability::FrightenMounted)
     }
     let move_speed = get_move_speed(u, cfg, raw);
-    if class == UnitClass::Ship {
+    if class == model::UnitClass::Ship {
         abilities.clear();
     }
+
+    let id = u.id.clone().into();
+    let is_regional = aors
+        .iter()
+        .any(|aor| aor.faction == f_id && aor.units.contains(&id));
+
     model::Unit {
-        id: u.id.clone().into(),
+        id,
         key: u.key.clone().into(),
         name: raw
             .text
@@ -367,6 +383,8 @@ fn build_unit(
         is_militia,
         is_unique,
 
+        is_regional,
+
         move_speed,
 
         abilities: abilities.into(),
@@ -377,13 +395,19 @@ fn build_unit(
 fn build_pool(p: &Pool, index: usize, cfg: &Config, raw: &IntermediateModel) -> model::Pool {
     model::Pool {
         id: p.id.clone().into(),
+        name: cfg
+            .manifest
+            .pools
+            .get(index)
+            .cloned()
+            .unwrap_or_else(|| p.id.clone().into()),
         regions: p.regions.iter().map(|s| s.clone().into()).collect(),
         units: p
             .units
             .iter()
             .map(|e| {
                 let u = &raw.unit_map[&e.id];
-                let mut unit = build_unit(u, cfg, "mercs", raw);
+                let mut unit = build_unit(u, cfg, "mercs", raw, &[]);
                 unit.cost = e.cost;
                 model::PoolEntry {
                     unit,
@@ -395,7 +419,7 @@ fn build_pool(p: &Pool, index: usize, cfg: &Config, raw: &IntermediateModel) -> 
                 }
             })
             .collect(),
-        map: format!("pool-{index}").into(),
+        map: format!("pool-{}", index + 1).into(),
     }
 }
 
@@ -478,11 +502,11 @@ fn build_weapon(weapon: &export_descr_unit::Weapon) -> Option<model::Weapon> {
     }
 
     let mut class = if weapon.missile == "no" {
-        WeaponType::Melee
+        model::WeaponType::Melee
     } else if weapon.tech_type.contains("gunpowder") {
-        WeaponType::Gunpowder
+        model::WeaponType::Gunpowder
     } else {
-        WeaponType::Missile
+        model::WeaponType::Missile
     };
 
     let mut armor_piercing = false;
@@ -499,9 +523,9 @@ fn build_weapon(weapon: &export_descr_unit::Weapon) -> Option<model::Weapon> {
             export_descr_unit::WeaponAttr::Spear
             | export_descr_unit::WeaponAttr::LongPike
             | export_descr_unit::WeaponAttr::ShortPike
-            | export_descr_unit::WeaponAttr::LightSpear => class = WeaponType::Spear,
+            | export_descr_unit::WeaponAttr::LightSpear => class = model::WeaponType::Spear,
             export_descr_unit::WeaponAttr::Precharge => pre_charge = true,
-            export_descr_unit::WeaponAttr::Thrown => class = WeaponType::Thrown,
+            export_descr_unit::WeaponAttr::Thrown => class = model::WeaponType::Thrown,
             export_descr_unit::WeaponAttr::Launching => launching = true,
             export_descr_unit::WeaponAttr::Area => area = true,
             export_descr_unit::WeaponAttr::SpearBonus(n) => spear_bonus = *n,
@@ -567,12 +591,16 @@ fn is_elephant(unit: &export_descr_unit::Unit, cfg: &Config, raw: &IntermediateM
     get_mount(unit, cfg, raw).is_some_and(|mount| mount.class == MountClass::Elephant)
 }
 
-fn mount_type(unit: &export_descr_unit::Unit, cfg: &Config, raw: &IntermediateModel) -> MountType {
-    get_mount(unit, cfg, raw).map_or(MountType::Foot, |mount| {
+fn mount_type(
+    unit: &export_descr_unit::Unit,
+    cfg: &Config,
+    raw: &IntermediateModel,
+) -> model::MountType {
+    get_mount(unit, cfg, raw).map_or(model::MountType::Foot, |mount| {
         if mount.class == MountClass::Horse {
-            MountType::Horse
+            model::MountType::Horse
         } else {
-            MountType::Other
+            model::MountType::Other
         }
     })
 }
@@ -709,7 +737,79 @@ fn available_to_faction(
 fn available_in_region(
     req: &Requires,
     region: &Region,
+    faction: Option<&descr_sm_factions::Faction>,
     aliases: &HashMap<String, Requires>,
 ) -> bool {
-    evaluate(req, aliases, &Evaluator::region(region))
+    evaluate(req, aliases, &Evaluator::region(region, faction))
+}
+
+fn calculate_aors<'a>(cfg: &Config, raw: &'a IntermediateModel) -> IArray<model::Aor> {
+    let mut unit_aors = HashMap::new();
+    for region in raw.regions.iter() {
+        for (unit, req) in raw.requires.iter() {
+            if available_in_region(req, &region, None, &raw.require_aliases) {
+                unit_aors
+                    .entry(unit.clone())
+                    .or_insert_with(BTreeSet::new)
+                    .insert(region.id.as_str());
+            }
+        }
+    }
+    let all_regions: BTreeSet<_> = raw.regions.iter().map(|r| r.id.as_str()).collect();
+    let aor_units: BTreeSet<_> = unit_aors
+        .iter()
+        .filter(|(_, set)| set.len() > 0 && set.len() < all_regions.len())
+        .map(|(k, _)| k)
+        .collect();
+    let aors: BTreeSet<_> = unit_aors
+        .values()
+        .filter(|set| set.len() > 0 && set.len() < all_regions.len())
+        .cloned()
+        .collect();
+    let aors: BTreeSet<Vec<IString>> = raw
+        .regions
+        .iter()
+        .filter_map(|r| {
+            aors.iter()
+                .filter(|aor| aor.contains(r.id.as_str()))
+                .cloned()
+                .reduce(|l, r| &l & &r)
+                .map(|set| set.into_iter().map(|s| s.to_string().into()).collect())
+        })
+        .collect();
+    let region_map: &HashMap<_, _> = &raw.regions.iter().map(|r| (r.id.as_str(), r)).collect();
+    aors.into_iter()
+        .enumerate()
+        .flat_map(|(i, regions)| {
+            let regions: IArray<IString> = regions.into_iter().map(Into::into).collect();
+            let aor_units = &aor_units;
+            raw.factions.iter().filter_map(move |f| {
+                let units: IArray<IString> = aor_units
+                    .iter()
+                    .filter_map(|u| {
+                        let req = &raw.requires.get(u.as_str()).unwrap_or(&Requires::None);
+                        regions
+                            .iter()
+                            .all(|r| {
+                                available_in_region(
+                                    req,
+                                    region_map[r.as_str()],
+                                    Some(f),
+                                    &raw.require_aliases,
+                                )
+                            })
+                            .then(|| (*u).clone().into())
+                    })
+                    .collect();
+
+                (units.len() > 0).then(|| model::Aor {
+                    name: cfg.manifest.aors.get(i).cloned().unwrap_or_default(),
+                    map: format!("aor-{}", i + 1).into(),
+                    faction: f.id.clone().into(),
+                    units: units,
+                    regions: regions.clone(),
+                })
+            })
+        })
+        .collect()
 }

@@ -1,0 +1,11 @@
+.roster-group {
+  .map {
+    display: flex;
+    flex-flow: column;
+
+    .name {
+      font-size: x-large;
+      font-weight: bold;
+    }
+  }
+}

@@ -41,6 +41,8 @@ pub struct Module {
     pub aliases: HashMap<IString, IString>,
     #[serde(rename = "e")]
     pub eras: IndexMap<IString, Era>,
+    #[serde(rename = "R")]
+    pub aors: IArray<Aor>,
 }
 
 #[serde_with::apply(
@@ -65,6 +67,8 @@ pub struct Faction {
     pub is_horde: bool,
     #[serde(rename = "r")]
     pub roster: IArray<Unit>,
+    #[serde(rename = "A")]
+    pub has_aors: bool,
 }
 
 impl Faction {
@@ -174,12 +178,6 @@ pub struct Unit {
     #[serde(rename = "N")]
     pub legionary_name: bool,
 
-    // M2TW
-    #[serde(rename = "0")]
-    pub is_militia: bool,
-    #[serde(rename = "*")]
-    pub is_unique: bool,
-
     #[serde(rename = "e")]
     pub eras: IArray<IString>,
     #[serde(rename = "l")]
@@ -187,6 +185,15 @@ pub struct Unit {
 
     #[serde(rename = "s")]
     pub move_speed: Option<u32>,
+
+    #[serde(rename = "L")]
+    pub is_regional: bool,
+
+    // M2TW
+    #[serde(rename = "0")]
+    pub is_militia: bool,
+    #[serde(rename = "*")]
+    pub is_unique: bool,
 }
 
 #[derive(
@@ -582,6 +589,8 @@ impl Display for Discipline {
 pub struct Pool {
     #[serde(rename = "i")]
     pub id: IString,
+    #[serde(rename = "n")]
+    pub name: IString,
     #[serde(rename = "r")]
     pub regions: IArray<IString>,
     #[serde(rename = "u")]
@@ -722,4 +731,18 @@ mod utils {
     pub fn no_ground_bonus(g: &super::GroundBonus) -> bool {
         g.scrub == 0 && g.sand == 0 && g.forest == 0 && g.snow == 0
     }
+}
+
+#[derive(Properties, PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
+pub struct Aor {
+    #[serde(rename = "n")]
+    pub name: IString,
+    #[serde(rename = "m")]
+    pub map: IString,
+    #[serde(rename = "f")]
+    pub faction: IString,
+    #[serde(rename = "r")]
+    pub regions: IArray<IString>,
+    #[serde(rename = "u")]
+    pub units: IArray<IString>,
 }

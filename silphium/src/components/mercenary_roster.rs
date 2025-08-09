@@ -33,11 +33,17 @@ pub fn mercenary_pool(pool: Pool, filter: UnitFilter) -> Html {
             }
         })
         .collect();
+
     html! {
       <>
         if cards.len() > 0 {
           <div class="roster-group">
-            <img class="map" src={pool.map} />
+            <div class="map">
+              if pool.name.len() > 0 {
+                <span class="name">{pool.name}</span>
+              }
+              <img src={pool.map} />
+            </div>
             <div class="unit-cards">
               {for cards}
             </div>

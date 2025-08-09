@@ -3,11 +3,11 @@ use std::{collections::HashMap, io, path::PathBuf};
 use anyhow::{Context as _, Result};
 use implicit_clone::unsync::IString;
 use indexmap::IndexMap;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use crate::parse::eval::Evaluator;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Manifest {
     pub id: IString,
@@ -30,9 +30,13 @@ pub struct Manifest {
     pub unit_info_images: bool,
     #[serde(default)]
     pub speeds: HashMap<String, u32>,
+    #[serde(default)]
+    pub pools: Vec<IString>,
+    #[serde(default)]
+    pub aors: Vec<IString>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct EraSpec {
     #[serde(default)]
@@ -53,7 +57,7 @@ fn default_banner() -> PathBuf {
     "faust/banner.png".into()
 }
 
-#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum ParserMode {
     Original,

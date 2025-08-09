@@ -245,8 +245,7 @@ game: original</pre
 exclude:
   - gauls
   - britons
-  - germans</pre
-            >
+  - germans</pre>
           </dd>
 
           <dt><code>aliases</code></dt>
@@ -264,8 +263,7 @@ exclude:
             <pre>
 aliases:
   britannia: britons
-  germania: germans</pre
-            >
+  germania: germans</pre>
           </dd>
 
           <dt><code>eras</code></dt>
@@ -287,8 +285,7 @@ eras:
   post_marian:
     name: "After the Marian reforms"
     major_event:
-      marian_reforms: true</pre
-            >
+      marian_reforms: true</pre>
             <p>
               Additionally, you should create a folder named
               <code>eras</code> in the manifest folder, and create two image
@@ -322,17 +319,61 @@ eras:
           <dt><code>speeds</code></dt>
           <dd>
             <p>
-              <em>Optional.</em> Currently the unit move speeds are an
-              estimation based on the base game skeleton animations. Each
-              skeleton is internally mapped to a hardcoded speed. This option
-              exists to override this, in case there are different skeletons.
+              <em>Optional.</em> Speed mapping. Currently the unit move
+              speeds are an estimation based on the base game skeleton
+              animations. Each skeleton is internally mapped to a
+              hardcoded speed. This option exists to override this, in case
+              there are different skeletons.
             </p>
             <h6>Example</h6>
             <pre>
 speeds:
   fs_dagger: 30
-  fs_semi_fast_dagger: 32</pre
-            >
+  fs_semi_fast_dagger: 32</pre>
+          </dd>
+
+          <dt><code>pools</code></dt>
+          <dd>
+            <p>
+              <em>Optional.</em> Mercenary pool information. The game
+              doesn't have any text strings for the mercenary pools; this
+              option lets you specify names for the mercenary pools to be
+              displayed in the mercenaries page. This is just a list of
+              names for the pools in the same order as in <code>descr_mercenaries.txt</code>.
+            </p>
+            <h6>Example</h6>
+            <pre>
+pools:
+  - "Britannia"
+  - "Germania"
+  - "Eastern Europe"
+  - "Steppes"
+  - "Central Europe"
+  - "Gaul"</pre>
+          </dd>
+          
+          <dt><code>aors</code></dt>
+          <dd>
+            <p>
+              <em>Optional.</em> Area of recruitment information. The game
+              doesn't have any text strings for areas of recruitment; like
+              <code>pools</code> above, this option lets you specify names
+              for the areas of recruitment to be displayed in the regional
+              units pages.
+            </p>
+            <p>
+              This is also a list of names in order. However,
+              because areas of recruitment have no explicit realization in
+              the game (they're defined with the hidden resources system),
+              this order is arbitrary, but it's fixed for each mod. You can
+              generate the site once and look in <code>images/&lt;mod-id&gt;/aors</code>
+              to see what the correct order is.
+            </p>
+            <h6>Example</h6>
+            <pre>
+aors:
+  - "Spartans"
+  - "Latins"</pre>
           </dd>
         </dl>
       </details>
