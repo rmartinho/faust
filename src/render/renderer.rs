@@ -12,7 +12,7 @@ use image::{
 };
 use indicatif::{HumanBytes, MultiProgress, ProgressBar};
 use silphium::{
-    model::{Era, Faction, Module, Pool, Region, Unit}, ModuleMap, Route, StaticApp, StaticAppProps
+    model::{Aor, Era, Faction, Module, Pool, Region, Unit}, ModuleMap, Route, StaticApp, StaticAppProps
 };
 use tokio::fs;
 use yew_router::Routable as _;
@@ -200,6 +200,23 @@ impl Renderer {
                 p.units = units.into();
             }
             m.pools = pools.into();
+            let mut aors = m.aors.to_vec();
+            for aor in aors.iter_mut() {
+                let aor_path = Self::aor_path(&m.id, aor);
+                let dst = self.cfg.out_dir.join(&aor_path);
+                pb.tick();
+                pb.set_message(format!("{PICTURE}rendering {}", web_path(&aor_path)));
+                Self::render_map(
+                    &radar,
+                    &areas,
+                    &dst,
+                    m.regions.values().filter(|r| aor.regions.contains(&r.id)),
+                    Rgba([0xFF, 0x71, 0x00, 0xC0]),
+                    Rgba([0x00, 0x00, 0x00, 0xFF]),
+                )
+                .await?;
+            }
+            m.aors = aors.into();
 
             for e in m.eras.values_mut() {
                 let src = self.cfg.manifest_dir.join(e.icon.as_ref());
@@ -305,6 +322,16 @@ impl Renderer {
             .join(pool.map.as_ref())
             .with_extension("webp");
         pool.map = web_path(&path).into();
+        path
+    }
+
+    fn aor_path(module_id: &str, aor: &mut Aor) -> PathBuf {
+        let path = PathBuf::from("images")
+            .join(module_id)
+            .join("aors")
+            .join(aor.map.as_ref())
+            .with_extension("webp");
+        aor.map = web_path(&path).into();
         path
     }
 
