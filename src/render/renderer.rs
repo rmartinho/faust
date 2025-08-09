@@ -12,8 +12,7 @@ use image::{
 };
 use indicatif::{HumanBytes, MultiProgress, ProgressBar};
 use silphium::{
-    ModuleMap, Route, StaticApp, StaticAppProps,
-    model::{Era, Faction, Module, Pool, Region, Unit},
+    model::{Era, Faction, Module, Pool, Region, Unit}, ModuleMap, Route, StaticApp, StaticAppProps
 };
 use tokio::fs;
 use yew_router::Routable as _;
@@ -352,19 +351,13 @@ impl Renderer {
     }
 
     async fn render_data(&mut self, m: MultiProgress) -> Result<()> {
-        let mut lfc = self.modules["vanilla"].factions["romans_julii"].roster.iter().find(|u| u.key == "roman_legionary_first_cohort_ii").unwrap();
-        lfc.image = "/images/ui/example-unit.webp".into();
-        lfc.eras = vec![].into();
-        let mut data = vec![];
-        ciborium::into_writer(&lfc, &mut data).context("generating JSON file")?;
-        let _ = write_file("legionary_first_cohort.cbor", data).await;
         let pb = m.add(ProgressBar::new_spinner());
         pb.set_style(progress_style());
         pb.set_prefix("[4/5]");
         pb.tick();
-        pb.set_message(format!("{PAPER}rendering mod data"));
+        pb.set_message(format!("{PAPER}rendering catalog data"));
         let mut data = vec![];
-        ciborium::into_writer(&self.modules, &mut data).context("generating JSON file")?;
+        ciborium::into_writer(&self.modules, &mut data).context("generating catalog file")?;
         self.data = data.clone();
         write_file(&self.cfg.out_dir.join("mods.cbor"), data)
             .await
@@ -372,7 +365,7 @@ impl Renderer {
         self.preload
             .push(("/mods.cbor".into(), PreloadType::Cbor.into()));
         pb.finish_with_message(format!(
-            "{PAPER}rendered mods.cbor ({})",
+            "{PAPER}rendered catalog ({})",
             HumanBytes(self.data.len() as u64)
         ));
         Ok(())
