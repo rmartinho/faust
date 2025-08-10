@@ -295,6 +295,9 @@ pub fn help_dialog(#[prop_or_default] control: Callback<Option<Box<dyn Dialog>>>
                 <Icon class="icon" src="/icons/weapon.svg" symbol="gunpowder" />
                 <span>{"firearm (strength and lethality)"}</span>
 
+                <Icon class="icon" src="/icons/weapon.svg" symbol="cannon" />
+                <span>{"cannon (strength and lethality)"}</span>
+
                 <Icon class="icon" src="/icons/attribute.svg" symbol="range" />
                 <span>{"range"}</span>
 

@@ -5,7 +5,10 @@ use yew_autoprops::autoprops;
 
 use crate::{
     components::{Icon, Text},
-    model::{Ability, Defense, Discipline, Formation, PoolEntry, Unit, Weapon, WeaponType},
+    model::{
+        Ability, Defense, Discipline, Formation, MountType, PoolEntry, Unit, UnitClass, Weapon,
+        WeaponType,
+    },
 };
 
 fn pluralize<'a>(value: u32, singular: &'a str, plural: &'a str) -> &'a str {
@@ -271,7 +274,8 @@ pub fn weapon_row(#[prop_or_default] class: AttrValue, unit: Unit, weapon: Weapo
         WeaponType::Spear => "Spear".into(),
         WeaponType::Missile => "Missile weapon".into(),
         WeaponType::Thrown => "Thrown weapon".into(),
-        WeaponType::Gunpowder => "Gunpowder weapon".into(),
+        WeaponType::Gunpowder if unit.class == UnitClass::Artillery => "Cannon".into(),
+        WeaponType::Gunpowder => "Firearm".into(),
     };
     let lethality = format!("{}%", (weapon.lethality * 100.0).round());
     if weapon.lethality != 1.0 {
@@ -309,9 +313,14 @@ pub fn weapon_row(#[prop_or_default] class: AttrValue, unit: Unit, weapon: Weapo
     }
     let title: AttrValue = title.into();
 
+    let weapon_symbol = match (weapon.class, unit.class) {
+        (WeaponType::Gunpowder, UnitClass::Artillery) => "cannon".into(),
+        _ => weapon.class.to_string(),
+    };
+
     html! {
       <div {class} {title}>
-        <Icon class="icon" src="/icons/weapon.svg" symbol={weapon.class.to_string()} />
+        <Icon class="icon" src="/icons/weapon.svg" symbol={weapon_symbol} />
         if weapon.lethality != 1.0 {
           <div class="lethality">{ lethality }</div>
         }
@@ -421,7 +430,43 @@ fn ground_bonus(#[prop_or_default] class: AttrValue, ground: AttrValue, value: i
 #[autoprops]
 #[function_component(AbilitiesRow)]
 pub fn abilities_row(#[prop_or_default] class: AttrValue, unit: Unit) -> Html {
-    let abilities = unit.abilities.iter().map(|ab| {
+    let base = if unit.class == UnitClass::Ship {
+        [html! {
+          <Icon class="ability" title="Ship" src="/icons/class.svg" symbol="ship" />
+        }]
+    } else if unit.class == UnitClass::Artillery {
+        [html! {
+          <Icon class="ability" title="Artillery" src="/icons/class.svg" symbol="artillery" />
+        }]
+    } else if unit.class == UnitClass::General {
+        [html! {
+          <Icon class="ability" title="General" src="/icons/class.svg" symbol="general" />
+        }]
+    } else {
+        [html! { <></> }]
+    }
+    .into_iter();
+    let mount = if unit.mount == MountType::Horse {
+        [html! {
+          <Icon class="ability" title="Horse" src="/icons/mount.svg" symbol="horse" />
+        }]
+    } else if unit.mount == MountType::Camel {
+        [html! {
+          <Icon class="ability" title="Camel" src="/icons/mount.svg" symbol="camel" />
+        }]
+    } else if unit.mount == MountType::Elephant {
+        [html! {
+          <Icon class="ability" title="Elephant" src="/icons/mount.svg" symbol="elephant" />
+        }]
+    } else if unit.mount == MountType::Chariot {
+        [html! {
+          <Icon class="ability" title="Chariot" src="/icons/mount.svg" symbol="chariot" />
+        }]
+    } else {
+        [html! { <></> }]
+    }
+    .into_iter();
+    let abilities = base.chain(mount).chain(unit.abilities.iter().map(|ab| {
         let title = match ab {
             Ability::CantHide => "Cannot hide",
             Ability::HideImprovedForest => "Can hide well in forests",
@@ -443,7 +488,7 @@ pub fn abilities_row(#[prop_or_default] class: AttrValue, unit: Unit) -> Html {
         html! {
           <Icon class="ability" {title} src="/icons/ability.svg" symbol={ab.to_string()} />
         }
-    });
+    }));
 
     html! {
       <div {class}>

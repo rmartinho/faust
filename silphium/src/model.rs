@@ -266,7 +266,10 @@ impl Display for UnitClass {
 pub enum MountType {
     Foot = 0,
     Horse = 1,
-    Other = 2,
+    Camel = 2,
+    Elephant = 3,
+    Chariot = 4,
+    Other = 5,
 }
 
 impl MountType {
@@ -275,7 +278,10 @@ impl MountType {
     }
 
     pub fn has_mount_stats(&self) -> bool {
-        *self == MountType::Other
+        match *self {
+            MountType::Foot | MountType::Horse => false,
+            _ => true,
+        }
     }
 }
 

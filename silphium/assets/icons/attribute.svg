@@ -6,8 +6,8 @@
           d="M38 11h400v458H38Zm127 157a22 22 0 0 0-21 32c36 79 59 122 80 147 11 13 22 22 35 26 8 2 16 2 23 1l126 126c9 9 23 8 32-1l33-34c8-9 8-23 0-32L348 309c1-7 1-15-2-23-3-14-13-25-25-36-26-21-69-43-147-80l-9-2z" />
       </clipPath>
     </defs>
-    <g fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="24">
-      <path
+    <g stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="24">
+      <path fill="none"
         d="M306 452c2-155-87-152-60-234 15 10 16 31 56 21l51 19c18 23 37 13 55 8 16-19 14-36 12-53l-89-76c-6-22-26-34-49-44 16-18 11-42 11-65-19 13-38 25-44 44C82 84 63 336 55 436"
         clip-path="url(#clip-spear)" />
       <path d="M457 449 324 316c10-35-3-53-160-126 73 157 91 170 126 160l134 134" />

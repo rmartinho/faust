@@ -24,12 +24,12 @@
   </symbol>
   <symbol id="forest-down" viewBox="0 0 512 512">
     <use href="#forest" clip-path="url(#clip-arrow-down)" />
-    <path id="arrow-down" fill="none" stroke="#000" stroke-linejoin="round" stroke-width="24"
+    <path id="arrow-down" stroke="#000" stroke-linejoin="round" stroke-width="24"
       d="M268 316h216L376 430z" />
   </symbol>
   <symbol id="forest-up" viewBox="0 0 512 512">
     <use href="#forest" clip-path="url(#clip-arrow-up)" />
-    <path id="arrow-up" fill="none" stroke="#000" stroke-linejoin="round" stroke-width="24"
+    <path id="arrow-up" stroke="#000" stroke-linejoin="round" stroke-width="24"
       d="M268 316h216L376 201Z" />
   </symbol>
   <symbol id="sand" viewBox="0 0 512 512">
