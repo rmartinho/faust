@@ -1,7 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
   <symbol id="can-run-amok" viewBox="0 0 512 512">
-    <path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="24"
-      d="m218 158 9 121h58l9-121zm11 146 3 50h48l3-50zm246 23-107 10 23 104-93-55-42 98-43-98-93 54 24-104-107-10 81-70-81-71 107-10-23-104 93 55 42-98 43 98 93-54-24 104 107 10-81 70z" />
+    <g stroke-linejoin="round" stroke="#000">
+      <path fill="none" stroke-width="24"
+        d="m450 311-107 10 23 104-93-55-42 98-43-98-93 54 24-104-107-10 81-70-81-71 107-10L96 55l93 55 42-98 43 98 93-54-24 104 107 10-81 70z" />
+      <path stroke-linejoin="round" stroke-width="12"
+        d="m204 288 3 50h48l3-50zm-11-146 9 121h58l9-121z" />
+    </g>
   </symbol>
   <symbol id="cant-hide" viewBox="0 0 512 512">
     <path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="24"

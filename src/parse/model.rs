@@ -599,6 +599,12 @@ fn mount_type(
     get_mount(unit, cfg, raw).map_or(model::MountType::Foot, |mount| {
         if mount.class == MountClass::Horse {
             model::MountType::Horse
+        } else if mount.class == MountClass::Camel {
+            model::MountType::Camel
+        } else if mount.class == MountClass::Elephant {
+            model::MountType::Elephant
+        } else if mount.class == MountClass::Chariot {
+            model::MountType::Chariot
         } else {
             model::MountType::Other
         }

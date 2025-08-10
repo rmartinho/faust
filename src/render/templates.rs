@@ -71,34 +71,50 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
         preload_as: None,
     },
     StaticFile {
-        path: "fonts/blinker-regular-1.woff2",
+        path: "fonts/blinker-regular-latin.woff2",
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
-            "/silphium_template/fonts/blinker-regular-1.woff2"
+            "/silphium_template/fonts/blinker-regular-latin.woff2"
         )),
         preload_as: Some(PreloadType::Woff2),
     },
     StaticFile {
-        path: "fonts/blinker-regular-2.woff2",
+        path: "fonts/blinker-regular-latin-ext.woff2",
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
-            "/silphium_template/fonts/blinker-regular-2.woff2"
+            "/silphium_template/fonts/blinker-regular-latin-ext.woff2"
         )),
         preload_as: None,
     },
     StaticFile {
-        path: "fonts/blinker-bold-1.woff2",
+        path: "fonts/blinker-bold-latin.woff2",
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
-            "/silphium_template/fonts/blinker-bold-1.woff2"
+            "/silphium_template/fonts/blinker-bold-latin.woff2"
         )),
         preload_as: Some(PreloadType::Woff2),
     },
     StaticFile {
-        path: "fonts/blinker-bold-2.woff2",
+        path: "fonts/blinker-bold-latin-ext.woff2",
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
-            "/silphium_template/fonts/blinker-bold-2.woff2"
+            "/silphium_template/fonts/blinker-bold-latin-ext.woff2"
+        )),
+        preload_as: None,
+    },
+    StaticFile {
+        path: "fonts/lato-regular-plus-minus.woff2",
+        contents: include_bytes!(concat!(
+            env!("OUT_DIR"),
+            "/silphium_template/fonts/lato-regular-plus-minus.woff2"
+        )),
+        preload_as: None,
+    },
+    StaticFile {
+        path: "fonts/lato-bold-plus-minus.woff2",
+        contents: include_bytes!(concat!(
+            env!("OUT_DIR"),
+            "/silphium_template/fonts/lato-bold-plus-minus.woff2"
         )),
         preload_as: None,
     },
@@ -115,6 +131,14 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
             "/silphium_template/icons/attribute.svg"
+        )),
+        preload_as: None,
+    },
+    StaticFile {
+        path: "icons/animal.svg",
+        contents: include_bytes!(concat!(
+            env!("OUT_DIR"),
+            "/silphium_template/icons/animal.svg"
         )),
         preload_as: None,
     },
@@ -144,6 +168,14 @@ pub const FILESYSTEM_STATIC: &[StaticFile] = &[
         contents: include_bytes!(concat!(
             env!("OUT_DIR"),
             "/silphium_template/icons/formation.svg"
+        )),
+        preload_as: None,
+    },
+    StaticFile {
+        path: "icons/mount.svg",
+        contents: include_bytes!(concat!(
+            env!("OUT_DIR"),
+            "/silphium_template/icons/mount.svg"
         )),
         preload_as: None,
     },

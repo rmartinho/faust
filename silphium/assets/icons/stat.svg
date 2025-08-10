@@ -11,8 +11,8 @@
       </clipPath>
     </defs>
     <use href="#cost" clip-path="url(#clip-arrow)" />
-    <path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="24"
-      d="M221 32c-23 0-47 4-72 12 235-45 340 252 99 337l-6-48-94 88 113 67-5-43c314-82 189-414-35-413Z" />
+    <path stroke="#000" stroke-linejoin="round" stroke-width="12"
+      d="M221 30c-23 0-47 4-72 12 235-45 340 252 99 337l-6-48-94 88 113 67-5-43c314-82 189-414-35-413z" />
   </symbol>
   <symbol id="defense" viewBox="0 0 512 512">
     <path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="24"
@@ -20,8 +20,8 @@
   </symbol>
   <symbol id="defense-mount" viewBox="0 0 512 512">
     <use href="#defense" />
-    <path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="16"
-      d="M273 116c-19 0-41 7-55 10-19-4-39 2-43 21-9 40-18 53-27 77 28 12 63 53 77 53 6 0 9-16 12-35h0l35 24 5 8-40-32c14 13 27 23 40 32 4 6 9 12 15 16 1 19-26 61-35 10-2-11-19 10-20 23-1 22 74 51 91-19 20 3 36 1 36 1s-15-6-33-18h0c2-22 0-50-9-87 2-13 3-26-9-38 0-35-19-45-40-46z" />
+    <path stroke="#000" stroke-linejoin="round" stroke-width="12"
+      d="M273 116c-19 0-41 7-55 10-19-4-39 2-43 21-9 40-18 53-27 77 28 12 63 53 77 53 6 0 9-16 12-35l35 24 5 8-40-32c14 13 27 23 40 32 4 6 9 12 15 16 1 19-26 61-35 10-2-11-19 10-20 23-1 22 74 51 91-19 20 3 36 1 36 1s-15-6-33-18c2-22 0-50-9-87 2-13 3-26-9-38 0-35-19-45-40-46z" />
   </symbol>
   <symbol id="replenish" viewBox="0 0 512 512">
     <path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="24"
@@ -35,7 +35,7 @@
     <defs>
       <clipPath id="clip-castle">
         <path
-          d="M41 9h430v494H41Zm4 69v81H18v140h99v-52c0-8 6-13 13-13s13 5 13 13v52h99V159h-27V78h-53v26h-5V78h-54v26h-5V78Z"/>
+          d="M41 9h430v494H41Zm4 69v81H18v140h99v-52c0-8 6-13 13-13s13 5 13 13v52h99V159h-27V78h-53v26h-5V78h-54v26h-5V78Z" />
       </clipPath>
     </defs>
     <g clip-path="url(#clip-castle)">
