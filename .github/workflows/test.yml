@@ -1,0 +1,185 @@
+name: Test mod sites
+
+on:
+  push:
+    branches:
+      - main
+  pull_request: # temporarily for testing the action
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build FAUST
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build binary
+        uses: houseabsolute/actions-rust-cross@v1
+        with:
+          command: build
+          target: x86_64-unknown-linux-gnu
+          args: "--locked --release"
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: faust
+          path: target/x86_64-unknown-linux-gnu/release/faust
+  test:
+    name: Test - ${{ matrix.mod.name }}
+    needs: build
+    runs-on: ubuntu-24.04
+    environment: preview
+    permissions:
+      contents: read
+      deployments: write
+    strategy:
+      fail-fast: false
+      matrix:
+        mod:
+          - id: og
+            name: "[OG] Imperial Campaign"
+            dir: og
+            base: og
+        #   - name: "[OG] Barbarian Invasion"
+        #     dir: og-bi/
+        #     base: og/
+        #   - name: "[OG] Alexander"
+        #     dir: og-alx/
+        #     base: og/
+        #   - name: "[RR] Imperial Campaign"
+        #     dir: rr/
+        #     base: rr/
+        #   - name: "[RR] Barbarian Invasion"
+        #     dir: rr-bi/
+        #     base: rr/
+        #   - name: "[RR] Alexander"
+        #     dir: rr-alx/
+        #     base: rr/
+        #   - name: "[M2] Grand Campaign"
+        #     dir: m2/
+        #     base: m2/
+        #   - name: "[M2] Americas"
+        #     dir: m2-americas/
+        #     base: m2/
+        #   - name: "[M2] Britannia"
+        #     dir: m2-britannia/
+        #     base: m2/
+        #   - name: "[M2] Crusades"
+        #     dir: m2-crusades/
+        #     base: m2/
+        #   - name: "[M2] Teutonic"
+        #     dir: m2-teutonic/
+        #     base: m2/
+        #   - name: "[OG] Anabasis III"
+        #     dir: og-anabasis-iii/
+        #     base: og/
+        #   - name: "[OG] Aristeia"
+        #     dir: og-aristeia/
+        #     base: og/
+        #   - name: "[RR] Arthurian"
+        #     dir: og-arthurian/
+        #     base: rr/
+        #   - name: "[OG] Barbarian Empires"
+        #     dir: og-barbarian-empires/
+        #     base: og/
+        #   - name: "[RR] Barbarian Empires"
+        #     dir: rr-barbarian-empires/
+        #     base: rr/
+        #   - name: "[M2] Broken Crescent"
+        #     dir: m2-broken-crescent/
+        #     base: m2/
+        #   - name: "[RR] Bronze Age"
+        #     dir: rr-bronze-age/
+        #     base: rr/
+        #   - name: "[RR] Chivalry"
+        #     dir: rr-chivalry/
+        #     base: rr/
+        #   - name: "[RR] War of the Ring"
+        #     dir: rr-dagovax/
+        #     base: rr/
+        #   - name: "[OG] Diadochi: Total War"
+        #     dir: og-diadochi/
+        #     base: og/
+        #   - name: "[RR] Diadochi Remastered"
+        #     dir: rr-diadochi/
+        #     base: rr/
+        #   - name: "[RR] Europa Barbarorum I"
+        #     dir: og-europa-barbarorum-i/
+        #     base: og/
+        #   - name: "[M2] Europa Barbarorum II"
+        #     dir: m2-europa-barbarorum-ii/
+        #     base: m2/
+        #   - name: "[RR] Fourth Age"
+        #     dir: rr-fourth-age/
+        #     base: rr/
+        #   - name: "[M2] The Great Conflicts"
+        #     dir: m2-great-conflicts/
+        #     base: m2/
+        #   - name: "[RR] Hellenism at War"
+        #     dir: rr-hellenism-at-war/
+        #     base: rr/
+        #   - name: "[OG] Insularis Draco"
+        #     dir: og-insularis-draco/
+        #     base: og/
+        #   - name: "[OG] Invasio Barbarorum"
+        #     dir: og-invasio-barbarorum/
+        #     base: og/
+        #   - name: "[RR] Malazan"
+        #     dir: rr-malazan/
+        #     base: rr/
+        #   - name: "[RR] Rise of Persia"
+        #     dir: rr-rise-of-persia/
+        #     base: rr/
+        #   - name: "[M2] Rise of Quetzal"
+        #     dir: m2-rise-of-quetzal/
+        #     base: m2/
+        #   - name: "[OG] Scorched Ground"
+        #     dir: og-scorched-ground/
+        #     base: og/
+        #   - name: "[RR] Tetrarchy"
+        #     dir: rr-tetrarchy/
+        #     base: rr/
+        #   - name: "[M2] Timur: Total War"
+        #     dir: m2-timur/
+        #     base: m2/
+        #   - name: "[RR] Total Conquest"
+        #     dir: rr-total-conquest/
+        #     base: rr/
+        #   - name: "[M2] Kingdoms Grand Campaign"
+        #     dir: m2-kingdoms-grand-campaign/
+        #     base: m2/
+        #   - name: "[M2] Vanilla Kingdoms"
+        #     dir: m2-vanilla-kingdoms/
+        #     base: m2/
+        #   - name: "[OG] Viking: Total War"
+        #     dir: og-viking/
+        #     base: og/
+    steps:
+      - name: Setup Rclone
+        uses: AnimMouse/setup-rclone@v1
+        with:
+          rclone_config: ${{ secrets.RCLONE_CONFIG }}
+      - name: Mount mods folder
+        shell: bash
+        run: |
+          mkdir -p mods
+          rclone mount --daemon --read-only faust:faust-data mods
+      - name: Download FAUST
+        uses: actions/download-artifact@v4
+        with:
+          name: faust
+      - name: Build site
+        shell: bash
+        run: |
+          chmod +x faust
+          ./faust mods/${{ matrix.mod.dir }}/faust/faust.yml --base-game-path mods/${{ matrix.mod.base }} --out-dir output/
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy output/ --project-name=silphium --branch=${{ matrix.mod.id }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
