@@ -227,16 +227,26 @@
 
     .weapons {
       display: grid;
-      grid-template-rows: subgrid;
       grid-row: weapon1 / weapon2;
       grid-column: weapon1;
+      align-self: start;
+      gap: $gap;
+      grid:
+        'weapon1' $row-height
+        'weapon2' $row-height
+        / 1fr;
     }
 
     .defenses {
       display: grid;
-      grid-template-rows: subgrid;
       grid-row: defense1 / defense2;
       grid-column: defense1;
+      align-self: start;
+      gap: $gap;
+      grid:
+        'defense1' $row-height
+        'defense2' minmax(0, 1fr)
+        / 1fr;
     }
 
     .weapon1-row,
