@@ -38,17 +38,16 @@ jobs:
           args: "--locked --release"
       - name: VirusTotal scan
         id: virus_total
-        if: ${{ matrix.platform.target == 'x86_64-pc-windows-msvc' }}
         uses: crazy-max/ghaction-virustotal@v4
         with:
           vt_api_key: ${{ secrets.VT_API_KEY }}
-          files: target/**/release/faust.exe
-      - name: Add VirusTotal notice
-        if: ${{ matrix.platform.target == 'x86_64-pc-windows-msvc' }}
+          files: target/**/release/faust${{ matrix.platform.target == 'x86_64-pc-windows-msvc' && '.exe' || '' }}
+      - name: Add VirusTotal analysis link
         shell: bash
         env:
           VT_ANALYSIS: ${{ steps.virus_total.outputs.analysis }}
         run: |
+          echo "# Virus Total" >> $GITHUB_STEP_SUMMARY
           echo "$VT_ANALYSIS" | cut -d = -f 2- - >> $GITHUB_STEP_SUMMARY
       - name: Publish artifacts and release
         uses: houseabsolute/actions-rust-release@v0
