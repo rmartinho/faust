@@ -6,6 +6,7 @@ use silphium::{
     ModuleMap,
     model::{Era, Module},
 };
+use tracing::info;
 
 use crate::{
     args::Config,
@@ -181,6 +182,7 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
             models,
         },
     );
+    info!("built catalog");
     let _ = m.clear();
 
     let module_map = ModuleMap::from([(
@@ -250,6 +252,7 @@ fn parse_progress<'a, T>(
             "{LOOKING_GLASS}parsing {}... done.",
             path.display()
         ));
+        info!("parsed {}", path.display());
         res
     }
 }

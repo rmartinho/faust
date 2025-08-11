@@ -33,6 +33,8 @@ pest_derive = "2.8.1"
 thiserror = "2.0.12"
 ciborium = "0.2.2"
 serde_json = "1.0.142"
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["chrono"] }
 
 [target.'cfg(windows)'.dependencies]
 dont_disappear = "3.0.1"

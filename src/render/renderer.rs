@@ -12,9 +12,11 @@ use image::{
 };
 use indicatif::{HumanBytes, MultiProgress, ProgressBar};
 use silphium::{
-    model::{Aor, Era, Faction, Module, Pool, Region, Unit}, ModuleMap, Route, StaticApp, StaticAppProps
+    ModuleMap, Route, StaticApp, StaticAppProps,
+    model::{Aor, Era, Faction, Module, Pool, Region, Unit},
 };
 use tokio::fs;
+use tracing::info;
 use yew_router::Routable as _;
 
 use crate::{
@@ -338,7 +340,9 @@ impl Renderer {
     async fn render_image(from: &Path, to: &Path, (width, height): (u32, u32)) -> Result<()> {
         let img = read_image(from).await?;
         let img = img.resize(width, height, FilterType::Lanczos3);
-        write_image(to, &img).await
+        write_image(to, &img).await?;
+        info!("rendered {}", to.display());
+        Ok(())
     }
 
     async fn render_map<'a>(
@@ -374,7 +378,9 @@ impl Renderer {
         }
         let blots = blots.resize(image.width(), image.height(), FilterType::Lanczos3);
         overlay(&mut image, &blots, 0, 0);
-        write_image(to, &DynamicImage::from(image)).await
+        write_image(to, &DynamicImage::from(image)).await?;
+        info!("rendered {}", to.display());
+        Ok(())
     }
 
     async fn render_data(&mut self, m: MultiProgress) -> Result<()> {
@@ -395,6 +401,7 @@ impl Renderer {
             "{PAPER}rendered catalog ({})",
             HumanBytes(self.data.len() as u64)
         ));
+        info!("rendered catalog");
         Ok(())
     }
 
@@ -437,18 +444,23 @@ impl Renderer {
     }
 
     async fn render_route(&self, route: Route) -> String {
+        let path = route.to_path();
         let props = StaticAppProps {
             route,
             data: self.data.clone().into(),
         };
         let renderer = yew::LocalServerRenderer::<StaticApp>::with_props(props);
-        renderer.render().await
+        let string = renderer.render().await;
+        info!("rendered route {path}");
+        string
     }
 
     fn render_preload(&self, r: &RenderRoute) -> Result<String> {
         let mut preload = self.preload.clone();
         preload.extend_from_slice(&r.preload);
-        Ok(PrefetchHtml { preload: &preload }.render()?)
+        let string = PrefetchHtml { preload: &preload }.render()?;
+        info!("rendered preloads");
+        Ok(string)
     }
 
     async fn create_directory(&self, m: MultiProgress) -> Result<()> {
@@ -470,6 +482,7 @@ impl Renderer {
             .await
             .with_context(|| format!("creating output directory {}", self.cfg.out_dir.display()))?;
         pb.finish_with_message(format!("{FOLDER}created {}", self.cfg.out_dir.display()));
+        info!("created output directory");
         Ok(())
     }
 
@@ -483,6 +496,7 @@ impl Renderer {
             file.create(&self.cfg.out_dir)
                 .await
                 .with_context(|| format!("creating {}", file.path))?;
+            info!("created static {}", file.path);
             if let Some(preload_as) = file.preload_as {
                 self.preload.push((file.path.into(), preload_as.into()));
             }

@@ -18,11 +18,9 @@ jobs:
           - os-name: Linux
             runs-on: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
-
           - os-name: Windows
             runs-on: windows-2025
             target: x86_64-pc-windows-msvc
-
           - os-name: macOS
             runs-on: macOS-15
             target: aarch64-apple-darwin
@@ -47,7 +45,7 @@ jobs:
         env:
           VT_ANALYSIS: ${{ steps.virus_total.outputs.analysis }}
         run: |
-          echo "# Virus Total" >> $GITHUB_STEP_SUMMARY
+          echo -n "Virus Total: " >> $GITHUB_STEP_SUMMARY
           echo "$VT_ANALYSIS" | cut -d = -f 2- - >> $GITHUB_STEP_SUMMARY
       - name: Publish artifacts and release
         uses: houseabsolute/actions-rust-release@v0
