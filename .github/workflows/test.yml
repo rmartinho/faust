@@ -217,7 +217,7 @@ jobs:
         shell: bash
         run: |
           chmod +x faust
-          ./faust mods/${{ matrix.mod.dir }}/faust/faust.yml --base-game-path mods/${{ matrix.mod.base }} --out-dir output/
+          ./faust --verbose mods/${{ matrix.mod.dir }}/faust/faust.yml --base-game-path mods/${{ matrix.mod.base }} --out-dir output/
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:

@@ -7,12 +7,13 @@
 #![feature(try_blocks)]
 #![allow(dead_code)]
 
-use std::time::Instant;
+use std::{io, time::Instant};
 
 use anyhow::Result;
 use clap::Parser as _;
 use console::style;
 use indicatif::HumanDuration;
+use tracing_subscriber::{filter, fmt::time::ChronoLocal, prelude::*};
 
 use crate::{
     args::{Args, Config},
@@ -35,9 +36,30 @@ async fn main() -> Result<()> {
     Ok(platform::finish(run().await)?)
 }
 
+fn setup_tracing(args: &Args) -> Result<()> {
+    if args.verbose {
+        let stderr_log_level = filter::LevelFilter::INFO;
+        let stderr_layer = tracing_subscriber::fmt::layer()
+            .pretty()
+            .with_writer(io::stderr);
+
+        tracing_subscriber::registry()
+            .with(
+                stderr_layer
+                    .with_timer(ChronoLocal::rfc_3339())
+                    .with_filter(stderr_log_level),
+            )
+            .try_init()?;
+    }
+    Ok(())
+}
+
 async fn run() -> Result<()> {
     let args = Args::parse();
     let started = Instant::now();
+
+    setup_tracing(&args)?;
+
     let cfg = Config::get(args)?;
 
     let step = Instant::now();

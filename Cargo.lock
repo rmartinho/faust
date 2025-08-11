@@ -1461,6 +1461,8 @@ dependencies = [
  "thiserror 2.0.12",
  "tokio",
  "tower-http",
+ "tracing",
+ "tracing-subscriber",
  "trunk",
  "windows 0.61.3",
  "windows-strings 0.4.2",
@@ -5497,6 +5499,7 @@ version = "0.3.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e8189decb5ac0fa7bc8b96b7cb9b2701d60d48805aca84a238004d665fcc4008"
 dependencies = [
+ "chrono",
  "matchers",
  "nu-ansi-term",
  "once_cell",
