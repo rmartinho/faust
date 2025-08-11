@@ -223,5 +223,5 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy output/ --project-name=silphium --branch=${{ github.event_name == 'pull_request' && format('{}/', github.ref_name) || '' }}${{ matrix.mod.id }}
+          command: pages deploy output/ --project-name=silphium --branch=${{ github.event_name == 'pull_request' && format('{0}/', github.ref_name) || '' }}${{ matrix.mod.id }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
