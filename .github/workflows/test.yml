@@ -63,9 +63,13 @@ jobs:
             name: "[RR] Alexander"
             dir: rr-alx
             base: rr
-          - id: og-barbarian-empires-hl
+          - id: og-be-hl
             name: "[OG] Barbarian Empires: Hellenistic Legacy"
-            dir: og-barbarian-empires-hl
+            dir: og-be-hl
+            base: og
+          - id: og-xc5
+            name: "[OG] Extended Cultures V"
+            dir: og-xc5
             base: og
           # - id: m2
           #   name: "[M2] Grand Campaign"
