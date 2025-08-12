@@ -6,6 +6,10 @@ on:
       - main
   pull_request: # temporarily for testing the action
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   CARGO_TERM_COLOR: always
 
