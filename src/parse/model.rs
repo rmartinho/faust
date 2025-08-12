@@ -564,6 +564,10 @@ fn is_general(unit: &export_descr_unit::Unit) -> bool {
     unit.stats.attributes.contains(&Attr::GeneralUnit)
 }
 
+fn is_mercenary(unit: &export_descr_unit::Unit) -> bool {
+    unit.stats.attributes.contains(&Attr::MercenaryUnit)
+}
+
 fn has_mount(unit: &export_descr_unit::Unit) -> bool {
     unit.stats.mount.is_some()
 }
@@ -764,6 +768,7 @@ fn calculate_aors<'a>(cfg: &Config, raw: &'a IntermediateModel) -> IArray<model:
     let all_regions: BTreeSet<_> = raw.regions.iter().map(|r| r.id.as_str()).collect();
     let aor_units: BTreeSet<_> = unit_aors
         .iter()
+        .filter(|(u, _)| !is_mercenary(&raw.unit_map[u.as_str()]))
         .filter(|(_, set)| set.len() > 0 && set.len() < all_regions.len())
         .map(|(k, _)| k)
         .collect();

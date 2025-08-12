@@ -1,4 +1,8 @@
 .roster-group {
+  &:has(.map) {
+    flex-flow: column;
+  }
+
   .map {
     display: flex;
     flex-flow: column;
