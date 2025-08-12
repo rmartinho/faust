@@ -107,9 +107,9 @@ fn parse_unit(line: &str) -> Result<Unit> {
             .get(11)
             .copied()
             .ok_or_else(|| anyhow!("missing unit pool initial"))
-            .and_then(|s| Ok(s.parse()?))
+            .and_then(|s| Ok(if s == "end_year" { 0 } else { s.parse()? }))
             .with_context(|| format!("parsing pool initial from {line:?}"))?,
-        restrict: if data.len() > 13 {
+        restrict: if data.len() > 13 && data[12] == "restrict" {
             data[13..]
                 .join(" ")
                 .split(OPT_COMMA)
