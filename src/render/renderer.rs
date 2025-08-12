@@ -8,7 +8,7 @@ use anyhow::{Context as _, Result};
 use askama::Template as _;
 use image::{
     DynamicImage, Rgba, RgbaImage,
-    imageops::{FilterType, filter3x3, overlay},
+    imageops::{FilterType::Lanczos3, filter3x3, overlay},
 };
 use indicatif::{HumanBytes, MultiProgress, ProgressBar};
 use silphium::{
@@ -163,8 +163,11 @@ impl Renderer {
                     "data/world/maps/base/map_regions.tga",
                 ],
             );
-            let radar = read_image(radar_map_path).await?.into_rgba8().into();
-            let mut areas = read_image(regions_map_path).await?.into_rgba8().into();
+            let mut areas = read_image(regions_map_path).await?.into_rgba8();
+            let radar = read_image(radar_map_path).await?;
+            let radar = radar
+                .resize_exact(areas.width() * 2, areas.height() * 2, Lanczos3)
+                .into_rgba8();
             erase_cities_and_ports(&mut areas);
             let mut rendered_mercs = HashSet::new();
             let mut pools = m.pools.to_vec();
@@ -339,7 +342,7 @@ impl Renderer {
 
     async fn render_image(from: &Path, to: &Path, (width, height): (u32, u32)) -> Result<()> {
         let img = read_image(from).await?;
-        let img = img.resize(width, height, FilterType::Lanczos3);
+        let img = img.resize(width, height, Lanczos3);
         write_image(to, &img).await?;
         info!("rendered {}", to.display());
         Ok(())
@@ -376,7 +379,7 @@ impl Renderer {
             overlay(&mut blots, &blot, 0, 0);
             overlay(&mut blots, &filter3x3(&border, EDGE_KERNEL), 0, 0);
         }
-        let blots = blots.resize(image.width(), image.height(), FilterType::Lanczos3);
+        let blots = blots.resize(image.width(), image.height(), Lanczos3);
         overlay(&mut image, &blots, 0, 0);
         write_image(to, &DynamicImage::from(image)).await?;
         info!("rendered {}", to.display());
