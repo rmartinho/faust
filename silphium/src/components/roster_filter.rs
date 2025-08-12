@@ -70,7 +70,7 @@ pub fn roster_filter(
                 title={if *horde { "Show settled units" } else { "Show horde units" }}
             >
               <Icon src="/icons/ui/horde.svg" symbol={if *horde { "on" } else { "off" }} />
-              <span>{if *horde { "Horde" } else { "" }}</span>
+              <span>{if *horde { "Horde" } else { "Settled" }}</span>
             </ToggleButton>
           </div>
         }
