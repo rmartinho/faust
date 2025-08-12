@@ -168,6 +168,7 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect();
     let (factions, regions, pools, aors) = build_model(
+        m.clone(),
         &cfg,
         RawModel {
             units,
