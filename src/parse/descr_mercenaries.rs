@@ -63,6 +63,7 @@ fn parse_unit(line: &str) -> Result<Unit> {
     let id = split
         .next()
         .ok_or_else(|| anyhow!("missing unit id"))?
+        .trim()
         .into();
     let rest = split
         .remainder()
