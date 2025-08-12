@@ -25,8 +25,8 @@
           some support for <em>Medieval&nbsp;II:&nbsp;Total&nbsp;War</em> mods.
         </p>
         <p>
-          If you want to see what that looks like, take a look at
-          <a href="https://rr.silphium.pages.dev/">this example</a>.
+          If you want to see what that looks like, take a look at one of these
+          <a href="/previews">previews</a>.
         </p>
       </details>
       <details name="questions">
@@ -132,9 +132,13 @@ game: original</pre
       <details name="questions">
         <summary role="button">What are the advanced manifest options?</summary>
         <p>
-          Here is a list of all of the options supported in the manifest. You can also
-          have a look at <a href="https://github.com/rmartinho/faust/blob/main/examples/faust.yml">
-            a comprehensive example</a>.
+          Here is a list of all of the options supported in the manifest. You
+          can also have a look at
+          <a
+            href="https://github.com/rmartinho/faust/blob/main/examples/faust.yml"
+          >
+            a comprehensive example</a
+          >.
         </p>
         <dl>
           <dt><code>id</code></dt>
@@ -160,8 +164,8 @@ game: original</pre
           <dt><code>game</code></dt>
           <dd>
             <p>
-              <em>Optional.</em> Which game this mod is for. This is used to
-              let FAUST know how to process the mod files.
+              <em>Optional.</em> Which game this mod is for. This is used to let
+              FAUST know how to process the mod files.
             </p>
             <table>
               <thead>
@@ -245,7 +249,8 @@ game: original</pre
 exclude:
   - gauls
   - britons
-  - germans</pre>
+  - germans</pre
+            >
           </dd>
 
           <dt><code>aliases</code></dt>
@@ -263,7 +268,8 @@ exclude:
             <pre>
 aliases:
   britannia: britons
-  germania: germans</pre>
+  germania: germans</pre
+            >
           </dd>
 
           <dt><code>eras</code></dt>
@@ -285,7 +291,8 @@ eras:
   post_marian:
     name: "After the Marian reforms"
     major_event:
-      marian_reforms: true</pre>
+      marian_reforms: true</pre
+            >
             <p>
               Additionally, you should create a folder named
               <code>eras</code> in the manifest folder, and create two image
@@ -319,27 +326,27 @@ eras:
           <dt><code>speeds</code></dt>
           <dd>
             <p>
-              <em>Optional.</em> Speed mapping. Currently the unit move
-              speeds are an estimation based on the base game skeleton
-              animations. Each skeleton is internally mapped to a
-              hardcoded speed. This option exists to override this, in case
-              there are different skeletons.
+              <em>Optional.</em> Speed mapping. Currently the unit move speeds
+              are an estimation based on the base game skeleton animations. Each
+              skeleton is internally mapped to a hardcoded speed. This option
+              exists to override this, in case there are different skeletons.
             </p>
             <h6>Example</h6>
             <pre>
 speeds:
   fs_dagger: 30
-  fs_semi_fast_dagger: 32</pre>
+  fs_semi_fast_dagger: 32</pre
+            >
           </dd>
 
           <dt><code>pools</code></dt>
           <dd>
             <p>
-              <em>Optional.</em> Mercenary pool information. The game
-              doesn't have any text strings for the mercenary pools; this
-              option lets you specify names for the mercenary pools to be
-              displayed in the mercenaries page. This is just a list of
-              names for the pools in the same order as in <code>descr_mercenaries.txt</code>.
+              <em>Optional.</em> Mercenary pool information. The game doesn't
+              have any text strings for the mercenary pools; this option lets
+              you specify names for the mercenary pools to be displayed in the
+              mercenaries page. This is just a list of names for the pools in
+              the same order as in <code>descr_mercenaries.txt</code>.
             </p>
             <h6>Example</h6>
             <pre>
@@ -349,31 +356,33 @@ pools:
   - "Eastern Europe"
   - "Steppes"
   - "Central Europe"
-  - "Gaul"</pre>
+  - "Gaul"</pre
+            >
           </dd>
-          
+
           <dt><code>aors</code></dt>
           <dd>
             <p>
               <em>Optional.</em> Area of recruitment information. The game
               doesn't have any text strings for areas of recruitment; like
-              <code>pools</code> above, this option lets you specify names
-              for the areas of recruitment to be displayed in the regional
-              units pages.
+              <code>pools</code> above, this option lets you specify names for
+              the areas of recruitment to be displayed in the regional units
+              pages.
             </p>
             <p>
-              This is also a list of names in order. However,
-              because areas of recruitment have no explicit realization in
-              the game (they're defined with the hidden resources system),
-              this order is arbitrary, but it's fixed for each mod. You can
-              generate the site once and look in <code>images/&lt;mod-id&gt;/aors</code>
+              This is also a list of names in order. However, because areas of
+              recruitment have no explicit realization in the game (they're
+              defined with the hidden resources system), this order is
+              arbitrary, but it's fixed for each mod. You can generate the site
+              once and look in <code>images/&lt;mod-id&gt;/aors</code>
               to see what the correct order is.
             </p>
             <h6>Example</h6>
             <pre>
 aors:
   - "Spartans"
-  - "Latins"</pre>
+  - "Latins"</pre
+            >
           </dd>
         </dl>
       </details>
