@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Component, PathBuf};
 
 use anyhow::{Context as _, Result, anyhow};
 
@@ -53,10 +53,12 @@ fn parse_faction(lines: &[String]) -> Result<Faction> {
                 .with_context(|| format!("parsing line {line}"))?
                 .into();
         } else if keyword == "loading_logo" {
-            logo = value
-                .ok_or_else(|| anyhow!("line didn't have a value"))
-                .with_context(|| format!("parsing line {line}"))?
-                .into();
+            logo = fix_path_with_parent(
+                value
+                    .ok_or_else(|| anyhow!("line didn't have a value"))
+                    .with_context(|| format!("parsing line {line}"))?
+                    .into(),
+            );
         }
     }
     Ok(Faction {
@@ -65,4 +67,15 @@ fn parse_faction(lines: &[String]) -> Result<Faction> {
         culture,
         logo,
     })
+}
+
+fn fix_path_with_parent(path: PathBuf) -> PathBuf {
+    if let Some(Component::ParentDir) = path.components().next() {
+        path.components()
+            .skip_while(|&c| c == Component::ParentDir)
+            .skip(1)
+            .collect()
+    } else {
+        path
+    }
 }
