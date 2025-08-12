@@ -151,6 +151,7 @@ impl Renderer {
                         self.cfg.manifest.campaign
                     ),
                     "data/world/maps/base/radar_map2.tga",
+                    "data/world/maps/campaign/imperial_campaign/radar_map2.tga",
                 ],
             );
             let regions_map_path = try_paths(

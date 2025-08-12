@@ -107,10 +107,10 @@ jobs:
             name: "[OG] Diadochi"
             dir: og-dtw
             base: og
-          # - id: og-ibrr
-          #   name: "[OG] Invasio Barbarorum"
-          #   dir: og-ibrr
-          #   base: og
+          - id: og-ibrr
+            name: "[OG] Invasio Barbarorum"
+            dir: og-ibrr
+            base: og
           # - id: m2-id
           #   name: "[M2] Insularis Draco"
           #   dir: m2-id
