@@ -103,6 +103,22 @@ jobs:
             name: "[OG] End of Days"
             dir: og-eod
             base: og
+          - id: og-dtw
+            name: "[OG] Diadochi"
+            dir: og-dtw
+            base: og
+          # - id: og-ibrr
+          #   name: "[OG] Invasio Barbarorum"
+          #   dir: og-ibrr
+          #   base: og
+          # - id: m2-id
+          #   name: "[M2] Insularis Draco"
+          #   dir: m2-id
+          #   base: m2
+          - id: og-vtw
+            name: "[OG] Viking"
+            dir: og-vtw
+            base: og
     steps:
       - name: Setup Rclone
         uses: AnimMouse/setup-rclone@v1
