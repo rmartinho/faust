@@ -141,20 +141,28 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
         parse_descr_strat(descr_strat_path, cfg.manifest.mode),
     )
     .await?;
-    let mounts = parse_progress(
-        m.clone(),
-        3,
-        descr_mount_path.clone(),
-        parse_descr_mount(descr_mount_path, cfg.manifest.mode),
-    )
-    .await?;
-    let models = parse_progress(
-        m.clone(),
-        3,
-        descr_model_battle_path.clone(),
-        parse_descr_model_battle(descr_model_battle_path, cfg.manifest.mode),
-    )
-    .await?;
+    let mounts = if cfg.manifest.estimate_speed() {
+        parse_progress(
+            m.clone(),
+            3,
+            descr_mount_path.clone(),
+            parse_descr_mount(descr_mount_path, cfg.manifest.mode),
+        )
+        .await?
+    } else {
+        HashMap::new()
+    };
+    let models = if cfg.manifest.estimate_speed() {
+        parse_progress(
+            m.clone(),
+            3,
+            descr_model_battle_path.clone(),
+            parse_descr_model_battle(descr_model_battle_path, cfg.manifest.mode),
+        )
+        .await?
+    } else {
+        HashMap::new()
+    };
 
     let pb = m.add(ProgressBar::new_spinner());
     pb.set_style(progress_style());
