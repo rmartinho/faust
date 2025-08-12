@@ -202,8 +202,12 @@ impl Renderer {
                 p.units = units.into();
             }
             m.pools = pools.into();
+            let mut rendered_aors = HashSet::new();
             let mut aors = m.aors.to_vec();
             for aor in aors.iter_mut() {
+                if rendered_aors.contains(&aor.map) {
+                    continue;
+                }
                 let aor_path = Self::aor_path(&m.id, aor);
                 let dst = self.cfg.out_dir.join(&aor_path);
                 pb.tick();
@@ -217,6 +221,7 @@ impl Renderer {
                     Rgba([0x00, 0x00, 0x00, 0xFF]),
                 )
                 .await?;
+                rendered_aors.insert(aor.map.clone());
             }
             m.aors = aors.into();
 
