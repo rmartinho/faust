@@ -111,14 +111,17 @@ fn parse_statblock(entries: &UnitEntries, raw: &[(&str, Option<&str>)]) -> Resul
             .get(0)
             .copied()
             .ok_or_else(|| anyhow!("missing hit points"))
-            .and_then(|s| Ok(s.parse()?))
+            .and_then(|s| Ok(s.parse().or_else(|_| s.parse::<f64>().map(|f| f as _))?))
             .with_context(|| format!("parsing hit points from {health_line:?}"))?,
         hp_mount: health_line
             .get(1)
             .copied()
-            .ok_or_else(|| anyhow!("missing mount hit points"))
-            .and_then(|s| Ok(s.parse()?))
-            .with_context(|| format!("parsing mount hit points from {health_line:?}"))?,
+            .and_then(|s| {
+                s.parse()
+                    .ok()
+                    .or_else(|| s.parse::<f64>().map(|f| f as _).ok())
+            })
+            .unwrap_or(1),
         primary_weapon: parse_weapon(&pri_line, &pri_attr_line).with_context(|| {
             format!("parsing primary weapon from {pri_line:?}, {pri_attr_line:?}")
         })?,
