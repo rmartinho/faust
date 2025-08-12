@@ -95,9 +95,6 @@ pub fn path_fallback(cfg: &Config, path: &str, generic: Option<&str>) -> PathBuf
         cfg.src_dir.join("data").join(path),
         cfg.fallback_dir.join(path),
         cfg.fallback_dir.join("data").join(path),
-        cfg.fallback_dir
-            .join("data/world/maps/campaign/imperial_campaign")
-            .join(PathBuf::from(path).file_name().unwrap()),
     ]
     .into_iter()
     .chain(generic.into_iter().map(|g| cfg.fallback_dir.join(g)))
