@@ -208,10 +208,10 @@ impl Renderer {
             let mut rendered_aors = HashSet::new();
             let mut aors = m.aors.to_vec();
             for aor in aors.iter_mut() {
-                if rendered_aors.contains(&aor.map) {
+                let aor_path = Self::aor_path(&m.id, aor);
+                if rendered_aors.contains(aor.map.as_ref()) {
                     continue;
                 }
-                let aor_path = Self::aor_path(&m.id, aor);
                 let dst = self.cfg.out_dir.join(&aor_path);
                 pb.tick();
                 pb.set_message(format!("{PICTURE}rendering {}", web_path(&aor_path)));
@@ -224,7 +224,7 @@ impl Renderer {
                     Rgba([0x00, 0x00, 0x00, 0xFF]),
                 )
                 .await?;
-                rendered_aors.insert(aor.map.clone());
+                rendered_aors.insert(aor.map.as_ref());
             }
             m.aors = aors.into();
 
