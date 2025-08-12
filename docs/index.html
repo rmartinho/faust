@@ -279,7 +279,7 @@ aliases:
               after certain events occur. The most notable example is the Marian
               reforms in the base game. The mod files don't have an explicit
               concept of eras like this, but you can define them yourself with
-              this option.
+              this option. By default, no eras are defined.
             </p>
             <h6>Example</h6>
             <pre>
@@ -323,13 +323,29 @@ eras:
             <pre>unit_info_images: true</pre>
           </dd>
 
+          <dt><code>speed</code></dt>
+          <dd>
+            <p>
+              <em>Optional.</em> Whether to estimate speeds. If `true`, FAUST will
+              perform a speed estimation based on the base game skeleton animations
+              and display it. If the estimation is off, you can use the `speeds` option
+              to directly provide each skeleton&rsquo;s speed. By default, no speed
+              estimates are done.
+            </p>
+            <h6>Example</h6>
+            <pre>
+speed: true</pre
+            >
+          </dd>
+
           <dt><code>speeds</code></dt>
           <dd>
             <p>
               <em>Optional.</em> Speed mapping. Currently the unit move speeds
               are an estimation based on the base game skeleton animations. Each
               skeleton is internally mapped to a hardcoded speed. This option
-              exists to override this, in case there are different skeletons.
+              exists to override this, in case there are different skeletons. If
+              specified, `speed` is set to true.
             </p>
             <h6>Example</h6>
             <pre>
@@ -346,7 +362,8 @@ speeds:
               have any text strings for the mercenary pools; this option lets
               you specify names for the mercenary pools to be displayed in the
               mercenaries page. This is just a list of names for the pools in
-              the same order as in <code>descr_mercenaries.txt</code>.
+              the same order as in <code>descr_mercenaries.txt</code>. By
+              default, the internal pool IDs are used. 
             </p>
             <h6>Example</h6>
             <pre>
@@ -375,7 +392,8 @@ pools:
               defined with the hidden resources system), this order is
               arbitrary, but it's fixed for each mod. You can generate the site
               once and look in <code>images/&lt;mod-id&gt;/aors</code>
-              to see what the correct order is.
+              to see what the correct order is. By default, AORs have no
+              associated names.
             </p>
             <h6>Example</h6>
             <pre>

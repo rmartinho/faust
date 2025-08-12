@@ -31,9 +31,17 @@ pub struct Manifest {
     #[serde(default)]
     pub speeds: HashMap<String, u32>,
     #[serde(default)]
+    pub speed: bool,
+    #[serde(default)]
     pub pools: Vec<IString>,
     #[serde(default)]
     pub aors: Vec<IString>,
+}
+
+impl Manifest {
+    pub fn estimate_speed(&self) -> bool {
+        self.speed || self.speeds.len() > 0
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
