@@ -428,7 +428,7 @@ fn get_move_skeleton<'a>(
     cfg: &Config,
     raw: &'a IntermediateModel,
 ) -> Option<&'a str> {
-    if is_ship(unit) {
+    if is_ship(unit) || !cfg.manifest.estimate_speed() {
         return None;
     }
     let model = get_move_model(unit, cfg, raw);
