@@ -1439,6 +1439,7 @@ dependencies = [
  "anyhow",
  "askama",
  "axum",
+ "byteorder",
  "cargo-emit",
  "ciborium",
  "clap",

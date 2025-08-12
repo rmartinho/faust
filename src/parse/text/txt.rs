@@ -2,9 +2,7 @@ use std::collections::HashMap;
 
 use anyhow::{Context as _, Result, anyhow};
 
-use crate::parse::manifest::ParserMode;
-
-pub fn parse(data: impl AsRef<str>, _: ParserMode) -> Result<HashMap<String, String>> {
+pub fn parse(data: impl AsRef<str>) -> Result<HashMap<String, String>> {
     use std::fmt::Write as _;
 
     data.as_ref()

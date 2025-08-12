@@ -258,10 +258,16 @@ fn parse_progress<'a, T>(
     }
 }
 
-async fn parse_text(path: PathBuf, mode: ParserMode) -> Result<HashMap<String, String>> {
-    let buf = read_file(&path).await?;
-    let data = String::from_utf16le_lossy(&buf).replace(BOM, "");
-    text::parse(data, mode)
+async fn parse_text(mut path: PathBuf, mode: ParserMode) -> Result<HashMap<String, String>> {
+    if mode == ParserMode::Medieval2 && !path.exists() {
+        path.add_extension("strings.bin");
+        let buf = read_file(&path).await?;
+        text::parse_bin(buf, mode)
+    } else {
+        let buf = read_file(&path).await?;
+        let data = String::from_utf16le_lossy(&buf).replace(BOM, "");
+        text::parse_txt(data, mode)
+    }
 }
 
 async fn parse_descr_mercenaries(path: PathBuf, mode: ParserMode) -> Result<Vec<Pool>> {
