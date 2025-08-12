@@ -55,38 +55,6 @@ jobs:
             name: "[OG] Alexander"
             dir: og-alx
             base: og
-          - id: rr
-            name: "[RR] Imperial Campaign"
-            dir: rr
-            base: rr
-          - id: rr-bi
-            name: "[RR] Barbarian Invasion"
-            dir: rr-bi
-            base: rr
-          - id: rr-alx
-            name: "[RR] Alexander"
-            dir: rr-alx
-            base: rr
-          # - id: m2
-          #   name: "[M2] Grand Campaign"
-          #   dir: m2
-          #   base: m2
-          # - id: m2-americas
-          #   name: "[M2] Americas"
-          #   dir: m2-americas
-          #   base: m2
-          # - id: m2-britannia
-          #   name: "[M2] Britannia"
-          #   dir: m2-britannia
-          #   base: m2
-          # - id: m2-crusades
-          #   name: "[M2] Crusades"
-          #   dir: m2-crusades
-          #   base: m2
-          # - id: m2-teutonic
-          #   name: "[M2] Teutonic"
-          #   dir: m2-teutonic
-          #   base: m2
           - id: og-be-hl
             name: "[OG] Barbarian Empires: Hellenistic Legacy"
             dir: og-be-hl
@@ -107,18 +75,54 @@ jobs:
             name: "[OG] Diadochi"
             dir: og-dtw
             base: og
-          # - id: og-ibrr
-          #   name: "[OG] Invasio Barbarorum"
-          #   dir: og-ibrr
-          #   base: og
-          # - id: m2-id
-          #   name: "[M2] Insularis Draco"
-          #   dir: m2-id
-          #   base: m2
           - id: og-vtw
             name: "[OG] Viking"
             dir: og-vtw
             base: og
+          # - id: og-ibrr
+          #   name: "[OG] Invasio Barbarorum"
+          #   dir: og-ibrr
+          #   base: og
+          - id: rr
+            name: "[RR] Imperial Campaign"
+            dir: rr
+            base: rr
+          - id: rr-bi
+            name: "[RR] Barbarian Invasion"
+            dir: rr-bi
+            base: rr
+          - id: rr-alx
+            name: "[RR] Alexander"
+            dir: rr-alx
+            base: rr
+          - id: m2
+            name: "[M2] Grand Campaign"
+            dir: m2
+            base: m2
+          # - id: m2-americas
+          #   name: "[M2] Americas"
+          #   dir: m2-americas
+          #   base: m2
+          # - id: m2-britannia
+          #   name: "[M2] Britannia"
+          #   dir: m2-britannia
+          #   base: m2
+          # - id: m2-crusades
+          #   name: "[M2] Crusades"
+          #   dir: m2-crusades
+          #   base: m2
+          # - id: m2-teutonic
+          #   name: "[M2] Teutonic"
+          #   dir: m2-teutonic
+          #   base: m2
+          - id: m2-id
+            name: "[M2] Insularis Draco"
+            dir: m2-id
+            base: m2
+          - id: m2-roq
+            name: "[M2] Rise of Quetzal"
+            dir: m2-roq
+            base: m2
     steps:
       - name: Setup Rclone
         uses: AnimMouse/setup-rclone@v1
