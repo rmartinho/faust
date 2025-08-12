@@ -67,14 +67,6 @@ jobs:
             name: "[RR] Alexander"
             dir: rr-alx
             base: rr
-          - id: og-be-hl
-            name: "[OG] Barbarian Empires: Hellenistic Legacy"
-            dir: og-be-hl
-            base: og
-          - id: og-xc5
-            name: "[OG] Extended Cultures V"
-            dir: og-xc5
-            base: og
           # - id: m2
           #   name: "[M2] Grand Campaign"
           #   dir: m2
@@ -95,118 +87,38 @@ jobs:
           #   name: "[M2] Teutonic"
           #   dir: m2-teutonic
           #   base: m2
-          # - id: og-rtra
-          #   name: "[OG] Anabasis III"
-          #   dir: og-rtra
-          #   base: og
-          # - id: og-aristeia
-          #   name: "[OG] Aristeia"
-          #   dir: og-aristeia
-          #   base: og
-          # - id: og-arthurian
-          #   name: "[RR] Arthurian"
-          #   dir: og-arthurian
-          #   base: rr
-          # - id: og-barbarian-empires
-          #   name: "[OG] Barbarian Empires"
-          #   dir: og-barbarian-empires
-          #   base: og
-          # - id: rr-barbarian-empires
-          #   name: "[RR] Barbarian Empires"
-          #   dir: rr-barbarian-empires
-          #   base: rr
-          # - id: m2-broken-crescent
-          #   name: "[M2] Broken Crescent"
-          #   dir: m2-broken-crescent
-          #   base: m2
-          # - id: rr-bronze-age
-          #   name: "[RR] Bronze Age"
-          #   dir: rr-bronze-age
-          #   base: rr
-          # - id: rr-chivalry
-          #   name: "[RR] Chivalry"
-          #   dir: rr-chivalry
-          #   base: rr
-          # - id: rr-dagovax
-          #   name: "[RR] War of the Ring"
-          #   dir: rr-dagovax
-          #   base: rr
-          # - id: og-dtr
-          #   name: "[OG] Diadochi: Total War"
-          #   dir: og-dtw
-          #   base: og
-          # - id: rr-diadochi
-          #   name: "[RR] Diadochi Remastered"
-          #   dir: rr-diadochi
-          #   base: rr
-          # - id: og-europa-barbarorum-i
-          #   name: "[RR] Europa Barbarorum I"
-          #   dir: og-europa-barbarorum-i
-          #   base: og
-          # - id: m2-europa-barbarorum-ii
-          #   name: "[M2] Europa Barbarorum II"
-          #   dir: m2-europa-barbarorum-ii
-          #   base: m2
-          # - id: rr-fatw
-          #   name: "[RR] Fourth Age"
-          #   dir: rr-fatw
-          #   base: rr
-          # - id: m2-great-conflicts
-          #   name: "[M2] The Great Conflicts"
-          #   dir: m2-great-conflicts
-          #   base: m2
-          # - id: rr-hellenism-at-war
-          #   name: "[RR] Hellenism at War"
-          #   dir: rr-hellenism-at-war
-          #   base: rr
-          # - id: og-insularis-draco
-          #   name: "[OG] Insularis Draco"
-          #   dir: og-insularis-draco
-          #   base: og
-          # - id: og-invasio-barbarorum
+          - id: og-be-hl
+            name: "[OG] Barbarian Empires: Hellenistic Legacy"
+            dir: og-be-hl
+            base: og
+          - id: og-xc5
+            name: "[OG] Extended Cultures V"
+            dir: og-xc5
+            base: og
+          - id: og-fatw
+            name: "[OG] Fourth Age"
+            dir: og-fatw
+            base: og
+          - id: og-eod
+            name: "[OG] End of Days"
+            dir: og-eod
+            base: og
+          - id: og-dtw
+            name: "[OG] Diadochi"
+            dir: og-dtw
+            base: og
+          # - id: og-ibrr
           #   name: "[OG] Invasio Barbarorum"
-          #   dir: og-invasio-barbarorum
+          #   dir: og-ibrr
           #   base: og
-          # - id: rr-malazan
-          #   name: "[RR] Malazan"
-          #   dir: rr-malazan
-          #   base: rr
-          # - id: rr-rise-of-persia
-          #   name: "[RR] Rise of Persia"
-          #   dir: rr-rise-of-persia
-          #   base: rr
-          # - id: m2-rise-of-quetzal
-          #   name: "[M2] Rise of Quetzal"
-          #   dir: m2-rise-of-quetzal
+          # - id: m2-id
+          #   name: "[M2] Insularis Draco"
+          #   dir: m2-id
           #   base: m2
-          # - id: og-scorched-ground
-          #   name: "[OG] Scorched Ground"
-          #   dir: og-scorched-ground
-          #   base: og
-          # - id: rr-tetrarchy
-          #   name: "[RR] Tetrarchy"
-          #   dir: rr-tetrarchy
-          #   base: rr
-          # - id: m2-timur
-          #   name: "[M2] Timur: Total War"
-          #   dir: m2-timur
-          #   base: m2
-          # - id: rr-total-conquest
-          #   name: "[RR] Total Conquest"
-          #   dir: rr-total-conquest
-          #   base: rr
-          # - id: m2-kgcm
-          #   name: "[M2] Kingdoms Grand Campaign"
-          #   dir: m2-kgcm
-          #   base: m2
-          # - id: m2-vanilla-kingdoms
-          #   name: "[M2] Vanilla Kingdoms"
-          #   dir: m2-vanilla-kingdoms
-          #   base: m2
-          # - id: og-viking
-          #   name: "[OG] Viking: Total War"
-          #   dir: og-viking
-          #   base: og
+          - id: og-vtw
+            name: "[OG] Viking"
+            dir: og-vtw
+            base: og
     steps:
       - name: Setup Rclone
         uses: AnimMouse/setup-rclone@v1
