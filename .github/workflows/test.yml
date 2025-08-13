@@ -57,7 +57,7 @@ jobs:
             dir: og-alx
             base: og
           - id: og-be-hl
-            name: "[OG] Barbarian Empires: Hellenistic Legacy"
+            name: "[OG] Hellenistic Legacy"
             dir: og-be-hl
             base: og
           - id: og-xc5
@@ -84,6 +84,10 @@ jobs:
           #   name: "[OG] Invasio Barbarorum"
           #   dir: og-ibrr
           #   base: og
+          - id: og-aristeia
+            name: "[OG] Aristeia"
+            dir: og-aristeia
+            base: og
           - id: rr
             name: "[RR] Imperial Campaign"
             dir: rr
@@ -120,10 +124,6 @@ jobs:
             name: "[RR] Europa Barbarorum"
             dir: rr-eb1
             base: rr
-          - id: rr-aristeia
-            name: "[RR] Aristeia"
-            dir: rr-aristeia
-            base: rr
           - id: rr-gor
             name: "[RR] Glory of Rome"
             dir: rr-gor
@@ -135,6 +135,10 @@ jobs:
           - id: rr-toa
             name: "[RR] Tales of Antiquity"
             dir: rr-toa
+            base: rr
+          - id: rr-be
+            name: "[RR] Barbarian Empires"
+            dir: rr-be
             base: rr
           - id: m2
             name: "[M2] Grand Campaign"
