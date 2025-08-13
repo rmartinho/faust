@@ -96,6 +96,46 @@ jobs:
             name: "[RR] Alexander"
             dir: rr-alx
             base: rr
+          - id: rr-lotr
+            name: "[RR] The Lord of the Rings"
+            dir: rr-lotr
+            base: rr
+          - id: rr-chivalry
+            name: "[RR] Chivalry"
+            dir: rr-chivalry
+            base: rr
+          - id: rr-haw
+            name: "[RR] Hellenism at War"
+            dir: rr-haw
+            base: rr
+          - id: rr-tc
+            name: "[RR] Total Conquest"
+            dir: rr-tc
+            base: rr
+          - id: rr-ris
+            name: "[RR] RTR Imperium Surrectum"
+            dir: rr-ris
+            base: rr
+          - id: rr-eb1
+            name: "[RR] Europa Barbarorum"
+            dir: rr-eb1
+            base: rr
+          - id: rr-aristeia
+            name: "[RR] Aristeia"
+            dir: rr-aristeia
+            base: rr
+          - id: rr-gor
+            name: "[RR] Glory of Rome"
+            dir: rr-gor
+            base: rr
+          - id: rr-cc
+            name: "[RR] Cultural Conquest"
+            dir: rr-cc
+            base: rr
+          - id: rr-toa
+            name: "[RR] Tales of Antiquity"
+            dir: rr-toa
+            base: rr
           - id: m2
             name: "[M2] Grand Campaign"
             dir: m2
