@@ -442,7 +442,7 @@ fn build_pool(p: &Pool, index: usize, cfg: &Config, raw: &IntermediateModel) -> 
             .units
             .iter()
             .map(|e| {
-                let u = &raw.unit_map.get(&e.id).expect(format!("missing unit {:?}", e.id));
+                let u = &raw.unit_map.get(&e.id).expect(&format!("missing unit {:?}", e.id));
                 let mut unit = build_unit(u, cfg, "mercs", raw, &[]);
                 unit.cost = e.cost;
                 model::PoolEntry {
