@@ -144,6 +144,34 @@ jobs:
             name: "[RR] Barbarian Empires"
             dir: rr-be
             base: rr
+          - id: rr-batw
+            name: "[RR] Bronze Age"
+            dir: rr-batw
+            base: rr
+          - id: rr-diadochi
+            name: "[RR] Diadochi"
+            dir: rr-diadochi
+            base: rr
+          - id: rr-fatw
+            name: "[RR] Fourth Age"
+            dir: rr-fatw
+            base: rr
+          - id: rr-malazan
+            name: "[RR] Malazan"
+            dir: rr-malazan
+            base: rr
+          - id: rr-rop
+            name: "[RR] Rise of Persia"
+            dir: rr-rop
+            base: rr
+          - id: rr-sg
+            name: "[RR] Scorched Ground"
+            dir: rr-sg
+            base: rr
+          - id: rr-tetrarchy
+            name: "[RR] Tetrarchy"
+            dir: rr-tetrarchy
+            base: rr
           - id: m2
             name: "[M2] Grand Campaign"
             dir: m2
