@@ -1,9 +1,11 @@
 use std::{
+    convert::FloatToInt,
     io::Cursor,
     path::{Path, PathBuf},
+    str::FromStr,
 };
 
-use anyhow::{Context as _, Result};
+use anyhow::{Context as _, Error, Result};
 use console::Emoji;
 use image::{DynamicImage, ImageFormat, ImageReader};
 use indicatif::ProgressStyle;
@@ -100,4 +102,17 @@ pub fn path_fallback(cfg: &Config, path: &str, generic: Option<&str>) -> PathBuf
     .chain(generic.into_iter().map(|g| cfg.fallback_dir.join(g)))
     .find(|p| p.exists())
     .unwrap_or(cfg.src_dir.join(path))
+}
+
+pub fn parse_maybe_float_int<I>(s: &str) -> Result<I>
+where
+    f64: FloatToInt<I>,
+    I: FromStr,
+{
+    Ok(s.parse().or_else(|_| {
+        Ok::<_, Error>(
+            s.parse::<f64>()
+                .map(|f| unsafe { f.ceil().to_int_unchecked() })?,
+        )
+    })?)
 }

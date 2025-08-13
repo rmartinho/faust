@@ -2,7 +2,7 @@ use std::{collections::HashMap, str::pattern::Pattern};
 
 use anyhow::{Context as _, Result, anyhow};
 
-use crate::parse::manifest::ParserMode;
+use crate::{parse::manifest::ParserMode, utils::parse_maybe_float_int};
 
 pub fn parse(data: impl AsRef<str>, _: ParserMode) -> Result<Vec<Pool>> {
     data.as_ref()
@@ -78,13 +78,13 @@ fn parse_unit(line: &str) -> Result<Unit> {
             .get(1)
             .copied()
             .ok_or_else(|| anyhow!("missing unit exp"))
-            .and_then(|s| Ok(s.parse()?))
+            .and_then(parse_maybe_float_int)
             .with_context(|| format!("parsing experience from {line:?}"))?,
         cost: data
             .get(3)
             .copied()
             .ok_or_else(|| anyhow!("missing unit cost"))
-            .and_then(|s| Ok(s.parse()?))
+            .and_then(parse_maybe_float_int)
             .with_context(|| format!("parsing cost from {line:?}"))?,
         replenish: (
             data.get(5)
@@ -102,13 +102,19 @@ fn parse_unit(line: &str) -> Result<Unit> {
             .get(9)
             .copied()
             .ok_or_else(|| anyhow!("missing unit pool max"))
-            .and_then(|s| Ok(s.parse()?))
+            .and_then(parse_maybe_float_int)
             .with_context(|| format!("parsing pool max from {line:?}"))?,
         initial: data
             .get(11)
             .copied()
             .ok_or_else(|| anyhow!("missing unit pool initial"))
-            .and_then(|s| Ok(if s == "end_year" { 0 } else { s.parse()? }))
+            .and_then(|s| {
+                if s == "end_year" {
+                    Ok(0)
+                } else {
+                    parse_maybe_float_int(s)
+                }
+            })
             .with_context(|| format!("parsing pool initial from {line:?}"))?,
         restrict: if data.len() > 13 && data[12] == "restrict" {
             data[13..]
