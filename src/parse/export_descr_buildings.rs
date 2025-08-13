@@ -30,7 +30,7 @@ pub fn parse(
         .filter(|l| l.len() > 0); // strip empty lines
 
     let mut aliases = HashMap::new();
-    if mode == ParserMode::Original {
+    if mode == ParserMode::Original || mode == ParserMode::Remastered {
         aliases.insert(
             "marian_reforms".into(),
             Requires::MajorEvent("marian_reforms".into()),
