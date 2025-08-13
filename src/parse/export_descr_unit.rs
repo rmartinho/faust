@@ -2,7 +2,7 @@ use std::{collections::HashMap, str::pattern::Pattern};
 
 use anyhow::{Context as _, Result, anyhow};
 
-use crate::parse::manifest::ParserMode;
+use crate::{parse::manifest::ParserMode, utils::parse_maybe_float_int};
 
 pub fn parse(data: impl AsRef<str>, _: ParserMode) -> Result<Vec<Unit>> {
     data.as_ref()
@@ -82,12 +82,12 @@ fn parse_statblock(entries: &UnitEntries, raw: &[(&str, Option<&str>)]) -> Resul
             l.get(1)
                 .copied()
                 .ok_or_else(|| anyhow!("missing # of soldiers"))
-                .and_then(|s| Ok(s.parse()?))
+                .and_then(parse_maybe_float_int)
         } else if let Ok(l) = soldiers_line {
             l.get(0)
                 .copied()
                 .ok_or_else(|| anyhow!("missing # of soldiers"))
-                .and_then(|s| Ok(s.parse()?))
+                .and_then(parse_maybe_float_int)
         } else {
             Err(anyhow!("missing soldier/soldiers info"))
         }
@@ -111,16 +111,12 @@ fn parse_statblock(entries: &UnitEntries, raw: &[(&str, Option<&str>)]) -> Resul
             .get(0)
             .copied()
             .ok_or_else(|| anyhow!("missing hit points"))
-            .and_then(|s| Ok(s.parse().or_else(|_| s.parse::<f64>().map(|f| f as _))?))
+            .and_then(parse_maybe_float_int)
             .with_context(|| format!("parsing hit points from {health_line:?}"))?,
         hp_mount: health_line
             .get(1)
             .copied()
-            .and_then(|s| {
-                s.parse()
-                    .ok()
-                    .or_else(|| s.parse::<f64>().map(|f| f as _).ok())
-            })
+            .and_then(|s| parse_maybe_float_int(s).ok())
             .unwrap_or(1),
         primary_weapon: parse_weapon(&pri_line, &pri_attr_line).with_context(|| {
             format!("parsing primary weapon from {pri_line:?}, {pri_attr_line:?}")
@@ -136,7 +132,7 @@ fn parse_statblock(entries: &UnitEntries, raw: &[(&str, Option<&str>)]) -> Resul
             .get(0)
             .copied()
             .ok_or_else(|| anyhow!("missing heat bonus/penalty"))
-            .and_then(|s| Ok(s.parse()?))
+            .and_then(parse_maybe_float_int)
             .with_context(|| format!("parsing heat bonus/penalty from {heat_line:?}"))?,
         ground_bonus: parse_ground(&ground_line)
             .with_context(|| format!("parsing ground bonuses from {ground_line:?}"))?,
@@ -144,7 +140,7 @@ fn parse_statblock(entries: &UnitEntries, raw: &[(&str, Option<&str>)]) -> Resul
             .get(0)
             .copied()
             .ok_or_else(|| anyhow!("missing morale"))
-            .and_then(|s| Ok(s.parse()?))
+            .and_then(parse_maybe_float_int)
             .with_context(|| format!("parsing morale from {mental_line:?}"))?,
         discipline: mental_line
             .get(1)
@@ -156,19 +152,19 @@ fn parse_statblock(entries: &UnitEntries, raw: &[(&str, Option<&str>)]) -> Resul
             .get(0)
             .copied()
             .ok_or_else(|| anyhow!("missing build turns"))
-            .and_then(|s| Ok(s.parse()?))
+            .and_then(parse_maybe_float_int)
             .with_context(|| format!("parsing build turns from {cost_line:?}"))?,
         cost: cost_line
             .get(1)
             .copied()
             .ok_or_else(|| anyhow!("missing cost"))
-            .and_then(|s| Ok(s.parse()?))
+            .and_then(parse_maybe_float_int)
             .with_context(|| format!("parsing cost from {cost_line:?}"))?,
         upkeep: cost_line
             .get(2)
             .copied()
             .ok_or_else(|| anyhow!("missing upkeep"))
-            .and_then(|s| Ok(s.parse()?))
+            .and_then(parse_maybe_float_int)
             .with_context(|| format!("parsing upkeep from {cost_line:?}"))?,
     })
 }
@@ -179,22 +175,22 @@ fn parse_ground(strings: &[&str]) -> Result<GroundBonus> {
             .get(0)
             .copied()
             .ok_or_else(|| anyhow!("missing scrub bonus"))
-            .and_then(|s| Ok(s.parse()?))?,
+            .and_then(parse_maybe_float_int)?,
         sand: strings
             .get(1)
             .copied()
             .ok_or_else(|| anyhow!("missing sand bonus"))
-            .and_then(|s| Ok(s.parse()?))?,
+            .and_then(parse_maybe_float_int)?,
         forest: strings
             .get(2)
             .copied()
             .ok_or_else(|| anyhow!("missing forest bonus"))
-            .and_then(|s| Ok(s.parse()?))?,
+            .and_then(parse_maybe_float_int)?,
         snow: strings
             .get(3)
             .copied()
             .ok_or_else(|| anyhow!("missing snow bonus"))
-            .and_then(|s| Ok(s.parse()?))?,
+            .and_then(parse_maybe_float_int)?,
     })
 }
 
@@ -207,12 +203,12 @@ fn parse_weapon(stats: &[&str], attrs: &[&str]) -> Result<Weapon> {
             .get(0)
             .copied()
             .ok_or_else(|| anyhow!("missing weapon strength"))
-            .and_then(|s| Ok(s.parse()?))?,
+            .and_then(parse_maybe_float_int)?,
         charge: stats
             .get(1)
             .copied()
             .ok_or_else(|| anyhow!("missing charge bonus"))
-            .and_then(|s| Ok(s.parse()?))?,
+            .and_then(parse_maybe_float_int)?,
         missile: stats
             .get(2)
             .copied()
@@ -222,12 +218,12 @@ fn parse_weapon(stats: &[&str], attrs: &[&str]) -> Result<Weapon> {
             .get(3)
             .copied()
             .ok_or_else(|| anyhow!("missing range"))
-            .and_then(|s| Ok(s.parse()?))?,
+            .and_then(parse_maybe_float_int)?,
         ammo: stats
             .get(4)
             .copied()
             .ok_or_else(|| anyhow!("missing ammo"))
-            .and_then(|s| Ok(s.parse()?))?,
+            .and_then(parse_maybe_float_int)?,
         lethality: stats
             .get(10)
             .copied()
@@ -259,16 +255,16 @@ fn parse_defense(strings: &[&str]) -> Result<Defense> {
             .get(0)
             .copied()
             .ok_or_else(|| anyhow!("missing armor bonus"))
-            .map(|s| s.parse().unwrap_or(0))?,
+            .map(|s| parse_maybe_float_int(s).unwrap_or(0))?,
         skill: strings
             .get(1)
             .copied()
             .ok_or_else(|| anyhow!("missing skill bonus"))
-            .map(|s| s.parse().unwrap_or(0))?,
+            .map(|s| parse_maybe_float_int(s).unwrap_or(0))?,
         shield: strings
             .get(2)
             .copied()
-            .and_then(|s| s.parse().ok())
+            .and_then(|s| parse_maybe_float_int(s).ok())
             .unwrap_or(0),
     })
 }

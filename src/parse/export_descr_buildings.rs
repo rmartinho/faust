@@ -8,7 +8,7 @@ use anyhow::{Context as _, Result, anyhow, bail};
 use pest::{Parser as _, iterators::Pairs};
 use thiserror::Error;
 
-use crate::parse::manifest::ParserMode;
+use crate::{parse::manifest::ParserMode, utils::parse_maybe_float_int};
 
 mod requires {
     use pest_derive::Parser as PestParser;
@@ -180,8 +180,8 @@ fn parse_caps<'a>(
                     }
                     let exp = split
                         .next()
-                        .ok_or_else(|| anyhow!("missing exp"))?
-                        .parse()
+                        .ok_or_else(|| anyhow!("missing exp"))
+                        .and_then(parse_maybe_float_int)
                         .with_context(|| format!("parsing exp from {l}"))?;
                     let req = split
                         .remainder()
@@ -293,7 +293,7 @@ fn parse_event_count(mut pairs: Pairs<requires::Rule>) -> Result<Requires> {
     let count = pairs.next().unwrap();
     Ok(Requires::EventCount {
         event: id.as_str().into(),
-        count: count.as_str().parse()?,
+        count: parse_maybe_float_int(count.as_str())?,
     })
 }
 
@@ -352,7 +352,7 @@ fn parse_religion(mut pairs: Pairs<requires::Rule>) -> Result<Requires> {
     Ok(Requires::Religion {
         id: id.as_str().into(),
         cmp: cmp.as_str().parse()?,
-        amount: amount.as_str().parse()?,
+        amount: parse_maybe_float_int(amount.as_str())?,
     })
 }
 
@@ -363,7 +363,7 @@ fn parse_region_religion(mut pairs: Pairs<requires::Rule>) -> Result<Requires> {
     Ok(Requires::Religion {
         id: id.as_str().into(),
         cmp: Cmp::Ge,
-        amount: amount.as_str().parse()?,
+        amount: parse_maybe_float_int(amount.as_str())?,
     })
 }
 
@@ -381,7 +381,7 @@ fn parse_capability(mut pairs: Pairs<requires::Rule>) -> Result<Requires> {
     let amount = pairs.next().unwrap();
     Ok(Requires::Capability {
         capability: id.as_str().into(),
-        amount: amount.as_str().parse()?,
+        amount: parse_maybe_float_int(amount.as_str())?,
     })
 }
 

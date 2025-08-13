@@ -5,6 +5,7 @@
 #![feature(str_split_whitespace_remainder)]
 #![feature(pattern)]
 #![feature(try_blocks)]
+#![feature(convert_float_to_int)]
 #![allow(dead_code)]
 
 use std::{io, time::Instant};
