@@ -104,7 +104,7 @@ fn do_evaluate(
         }
         Requires::IsPlayer => Some(true),
         Requires::Alias(id) => do_evaluate(
-            aliases.get(id).expect(&format!("invalid alias: {id}")),
+            aliases.get(id).unwrap_or(&Requires::None),
             aliases,
             eval,
         ),
