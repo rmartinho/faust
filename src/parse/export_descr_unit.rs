@@ -76,7 +76,7 @@ fn parse_statblock(entries: &UnitEntries, raw: &[(&str, Option<&str>)]) -> Resul
                 .ok_or_else(|| anyhow!("missing soldier model"))
                 .map(Into::into)?
         } else {
-            todo!()
+            "".into() // TODO ignored for now
         },
         soldiers: if let Ok(l) = soldier_line {
             l.get(1)
