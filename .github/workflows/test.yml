@@ -112,6 +112,10 @@ jobs:
             name: "[RR] Hellenism at War"
             dir: rr-haw
             base: rr
+          - id: rr-arthur
+            name: "[RR] Arthurian: Total War"
+            dir: rr-arthur
+            base: rr
           - id: rr-tc
             name: "[RR] Total Conquest"
             dir: rr-tc
