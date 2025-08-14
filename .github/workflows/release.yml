@@ -53,3 +53,4 @@ jobs:
           executable-name: faust
           target: ${{ matrix.platform.target }}
           archive-name: faust-${{ github.ref_name }}-${{ matrix.platform.os-name }}
+          extra-files: docs/
