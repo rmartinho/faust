@@ -46,6 +46,7 @@ fn app_content() -> HtmlResult {
         <BrowserRouter>
           <Switch<Route> render={switch} />
         </BrowserRouter>
+        <Footer />
       </ContextProvider<AppContext>>
     })
 }
@@ -59,6 +60,16 @@ fn app() -> HtmlResult {
         <AppContent />
       </Suspense>
     })
+}
+
+#[autoprops]
+#[function_component(Footer)]
+fn footer() -> Html {
+    html! {
+      <footer>
+        <span>{"Generated with "}<a href="https://faust.rmf.io">{"FAUST"}</a>{" with this "}<a href="/faust.yml">{"manifest"}</a>{"."}</span>
+      </footer>
+    }
 }
 
 #[autoprops]
@@ -78,6 +89,7 @@ fn static_app_content(route: &Route, data: IArray<u8>) -> Html {
         <Router {history}>
           <Switch<Route> render={switch} />
         </Router>
+        <Footer />
       </ContextProvider<AppContext>>
     }
 }

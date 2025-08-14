@@ -1,4 +1,8 @@
-use std::{env, fs::File, path::PathBuf};
+use std::{
+    env,
+    io::Cursor,
+    path::PathBuf,
+};
 
 use crate::{parse::Manifest, platform};
 use anyhow::{Context as _, Result};
@@ -49,10 +53,13 @@ impl Config {
                 .expect("current directory failed")
                 .join("faust/faust.yml")
         });
-        let manifest = Manifest::from_yaml(
-            File::open(&manifest_path)
-                .with_context(|| format!("opening manifest at {}", manifest_path.display()))?,
-        )?;
+        let manifest_text = std::fs::read_to_string(&manifest_path)
+            .with_context(|| format!("opening manifest at {}", manifest_path.display()))?;
+        let manifest = Manifest::from_yaml(Cursor::new(&manifest_text))?;
+        let manifest = Manifest {
+            raw: manifest_text,
+            ..manifest
+        };
         let manifest_dir = manifest_path
             .parent()
             .map(|p| p.to_path_buf())
