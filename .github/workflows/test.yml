@@ -176,22 +176,22 @@ jobs:
             name: "[M2] Grand Campaign"
             dir: m2
             base: m2
-          # - id: m2-americas
-          #   name: "[M2] Americas"
-          #   dir: m2-americas
-          #   base: m2
-          # - id: m2-britannia
-          #   name: "[M2] Britannia"
-          #   dir: m2-britannia
-          #   base: m2
-          # - id: m2-crusades
-          #   name: "[M2] Crusades"
-          #   dir: m2-crusades
-          #   base: m2
-          # - id: m2-teutonic
-          #   name: "[M2] Teutonic"
-          #   dir: m2-teutonic
-          #   base: m2
+          - id: m2-americas
+            name: "[M2] Americas"
+            dir: m2-americas
+            base: m2
+          - id: m2-britannia
+            name: "[M2] Britannia"
+            dir: m2-britannia
+            base: m2
+          - id: m2-crusades
+            name: "[M2] Crusades"
+            dir: m2-crusades
+            base: m2
+          - id: m2-teutonic
+            name: "[M2] Teutonic"
+            dir: m2-teutonic
+            base: m2
           - id: m2-id
             name: "[M2] Insularis Draco"
             dir: m2-id

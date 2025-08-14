@@ -442,7 +442,10 @@ fn build_pool(p: &Pool, index: usize, cfg: &Config, raw: &IntermediateModel) -> 
             .units
             .iter()
             .map(|e| {
-                let u = &raw.unit_map.get(&e.id).expect(&format!("missing unit {:?}", e.id));
+                let u = &raw
+                    .unit_map
+                    .get(&e.id)
+                    .expect(&format!("missing unit {:?}", e.id));
                 let mut unit = build_unit(u, cfg, "mercs", raw, &[]);
                 unit.cost = e.cost;
                 model::PoolEntry {
@@ -739,7 +742,11 @@ fn build_requires(
         .into_iter()
         .flat_map(|b| {
             b.caps.iter().map(move |r| {
-                let owners = require_ownership(&unit_map[&r.unit]);
+                let owners = require_ownership(
+                    &unit_map
+                        .get(&r.unit)
+                        .expect(&format!("missing unit {:?}", r.unit)),
+                );
                 (
                     r.unit.clone(),
                     Requires::And(vec![r.req.clone(), b.req.clone(), owners]),
