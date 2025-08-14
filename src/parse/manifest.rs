@@ -36,6 +36,9 @@ pub struct Manifest {
     pub pools: Vec<IString>,
     #[serde(default)]
     pub aors: Vec<IString>,
+
+    #[serde(skip, default)]
+    pub raw: String,
 }
 
 impl Manifest {

@@ -499,6 +499,11 @@ impl Renderer {
         let pb = m.add(ProgressBar::new_spinner());
         pb.set_style(progress_style());
         pb.set_prefix("[2/5]");
+        pb.tick();
+        pb.set_message(format!("{PAPER}writing faust.yml"));
+        write_file(&self.cfg.out_dir.join("faust.yml"), &self.cfg.manifest.raw)
+            .await
+            .context("writing faust.yml")?;
         for file in FILESYSTEM_STATIC {
             pb.tick();
             pb.set_message(format!("{PAPER}creating {}", file.path));
