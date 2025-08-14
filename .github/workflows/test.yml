@@ -57,7 +57,7 @@ jobs:
             dir: og-alx
             base: og
           - id: og-be-hl
-            name: "[OG] Barbarian Empires: Hellenistic Legacy"
+            name: "[OG] Hellenistic Legacy"
             dir: og-be-hl
             base: og
           - id: og-xc5
@@ -84,6 +84,10 @@ jobs:
           #   name: "[OG] Invasio Barbarorum"
           #   dir: og-ibrr
           #   base: og
+          - id: og-aristeia
+            name: "[OG] Aristeia"
+            dir: og-aristeia
+            base: og
           - id: rr
             name: "[RR] Imperial Campaign"
             dir: rr
@@ -95,6 +99,78 @@ jobs:
           - id: rr-alx
             name: "[RR] Alexander"
             dir: rr-alx
+            base: rr
+          - id: rr-lotr
+            name: "[RR] The Lord of the Rings"
+            dir: rr-lotr
+            base: rr
+          - id: rr-chivalry
+            name: "[RR] Chivalry"
+            dir: rr-chivalry
+            base: rr
+          - id: rr-haw
+            name: "[RR] Hellenism at War"
+            dir: rr-haw
+            base: rr
+          - id: rr-arthur
+            name: "[RR] Arthurian: Total War"
+            dir: rr-arthur
+            base: rr
+          - id: rr-tc
+            name: "[RR] Total Conquest"
+            dir: rr-tc
+            base: rr
+          - id: rr-ris
+            name: "[RR] RTR Imperium Surrectum"
+            dir: rr-ris
+            base: rr
+          - id: rr-eb1
+            name: "[RR] Europa Barbarorum"
+            dir: rr-eb1
+            base: rr
+          - id: rr-gor
+            name: "[RR] Glory of Rome"
+            dir: rr-gor
+            base: rr
+          - id: rr-cc
+            name: "[RR] Cultural Conquest"
+            dir: rr-cc
+            base: rr
+          - id: rr-toa
+            name: "[RR] Tales of Antiquity"
+            dir: rr-toa
+            base: rr
+          - id: rr-be
+            name: "[RR] Barbarian Empires"
+            dir: rr-be
+            base: rr
+          - id: rr-batw
+            name: "[RR] Bronze Age"
+            dir: rr-batw
+            base: rr
+          - id: rr-diadochi
+            name: "[RR] Diadochi"
+            dir: rr-diadochi
+            base: rr
+          - id: rr-fatw
+            name: "[RR] Fourth Age"
+            dir: rr-fatw
+            base: rr
+          - id: rr-malazan
+            name: "[RR] Malazan"
+            dir: rr-malazan
+            base: rr
+          - id: rr-rop
+            name: "[RR] Rise of Persia"
+            dir: rr-rop
+            base: rr
+          - id: rr-sg
+            name: "[RR] Scorched Ground"
+            dir: rr-sg
+            base: rr
+          - id: rr-tetrarchy
+            name: "[RR] Tetrarchy"
+            dir: rr-tetrarchy
             base: rr
           - id: m2
             name: "[M2] Grand Campaign"
