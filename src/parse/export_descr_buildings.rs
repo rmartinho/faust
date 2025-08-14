@@ -187,7 +187,7 @@ fn parse_caps<'a>(
                         .remainder()
                         .map_or(Ok(Requires::None), parse_requires)?;
                     RecruitOption {
-                        unit: unit.into(),
+                        unit: unit.trim().into(),
                         exp,
                         req,
                     }
