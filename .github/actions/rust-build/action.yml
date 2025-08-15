@@ -12,4 +12,5 @@ runs:
       with:
         command: build
         target: ${{ inputs.target }}
-        args: "--locked --release"
+        args: '--locked --release'
+        rust-cache-parameters: ${{ format('{{"shared-key":"faust-{0}"}}', inputs.target) }}

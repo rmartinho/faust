@@ -1,6 +1,5 @@
 #![feature(str_from_utf16_endian)]
 #![feature(path_add_extension)]
-#![feature(panic_payload_as_str)]
 #![feature(str_split_remainder)]
 #![feature(str_split_whitespace_remainder)]
 #![feature(pattern)]
