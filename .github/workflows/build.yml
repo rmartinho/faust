@@ -44,7 +44,7 @@ jobs:
           executable-name: faust
           target: ${{ matrix.platform.target }}
       - name: Publish artifacts
-        uses: houseabsolute/actions-rust-release@v0
+        uses: ./.github/actions/publish-rust-artifacts/
         with:
           executable-name: faust
           target: ${{ matrix.platform.target }}
