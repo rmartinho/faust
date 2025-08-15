@@ -25,8 +25,8 @@ jobs:
         uses: ./.github/actions/rust-build/
         with:
           target: x86_64-unknown-linux-gnu
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload binary
+        uses: ./.github/actions/artifact/upload/
         with:
           name: faust
           path: target/x86_64-unknown-linux-gnu/release/faust
@@ -43,39 +43,39 @@ jobs:
       matrix:
         mod:
           - id: og
-            name: "[OG] Imperial Campaign"
+            name: '[OG] Imperial Campaign'
             dir: og
             base: og
           - id: og-bi
-            name: "[OG] Barbarian Invasion"
+            name: '[OG] Barbarian Invasion'
             dir: og-bi
             base: og
           - id: og-alx
-            name: "[OG] Alexander"
+            name: '[OG] Alexander'
             dir: og-alx
             base: og
           - id: og-be-hl
-            name: "[OG] Hellenistic Legacy"
+            name: '[OG] Hellenistic Legacy'
             dir: og-be-hl
             base: og
           - id: og-xc5
-            name: "[OG] Extended Cultures V"
+            name: '[OG] Extended Cultures V'
             dir: og-xc5
             base: og
           - id: og-fatw
-            name: "[OG] Fourth Age"
+            name: '[OG] Fourth Age'
             dir: og-fatw
             base: og
           - id: og-eod
-            name: "[OG] End of Days"
+            name: '[OG] End of Days'
             dir: og-eod
             base: og
           - id: og-dtw
-            name: "[OG] Diadochi"
+            name: '[OG] Diadochi'
             dir: og-dtw
             base: og
           - id: og-vtw
-            name: "[OG] Viking"
+            name: '[OG] Viking'
             dir: og-vtw
             base: og
           # - id: og-ibrr
@@ -83,144 +83,148 @@ jobs:
           #   dir: og-ibrr
           #   base: og
           - id: og-aristeia
-            name: "[OG] Aristeia"
+            name: '[OG] Aristeia'
             dir: og-aristeia
             base: og
           - id: rr
-            name: "[RR] Imperial Campaign"
+            name: '[RR] Imperial Campaign'
             dir: rr
             base: rr
           - id: rr-bi
-            name: "[RR] Barbarian Invasion"
+            name: '[RR] Barbarian Invasion'
             dir: rr-bi
             base: rr
           - id: rr-alx
-            name: "[RR] Alexander"
+            name: '[RR] Alexander'
             dir: rr-alx
             base: rr
           - id: rr-lotr
-            name: "[RR] The Lord of the Rings"
+            name: '[RR] The Lord of the Rings'
             dir: rr-lotr
             base: rr
           - id: rr-chivalry
-            name: "[RR] Chivalry"
+            name: '[RR] Chivalry'
             dir: rr-chivalry
             base: rr
           - id: rr-haw
-            name: "[RR] Hellenism at War"
+            name: '[RR] Hellenism at War'
             dir: rr-haw
             base: rr
           - id: rr-arthur
-            name: "[RR] Arthurian: Total War"
+            name: '[RR] Arthurian: Total War'
             dir: rr-arthur
             base: rr
           - id: rr-tc
-            name: "[RR] Total Conquest"
+            name: '[RR] Total Conquest'
             dir: rr-tc
             base: rr
           - id: rr-ris
-            name: "[RR] RTR Imperium Surrectum"
+            name: '[RR] RTR Imperium Surrectum'
             dir: rr-ris
             base: rr
           - id: rr-eb1
-            name: "[RR] Europa Barbarorum"
+            name: '[RR] Europa Barbarorum'
             dir: rr-eb1
             base: rr
           - id: rr-gor
-            name: "[RR] Glory of Rome"
+            name: '[RR] Glory of Rome'
             dir: rr-gor
             base: rr
           - id: rr-cc
-            name: "[RR] Cultural Conquest"
+            name: '[RR] Cultural Conquest'
             dir: rr-cc
             base: rr
           - id: rr-toa
-            name: "[RR] Tales of Antiquity"
+            name: '[RR] Tales of Antiquity'
             dir: rr-toa
             base: rr
           - id: rr-be
-            name: "[RR] Barbarian Empires"
+            name: '[RR] Barbarian Empires'
             dir: rr-be
             base: rr
           - id: rr-batw
-            name: "[RR] Bronze Age"
+            name: '[RR] Bronze Age'
             dir: rr-batw
             base: rr
           - id: rr-diadochi
-            name: "[RR] Diadochi"
+            name: '[RR] Diadochi'
             dir: rr-diadochi
             base: rr
           - id: rr-fatw
-            name: "[RR] Fourth Age"
+            name: '[RR] Fourth Age'
             dir: rr-fatw
             base: rr
           - id: rr-malazan
-            name: "[RR] Malazan"
+            name: '[RR] Malazan'
             dir: rr-malazan
             base: rr
           - id: rr-rop
-            name: "[RR] Rise of Persia"
+            name: '[RR] Rise of Persia'
             dir: rr-rop
             base: rr
           - id: rr-sg
-            name: "[RR] Scorched Ground"
+            name: '[RR] Scorched Ground'
             dir: rr-sg
             base: rr
           - id: rr-tetrarchy
-            name: "[RR] Tetrarchy"
+            name: '[RR] Tetrarchy'
             dir: rr-tetrarchy
             base: rr
           - id: m2
-            name: "[M2] Grand Campaign"
+            name: '[M2] Grand Campaign'
             dir: m2
             base: m2
           - id: m2-americas
-            name: "[M2] Americas"
+            name: '[M2] Americas'
             dir: m2-americas
             base: m2
           - id: m2-britannia
-            name: "[M2] Britannia"
+            name: '[M2] Britannia'
             dir: m2-britannia
             base: m2
           - id: m2-crusades
-            name: "[M2] Crusades"
+            name: '[M2] Crusades'
             dir: m2-crusades
             base: m2
           - id: m2-teutonic
-            name: "[M2] Teutonic"
+            name: '[M2] Teutonic'
             dir: m2-teutonic
             base: m2
           - id: m2-id
-            name: "[M2] Insularis Draco"
+            name: '[M2] Insularis Draco'
             dir: m2-id
             base: m2
           - id: m2-roq
-            name: "[M2] Rise of Quetzal"
+            name: '[M2] Rise of Quetzal'
             dir: m2-roq
             base: m2
     steps:
-      - name: Setup Rclone
-        uses: AnimMouse/setup-rclone@v1
-        with:
-          rclone_config: ${{ secrets.RCLONE_CONFIG }}
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - name: Mount mods folder
-        shell: bash
-        run: |
-          mkdir -p mods
-          rclone mount --daemon --read-only faust:faust-data mods
+        uses: ./.github/actions/mount-mod/
+        with:
+          rclone-config: ${{ secrets.RCLONE_CONFIG }}
+          remote-name: faust
+          remote-path: faust-data
+          mount-path: mods
       - name: Download FAUST
-        uses: actions/download-artifact@v4
+        uses: ./.github/actions/artifact/download/
         with:
           name: faust
       - name: Build site
-        shell: bash
-        run: |
-          chmod +x faust
-          ./faust --verbose mods/${{ matrix.mod.dir }}/faust/faust.yml --base-game-path mods/${{ matrix.mod.base }} --out-dir output/
-      - name: Deploy
-        uses: cloudflare/wrangler-action@v3
+        uses: ./.github/actions/faust/
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy output/ --project-name=silphium --branch=${{ github.event_name == 'pull_request' && format('{0}/', github.ref_name) || '' }}${{ matrix.mod.id }}
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          faust: faust
+          manifest: mods/${{ matrix.mod.dir }}/faust/faust.yml
+          base: mods/${{ matrix.mod.base }}
+          output: output/
+      - name: Deploy
+        uses: ./.github/actions/cf-pages
+        with:
+          api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          account-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          gitHub-token: ${{ secrets.GITHUB_TOKEN }}
+          path: output/
+          project: silphium
+          branch: ${{ github.event_name == 'pull_request' && format('{0}/', github.ref_name) || '' }}${{ matrix.mod.id }}

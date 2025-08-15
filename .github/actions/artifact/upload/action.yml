@@ -1,0 +1,18 @@
+name: 'Upload artifact'
+description: 'Uploads an artifact'
+inputs:
+  name:
+    description: 'Artifact name'
+    required: true
+  path:
+    description: 'Artifact path'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Upload artifact
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ inputs.path }}

@@ -1,0 +1,27 @@
+name: 'Run FAUST'
+description: 'Runs FAUST'
+inputs:
+  faust:
+    description: 'Path to FAUST executable'
+    required: true
+  manifest:
+    description: 'Path to FAUST manifest'
+    required: true
+  base:
+    description: 'Path to FAUST manifest'
+    required: true
+  output:
+    description: 'Path to output'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Prepare executable
+      shell: bash
+      run: |
+        chmod +x ${{ inputs.faust }}
+    - name: Build site
+      shell: bash
+      run: |
+        ./${{ inputs.faust }} --verbose ${{ inputs.manifest }} --base-game-path ${{ inputs.base }} --out-dir ${{ inputs.output }}
