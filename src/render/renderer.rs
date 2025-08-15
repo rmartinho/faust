@@ -141,7 +141,7 @@ impl Renderer {
             let dst = self.cfg.out_dir.join(&banner_path);
             pb.tick();
             pb.set_message(format!("{PICTURE}rendering {}", web_path(&banner_path)));
-            Self::render_image(&src, &dst, MOD_BANNER_SIZE).await?;
+            Self::render_image(&self.cfg, &src, &dst, MOD_BANNER_SIZE).await?;
 
             let radar_map_path = try_paths(
                 &self.cfg,
@@ -164,8 +164,8 @@ impl Renderer {
                     "data/world/maps/base/map_regions.tga",
                 ],
             );
-            let mut areas = read_image(regions_map_path).await?.into_rgba8();
-            let radar = read_image(radar_map_path).await?;
+            let mut areas = read_image(&self.cfg, regions_map_path).await?.into_rgba8();
+            let radar = read_image(&self.cfg, radar_map_path).await?;
             let radar = radar
                 .resize_exact(areas.width() * 2, areas.height() * 2, Lanczos3)
                 .into_rgba8();
@@ -200,7 +200,7 @@ impl Renderer {
                         let dst = self.cfg.out_dir.join(&portrait_path);
                         pb.tick();
                         pb.set_message(format!("{PICTURE}rendering {}", web_path(&portrait_path)));
-                        Self::render_image(&src, &dst, UNIT_PORTRAIT_SIZE).await?;
+                        Self::render_image(&self.cfg, &src, &dst, UNIT_PORTRAIT_SIZE).await?;
                     }
                 }
                 p.units = units.into();
@@ -235,14 +235,14 @@ impl Renderer {
                 let dst = self.cfg.out_dir.join(&icon_path);
                 pb.tick();
                 pb.set_message(format!("{PICTURE}rendering {}", web_path(&icon_path)));
-                Self::render_image(&src, &dst, ERA_ICON_SIZE).await?;
+                Self::render_image(&self.cfg, &src, &dst, ERA_ICON_SIZE).await?;
 
                 let src = self.cfg.manifest_dir.join(e.icoff.as_ref());
                 let icoff_path = Self::era_icoff_path(&m.id, e);
                 let dst = self.cfg.out_dir.join(&icoff_path);
                 pb.tick();
                 pb.set_message(format!("{PICTURE}rendering {}", web_path(&icoff_path)));
-                Self::render_image(&src, &dst, ERA_ICON_SIZE).await?;
+                Self::render_image(&self.cfg, &src, &dst, ERA_ICON_SIZE).await?;
             }
 
             for f in m.factions.values_mut() {
@@ -255,7 +255,7 @@ impl Renderer {
                 let dst = self.cfg.out_dir.join(&symbol_path);
                 pb.tick();
                 pb.set_message(format!("{PICTURE}rendering {}", web_path(&symbol_path)));
-                Self::render_image(&src, &dst, FACTION_SYMBOL_SIZE).await?;
+                Self::render_image(&self.cfg, &src, &dst, FACTION_SYMBOL_SIZE).await?;
 
                 let mut roster: Vec<_> = f.roster.iter().collect();
                 for u in roster.iter_mut() {
@@ -268,7 +268,7 @@ impl Renderer {
                     let dst = self.cfg.out_dir.join(&portrait_path);
                     pb.tick();
                     pb.set_message(format!("{PICTURE}rendering {}", web_path(&portrait_path)));
-                    Self::render_image(&src, &dst, UNIT_PORTRAIT_SIZE).await?;
+                    Self::render_image(&self.cfg, &src, &dst, UNIT_PORTRAIT_SIZE).await?;
                 }
                 f.roster = roster.into();
             }
@@ -346,8 +346,13 @@ impl Renderer {
         path
     }
 
-    async fn render_image(from: &Path, to: &Path, (width, height): (u32, u32)) -> Result<()> {
-        let img = read_image(from).await?;
+    async fn render_image(
+        cfg: &Config,
+        from: &Path,
+        to: &Path,
+        (width, height): (u32, u32),
+    ) -> Result<()> {
+        let img = read_image(cfg, from).await?;
         let img = img.resize(width, height, Lanczos3);
         write_image(to, &img).await?;
         info!("rendered {}", to.display());

@@ -1,8 +1,4 @@
-use std::{
-    env,
-    io::Cursor,
-    path::PathBuf,
-};
+use std::{env, io::Cursor, path::PathBuf};
 
 use crate::{parse::Manifest, platform};
 use anyhow::{Context as _, Result};
@@ -33,6 +29,8 @@ pub struct GenerateArgs {
         help = "serve the site after generation"
     )]
     pub serve: bool,
+    #[arg(long, help = "file to write list of used mod files")]
+    pub deps_file: Option<PathBuf>,
 }
 
 #[derive(Debug, Clone)]
@@ -43,6 +41,7 @@ pub struct Config {
     pub fallback_dir: PathBuf,
     pub manifest_dir: PathBuf,
     pub serve: bool,
+    pub deps_file: Option<PathBuf>,
 }
 
 impl Config {
@@ -76,6 +75,11 @@ impl Config {
             .or_else(|| src_dir.parent().map(|p| p.to_path_buf()))
             .unwrap_or_else(|| "..".into());
 
+        if let Some(deps_file) = &args.deps_file {
+            std::fs::write(deps_file, format!("{}\n", manifest_path.display()))
+                .context("creating deps file")?;
+        }
+
         Ok(Self {
             manifest,
             out_dir,
@@ -83,6 +87,7 @@ impl Config {
             fallback_dir,
             manifest_dir,
             serve: args.serve,
+            deps_file: args.deps_file,
         })
     }
 }

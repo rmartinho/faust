@@ -75,6 +75,7 @@ pub fn prepare_generation_arguments(args: Args) -> GenerateArgs {
             out_dir: None,
             base_game_path: None,
             serve: true,
+            deps_file: None,
         }
     }
 }

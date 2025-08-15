@@ -1,6 +1,9 @@
 name: 'Run FAUST'
 description: 'Runs FAUST'
 inputs:
+  mod-id:
+    description: 'ID of the mod'
+    required: true
   faust:
     description: 'Path to FAUST executable'
     required: true
@@ -13,10 +16,60 @@ inputs:
   output:
     description: 'Path to output'
     required: true
+  rclone-config:
+    description: 'rclone configuration'
+    required: true
+  remote-name:
+    description: 'Name of the rclone remote to use'
+    required: false
+    default: 'faust'
+  remote-path:
+    description: 'Name of the remote path to mount'
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
   steps:
+    - name: Restore deps file
+      id: cache-deps
+      uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809
+      with:
+        path: deps
+        key: mod-deps-${{ inputs.mod-id }}-
+        restore-keys: mod-deps-${{ inputs.mod-id }}-
+    - name: Read deps file
+      if: steps.cache-deps.outputs.cache-hit != ''
+      shell: bash
+      run: |
+        echo -n FAUST_PRE_HASH=${{ hashFiles('deps') }} >> $GITHUB_ENV
+    - name: Restore cache
+      if: steps.cache-deps.outputs.cache-hit != ''
+      id: cache
+      uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809
+      with:
+        path: files.tar.gz
+        key: mod-files-${{ inputs.mod-id }}-${{ env.FAUST_PRE_HASH }}
+    - name: Unpack cache
+      if: steps.cache.outputs.cache-hit == 'true'
+      shell: bash
+      run: |
+        tar -xzv -f files.tar.gz
+    - name: Setup Rclone
+      if: steps.cache.outputs.cache-hit != 'true'
+      uses: AnimMouse/setup-rclone@0d99fa3878a334d3e307c1a8372ad55550fdaea7
+      with:
+        rclone_config: ${{ inputs.rclone-config }}
+    - name: Create mods folder
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        mkdir -p mods
+    - name: Mount mods folder
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        rclone mount --daemon --read-only --vfs-cache-mode=full --vfs-cache-max-age=24h --vfs-case-insensitive ${{ inputs.remote-name }}:${{ inputs.remote-path }} mods
     - name: Prepare executable
       shell: bash
       run: |
@@ -24,4 +77,25 @@ runs:
     - name: Build site
       shell: bash
       run: |
-        ./${{ inputs.faust }} --verbose ${{ inputs.manifest }} --base-game-path ${{ inputs.base }} --out-dir ${{ inputs.output }}
+        ./${{ inputs.faust }} --verbose mods/${{ inputs.manifest }} --base-game-path mods/${{ inputs.base }} --out-dir ${{ inputs.output }} --deps-file deps
+    - name: Check deps file
+      shell: bash
+      run: |
+        echo -n FAUST_POST_HASH=${{ hashFiles('deps') }} >> $GITHUB_ENV
+    - name: Save deps file
+      if: steps.cache.outputs.cache-hit != 'true' || env.FAUST_PRE_HASH != env.FAUST_POST_HASH
+      uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809
+      with:
+        path: deps
+        key: mod-deps-${{ inputs.mod-id }}-${{ env.FAUST_POST_HASH }}
+    - name: Pack cache
+      if: steps.cache.outputs.cache-hit != 'true' || env.FAUST_PRE_HASH != env.FAUST_POST_HASH
+      shell: bash
+      run: |
+        tar -czv -T deps -f files.tar.gz
+    - name: Save cache
+      if: steps.cache.outputs.cache-hit != 'true' || env.FAUST_PRE_HASH != env.FAUST_POST_HASH
+      uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809
+      with:
+        path: files.tar.gz
+        key: mod-files-${{ inputs.mod-id }}-${{ env.FAUST_POST_HASH }}

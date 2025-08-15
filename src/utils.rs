@@ -1,5 +1,6 @@
 use std::{
     convert::FloatToInt,
+    fs::OpenOptions,
     io::Cursor,
     path::{Path, PathBuf},
     str::FromStr,
@@ -24,9 +25,9 @@ pub const CLAMP: Emoji = Emoji("🗜️  ", "");
 pub const THINKING: Emoji = Emoji("💭  ", "");
 pub const PACKAGE: Emoji = Emoji("📦 ", "[+] ");
 
-pub async fn read_image(path: impl AsRef<Path>) -> Result<DynamicImage> {
+pub async fn read_image(cfg: &Config, path: impl AsRef<Path>) -> Result<DynamicImage> {
     let from = path.as_ref();
-    let buf = read_file(from)
+    let buf = read_file(cfg, from)
         .await
         .with_context(|| format!("reading image {}", from.display()))?;
     let format = ImageFormat::from_path(from)
@@ -59,8 +60,13 @@ pub async fn write_file(path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> R
         .with_context(|| format!("creating {}", path.display()))?)
 }
 
-pub async fn read_file(path: impl AsRef<Path>) -> Result<Vec<u8>> {
+pub async fn read_file(cfg: &Config, path: impl AsRef<Path>) -> Result<Vec<u8>> {
     let path = path.as_ref();
+    if let Some(dep) = &cfg.deps_file {
+        let mut file = OpenOptions::new().append(true).open(dep)?;
+        use std::io::Write as _;
+        writeln!(file, "{}", path.display())?;
+    }
     Ok(fs::read(path)
         .await
         .with_context(|| format!("reading {}", path.display()))?)

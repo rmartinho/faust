@@ -30,6 +30,7 @@ jobs:
         with:
           name: faust
           path: target/x86_64-unknown-linux-gnu/release/faust
+
   test:
     name: Test - ${{ matrix.mod.name }}
     needs: build
@@ -201,13 +202,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-      - name: Mount mods folder
-        uses: ./.github/actions/mount-mod/
-        with:
-          rclone-config: ${{ secrets.RCLONE_CONFIG }}
-          remote-name: faust
-          remote-path: faust-data
-          mount-path: mods
       - name: Download FAUST
         uses: ./.github/actions/artifact/download/
         with:
@@ -216,9 +210,12 @@ jobs:
         uses: ./.github/actions/faust/
         with:
           faust: faust
-          manifest: mods/${{ matrix.mod.dir }}/faust/faust.yml
-          base: mods/${{ matrix.mod.base }}
+          manifest: ${{ matrix.mod.dir }}/faust/faust.yml
+          base: ${{ matrix.mod.base }}
           output: output/
+          rclone-config: ${{ secrets.RCLONE_CONFIG }}
+          remote-path: 'faust-data'
+          mod-id: ${{ matrix.mod.id }}
       - name: Deploy
         uses: ./.github/actions/cf-pages
         with:
