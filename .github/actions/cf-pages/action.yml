@@ -1,0 +1,32 @@
+name: 'Deploy to Cloudflare Pages'
+description: 'Deploys a static site to Cloudflare Pages'
+inputs:
+  api-token:
+    description: 'Cloudflare API token'
+    required: true
+  account-id:
+    description: 'Cloudflare account ID'
+    required: true
+  github-token:
+    description: 'GitHub token'
+    required: true
+  path:
+    description: 'Path to deploy'
+    required: true
+  project:
+    description: 'Project name'
+    required: true
+  branch:
+    description: 'Branch name'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Deploy
+      uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65
+      with:
+        apiToken: ${{ inputs.api-token }}
+        accountId: ${{ inputs.account-id }}
+        command: pages deploy ${{ inputs.path }} --commit-dirty=true --project-name=${{ inputs.project }} --branch=${{ inputs.branch }}
+        gitHubToken: ${{ inputs.github-token }}

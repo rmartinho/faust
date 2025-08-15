@@ -1,0 +1,48 @@
+name: 'VirusTotal scan'
+description: 'Uploads Rust binaries to VirusTotal for scanning'
+inputs:
+  vt_api_key:
+    description: 'VirusTotal API key'
+    required: true
+  executable-name:
+    description: 'Executable name'
+    required: true
+  target:
+    description: 'Build target'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Find binary
+      shell: bash
+      run: |
+        VT_BINARY=target/${{ inputs.target }}/release/${{ inputs.executable-name }}${{ inputs.target == 'x86_64-pc-windows-msvc' && '.exe' || '' }}
+        echo "VT_BINARY=$VT_BINARY" >> $GITHUB_ENV
+    - name: Use cache
+      id: cache
+      uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809
+      with:
+        path: analysis-link
+        key: vt-analysis-${{ hashFiles(env.VT_BINARY) }}
+    - name: Use cache
+      if: steps.cache.outputs.cache-hit == 'true'
+      shell: bash
+      run: |
+        echo "VT_ANALYSIS=$(cat analysis-link)" >> $GITHUB_ENV
+    - name: Perform scan
+      if: steps.cache.outputs.cache-hit != 'true'
+      id: virus_total
+      uses: crazy-max/ghaction-virustotal@d34968c958ae283fe976efed637081b9f9dcf74f
+      with:
+        vt_api_key: ${{ inputs.vt_api_key }}
+        files: ${{ env.VT_BINARY }}
+    - name: Parse analysis link
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        VT_ANALYSIS=$(echo '${{ steps.virus_total.outputs.analysis }}' | cut -d = -f 2- - | tee analysis-link)
+        echo "VT_ANALYSIS=$VT_ANALYSIS" >> $GITHUB_ENV
+    - name: Add analysis link
+      shell: bash
+      run: |
+        echo -n "VirusTotal analysis: $VT_ANALYSIS" >> $GITHUB_STEP_SUMMARY

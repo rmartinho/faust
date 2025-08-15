@@ -87,14 +87,14 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
         m.clone(),
         1,
         expanded_text_path.clone(),
-        parse_text(expanded_text_path, cfg.manifest.mode),
+        parse_text(cfg, expanded_text_path, cfg.manifest.mode),
     )
     .await?;
     let export_units = parse_progress(
         m.clone(),
         2,
         export_units_path.clone(),
-        parse_text(export_units_path, cfg.manifest.mode),
+        parse_text(cfg, export_units_path, cfg.manifest.mode),
     )
     .await?;
     text.extend(export_units.into_iter());
@@ -103,42 +103,42 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
         m.clone(),
         3,
         descr_mercenaries_path.clone(),
-        parse_descr_mercenaries(descr_mercenaries_path, cfg.manifest.mode),
+        parse_descr_mercenaries(cfg, descr_mercenaries_path, cfg.manifest.mode),
     )
     .await?;
     let regions = parse_progress(
         m.clone(),
         4,
         descr_regions_path.clone(),
-        parse_descr_regions(descr_regions_path, cfg.manifest.mode),
+        parse_descr_regions(cfg, descr_regions_path, cfg.manifest.mode),
     )
     .await?;
     let factions = parse_progress(
         m.clone(),
         5,
         descr_sm_factions_path.clone(),
-        parse_descr_sm_factions(descr_sm_factions_path, cfg.manifest.mode),
+        parse_descr_sm_factions(cfg, descr_sm_factions_path, cfg.manifest.mode),
     )
     .await?;
     let units = parse_progress(
         m.clone(),
         6,
         export_descr_unit_path.clone(),
-        parse_export_descr_unit(export_descr_unit_path, cfg.manifest.mode),
+        parse_export_descr_unit(cfg, export_descr_unit_path, cfg.manifest.mode),
     )
     .await?;
     let (require_aliases, buildings) = parse_progress(
         m.clone(),
         7,
         export_descr_buildings_path.clone(),
-        parse_export_descr_buildings(export_descr_buildings_path, cfg.manifest.mode),
+        parse_export_descr_buildings(cfg, export_descr_buildings_path, cfg.manifest.mode),
     )
     .await?;
     let strat = parse_progress(
         m.clone(),
         6,
         descr_strat_path.clone(),
-        parse_descr_strat(descr_strat_path, cfg.manifest.mode),
+        parse_descr_strat(cfg, descr_strat_path, cfg.manifest.mode),
     )
     .await?;
     let mounts = if cfg.manifest.estimate_speed() {
@@ -146,7 +146,7 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
             m.clone(),
             3,
             descr_mount_path.clone(),
-            parse_descr_mount(descr_mount_path, cfg.manifest.mode),
+            parse_descr_mount(cfg, descr_mount_path, cfg.manifest.mode),
         )
         .await?
     } else {
@@ -157,7 +157,7 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
             m.clone(),
             3,
             descr_model_battle_path.clone(),
-            parse_descr_model_battle(descr_model_battle_path, cfg.manifest.mode),
+            parse_descr_model_battle(cfg, descr_model_battle_path, cfg.manifest.mode),
         )
         .await?
     } else {
@@ -266,74 +266,94 @@ fn parse_progress<'a, T>(
     }
 }
 
-async fn parse_text(mut path: PathBuf, mode: ParserMode) -> Result<HashMap<String, String>> {
+async fn parse_text(
+    cfg: &Config,
+    mut path: PathBuf,
+    mode: ParserMode,
+) -> Result<HashMap<String, String>> {
     if mode == ParserMode::Medieval2 && !path.exists() {
         path.add_extension("strings.bin");
-        let buf = read_file(&path).await?;
+        let buf = read_file(cfg, &path).await?;
         text::parse_bin(buf, mode)
     } else {
-        let buf = read_file(&path).await?;
+        let buf = read_file(cfg, &path).await?;
         let data = String::from_utf16le_lossy(&buf).replace(BOM, "");
         text::parse_txt(data, mode)
     }
 }
 
-async fn parse_descr_mercenaries(path: PathBuf, mode: ParserMode) -> Result<Vec<Pool>> {
-    let buf = read_file(&path).await?;
+async fn parse_descr_mercenaries(
+    cfg: &Config,
+    path: PathBuf,
+    mode: ParserMode,
+) -> Result<Vec<Pool>> {
+    let buf = read_file(cfg, &path).await?;
     let data = String::from_utf8_lossy(&buf);
     descr_mercenaries::parse(data, mode)
 }
 
-async fn parse_descr_regions(path: PathBuf, mode: ParserMode) -> Result<Vec<Region>> {
-    let buf = read_file(&path).await?;
+async fn parse_descr_regions(cfg: &Config, path: PathBuf, mode: ParserMode) -> Result<Vec<Region>> {
+    let buf = read_file(cfg, &path).await?;
     let data = String::from_utf8_lossy(&buf);
     descr_regions::parse(data, mode)
 }
 
 async fn parse_descr_sm_factions(
+    cfg: &Config,
     path: PathBuf,
     mode: ParserMode,
 ) -> Result<Vec<descr_sm_factions::Faction>> {
-    let buf = read_file(&path).await?;
+    let buf = read_file(cfg, &path).await?;
     let data = String::from_utf8_lossy(&buf);
     descr_sm_factions::parse(data, mode)
 }
 
 async fn parse_export_descr_unit(
+    cfg: &Config,
     path: PathBuf,
     mode: ParserMode,
 ) -> Result<Vec<export_descr_unit::Unit>> {
-    let buf = read_file(&path).await?;
+    let buf = read_file(cfg, &path).await?;
     let data = String::from_utf8_lossy(&buf);
     export_descr_unit::parse(data, mode)
 }
 
 async fn parse_export_descr_buildings(
+    cfg: &Config,
     path: PathBuf,
     mode: ParserMode,
 ) -> Result<(HashMap<String, Requires>, Vec<Building>)> {
-    let buf = read_file(&path).await?;
+    let buf = read_file(cfg, &path).await?;
     let data = String::from_utf8_lossy(&buf);
     export_descr_buildings::parse(data, mode)
 }
 
-async fn parse_descr_strat(path: PathBuf, mode: ParserMode) -> Result<HashMap<String, usize>> {
-    let buf = read_file(&path).await?;
+async fn parse_descr_strat(
+    cfg: &Config,
+    path: PathBuf,
+    mode: ParserMode,
+) -> Result<HashMap<String, usize>> {
+    let buf = read_file(cfg, &path).await?;
     let data = String::from_utf8_lossy(&buf);
     descr_strat::parse(data, mode)
 }
 
-async fn parse_descr_mount(path: PathBuf, mode: ParserMode) -> Result<HashMap<String, Mount>> {
-    let buf = read_file(&path).await?;
+async fn parse_descr_mount(
+    cfg: &Config,
+    path: PathBuf,
+    mode: ParserMode,
+) -> Result<HashMap<String, Mount>> {
+    let buf = read_file(cfg, &path).await?;
     let data = String::from_utf8_lossy(&buf);
     descr_mount::parse(data, mode)
 }
 
 async fn parse_descr_model_battle(
+    cfg: &Config,
     path: PathBuf,
     mode: ParserMode,
 ) -> Result<HashMap<String, Model>> {
-    let buf = read_file(&path).await?;
+    let buf = read_file(cfg, &path).await?;
     let data = String::from_utf8_lossy(&buf);
     descr_model_battle::parse(data, mode)
 }

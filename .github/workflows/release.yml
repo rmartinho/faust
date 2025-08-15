@@ -28,28 +28,19 @@ jobs:
     runs-on: ${{ matrix.platform.runs-on }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - name: Build binary
-        uses: houseabsolute/actions-rust-cross@v1
+        uses: ./.github/actions/rust-build/
         with:
-          command: build
           target: ${{ matrix.platform.target }}
-          args: "--locked --release"
-      - name: VirusTotal scan
-        id: virus_total
-        uses: crazy-max/ghaction-virustotal@v4
+      - name: Virus scan
+        uses: ./.github/actions/vt-scan/
         with:
           vt_api_key: ${{ secrets.VT_API_KEY }}
-          files: target/**/release/faust${{ matrix.platform.target == 'x86_64-pc-windows-msvc' && '.exe' || '' }}
-      - name: Add VirusTotal analysis link
-        shell: bash
-        env:
-          VT_ANALYSIS: ${{ steps.virus_total.outputs.analysis }}
-        run: |
-          echo -n "Virus Total: " >> $GITHUB_STEP_SUMMARY
-          echo "$VT_ANALYSIS" | cut -d = -f 2- - >> $GITHUB_STEP_SUMMARY
+          executable-name: faust
+          target: ${{ matrix.platform.target }}
       - name: Publish artifacts and release
-        uses: houseabsolute/actions-rust-release@v0
+        uses: ./.github/actions/publish-rust-artifacts/
         with:
           executable-name: faust
           target: ${{ matrix.platform.target }}

@@ -1,0 +1,16 @@
+name: 'Rust build'
+description: 'Builds rust binaries'
+inputs:
+  target:
+    description: 'Build target'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Build binary
+      uses: houseabsolute/actions-rust-cross@9a1618ffb70e8374ab5f48fcccea3ebeacf57971
+      with:
+        command: build
+        target: ${{ inputs.target }}
+        args: '--locked --release'
+        rust-cache-parameters: ${{ format('{{"shared-key":"faust-{0}"}}', inputs.target) }}
