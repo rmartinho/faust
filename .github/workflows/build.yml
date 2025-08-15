@@ -39,21 +39,14 @@ jobs:
           command: build
           target: ${{ matrix.platform.target }}
           args: "--locked --release"
+      - name: Virus scan
+        uses: ./.github/actions/vt-scan/
+        with:
+          vt_api_key: ${{ secrets.VT_API_KEY }}
+          executable-name: faust
+          target: ${{ matrix.platform.target }}
       - name: Publish artifacts
         uses: houseabsolute/actions-rust-release@v0
         with:
           executable-name: faust
           target: ${{ matrix.platform.target }}
-      - name: VirusTotal scan
-        id: virus_total
-        uses: crazy-max/ghaction-virustotal@v4
-        with:
-          vt_api_key: ${{ secrets.VT_API_KEY }}
-          files: target/**/release/faust${{ matrix.platform.target == 'x86_64-pc-windows-msvc' && '.exe' || '' }}
-      - name: Add VirusTotal analysis link
-        shell: bash
-        env:
-          VT_ANALYSIS: ${{ steps.virus_total.outputs.analysis }}
-        run: |
-          echo -n "Virus Total: " >> $GITHUB_STEP_SUMMARY
-          echo "$VT_ANALYSIS" | cut -d = -f 2- - >> $GITHUB_STEP_SUMMARY
