@@ -1,11 +1,7 @@
-use std::{
-    collections::{BTreeSet, HashMap, HashSet},
-    time::Duration,
-};
+use std::collections::{BTreeSet, HashMap, HashSet};
 
 use implicit_clone::unsync::{IArray, IString};
 use indexmap::IndexMap;
-use indicatif::{MultiProgress, ProgressBar};
 use silphium::model;
 
 use crate::{
@@ -20,7 +16,6 @@ use crate::{
         export_descr_buildings::{Building, Requires},
         export_descr_unit::{self, Attr, WeaponAttr},
     },
-    utils::{THINKING, progress_style},
 };
 
 pub struct RawModel {
@@ -52,7 +47,6 @@ struct IntermediateModel {
 }
 
 pub fn build_model(
-    m: MultiProgress,
     cfg: &Config,
     raw: RawModel,
 ) -> (
@@ -61,11 +55,6 @@ pub fn build_model(
     IArray<model::Pool>,
     IArray<model::Aor>,
 ) {
-    let pb = m.add(ProgressBar::new_spinner());
-    pb.set_style(progress_style());
-    pb.set_prefix("[1/5]");
-    pb.set_message(format!("{THINKING}collecting recruitment requirements..."));
-    pb.enable_steady_tick(Duration::from_millis(200));
     let unit_map: IndexMap<_, _> = raw.units.into_iter().map(|u| (u.id.clone(), u)).collect();
     let requires = build_requires(&raw.buildings, &unit_map);
     let tech_levels = build_tech_levels(&raw.buildings);
@@ -84,8 +73,6 @@ pub fn build_model(
         tech_levels,
     };
 
-    pb.set_prefix("[2/5]");
-    pb.set_message(format!("{THINKING}cataloging map regions..."));
     let regions = raw
         .regions
         .iter()
@@ -105,9 +92,6 @@ pub fn build_model(
             )
         })
         .collect();
-
-    pb.set_prefix("[3/5]");
-    pb.set_message(format!("{THINKING}cataloging mercenary pools..."));
     let pools = raw
         .pools
         .iter()
@@ -115,38 +99,22 @@ pub fn build_model(
         .map(|(i, p)| build_pool(p, i, cfg, &raw))
         .collect();
 
-    pb.set_prefix("[4/5]");
-    pb.set_message(format!("{THINKING}calculating areas of recruitment..."));
-    let aors = calculate_aors(m.clone(), cfg, &raw);
+    let aors = calculate_aors(cfg, &raw);
 
-    pb.set_prefix("[5/5]");
-    pb.set_message(format!("{THINKING}cataloging faction rosters..."));
     raw.factions
         .extract_if(.., |f| !raw.strat.contains_key(&f.id))
         .count();
     raw.factions.sort_by_key(|f| raw.strat[&f.id]);
-    let exclude_factions = |f: &&descr_sm_factions::Faction| !cfg.manifest.exclude.contains(&f.id);
-    let faction_count = raw.factions.iter().filter(exclude_factions).count();
 
     let factions = {
-        let pb = m.add(ProgressBar::new(faction_count as _));
-        pb.set_style(progress_style());
         let factions = raw
             .factions
             .iter()
             .filter(|f| !cfg.manifest.exclude.contains(&f.id))
-            .enumerate()
-            .map(|(i, f)| {
-                pb.tick();
-                pb.set_prefix(format!("[{i}/{faction_count}]"));
-                pb.set_message(format!("{THINKING}cataloging {} roster...", f.id));
-                build_faction(f, cfg, &raw, aors.as_slice())
-            })
+            .map(|f| build_faction(f, cfg, &raw, aors.as_slice()))
             .collect();
-        pb.finish_and_clear();
         factions
     };
-    pb.finish_and_clear();
 
     (factions, regions, pools, aors)
 }
@@ -796,21 +764,10 @@ fn available_in_region(
     evaluate(req, aliases, &Evaluator::region(region, faction))
 }
 
-fn calculate_aors<'a>(
-    m: MultiProgress,
-    cfg: &Config,
-    raw: &'a IntermediateModel,
-) -> IArray<model::Aor> {
-    let pb = m.add(ProgressBar::new_spinner());
-    pb.set_style(progress_style());
-    pb.set_prefix("[1/4]");
-    pb.set_message(format!(
-        "{THINKING}collecting regions where each unit is available..."
-    ));
+fn calculate_aors<'a>(cfg: &Config, raw: &'a IntermediateModel) -> IArray<model::Aor> {
     let mut unit_aors = HashMap::new();
     for region in raw.regions.iter() {
         for (unit, req) in raw.requires.iter() {
-            pb.tick();
             if available_in_region(req, &region, None, &raw.require_aliases) {
                 unit_aors
                     .entry(unit.clone())
@@ -820,33 +777,22 @@ fn calculate_aors<'a>(
         }
     }
     let all_regions: BTreeSet<_> = raw.regions.iter().map(|r| r.id.as_str()).collect();
-    pb.set_prefix("[2/4]");
-    pb.set_message(format!("{THINKING}filtering out regional units..."));
     let aor_units: BTreeSet<_> = unit_aors
         .iter()
-        .filter(|(u, _)| {
-            pb.tick();
-            !is_mercenary(&raw.unit_map[u.as_str()])
-        })
+        .filter(|(u, _)| !is_mercenary(&raw.unit_map[u.as_str()]))
         .filter(|(_, set)| set.len() > 0 && set.len() < all_regions.len())
         .map(|(k, _)| k)
         .collect();
     let aors: BTreeSet<_> = unit_aors
         .values()
-        .filter(|set| {
-            pb.tick();
-            set.len() > 0 && set.len() < all_regions.len()
-        })
+        .filter(|set| set.len() > 0 && set.len() < all_regions.len())
         .cloned()
         .collect();
 
-    pb.set_prefix("[3/4]");
-    pb.set_message(format!("{THINKING}coalescing areas of recruitment..."));
     let aors: BTreeSet<Vec<IString>> = raw
         .regions
         .iter()
         .filter_map(|r| {
-            pb.tick();
             aors.iter()
                 .filter(|aor| aor.contains(r.id.as_str()))
                 .cloned()
@@ -855,21 +801,15 @@ fn calculate_aors<'a>(
         })
         .collect();
     let region_map: &HashMap<_, _> = &raw.regions.iter().map(|r| (r.id.as_str(), r)).collect();
-    pb.set_prefix("[4/4]");
-    pb.set_message(format!(
-        "{THINKING}determining units available in each area..."
-    ));
     aors.into_iter()
         .enumerate()
         .flat_map(|(i, regions)| {
             let regions: IArray<IString> = regions.into_iter().map(Into::into).collect();
             let aor_units = &aor_units;
-            let pb = pb.clone();
             raw.factions.iter().filter_map(move |f| {
                 let units: IArray<IString> = aor_units
                     .iter()
                     .filter_map(|u| {
-                        pb.tick();
                         let req = &raw.requires.get(u.as_str()).unwrap_or(&Requires::None);
                         regions
                             .iter()

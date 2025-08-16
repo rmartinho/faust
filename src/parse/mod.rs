@@ -136,7 +136,7 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     .await?;
     let strat = parse_progress(
         m.clone(),
-        6,
+        8,
         descr_strat_path.clone(),
         parse_descr_strat(cfg, descr_strat_path, cfg.manifest.mode),
     )
@@ -144,7 +144,7 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     let mounts = if cfg.manifest.estimate_speed() {
         parse_progress(
             m.clone(),
-            3,
+            9,
             descr_mount_path.clone(),
             parse_descr_mount(cfg, descr_mount_path, cfg.manifest.mode),
         )
@@ -155,7 +155,7 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     let models = if cfg.manifest.estimate_speed() {
         parse_progress(
             m.clone(),
-            3,
+            10,
             descr_model_battle_path.clone(),
             parse_descr_model_battle(cfg, descr_model_battle_path, cfg.manifest.mode),
         )
@@ -176,7 +176,6 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect();
     let (factions, regions, pools, aors) = build_model(
-        m.clone(),
         &cfg,
         RawModel {
             units,
