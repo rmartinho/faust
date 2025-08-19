@@ -79,22 +79,23 @@ runs:
       run: |
         ./${{ inputs.faust }} --verbose mods/${{ inputs.manifest }} --base-game-path mods/${{ inputs.base }} --out-dir ${{ inputs.output }} --deps-file deps
     - name: Check deps file
+      if: github.event_name != 'push'
       shell: bash
       run: |
         echo -n FAUST_POST_HASH=${{ hashFiles('deps') }} >> $GITHUB_ENV
     - name: Save deps file
-      if: steps.cache.outputs.cache-hit != 'true' || env.FAUST_PRE_HASH != env.FAUST_POST_HASH
+      if: github.event_name != 'push' && (steps.cache.outputs.cache-hit != 'true' || env.FAUST_PRE_HASH != env.FAUST_POST_HASH)
       uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809
       with:
         path: deps
         key: mod-deps-${{ inputs.mod-id }}-${{ env.FAUST_POST_HASH }}
     - name: Pack cache
-      if: steps.cache.outputs.cache-hit != 'true' || env.FAUST_PRE_HASH != env.FAUST_POST_HASH
+      if: github.event_name != 'push' && (steps.cache.outputs.cache-hit != 'true' || env.FAUST_PRE_HASH != env.FAUST_POST_HASH)
       shell: bash
       run: |
         tar -czv -T deps -f files.tar.gz
     - name: Save cache
-      if: steps.cache.outputs.cache-hit != 'true' || env.FAUST_PRE_HASH != env.FAUST_POST_HASH
+      if: github.event_name != 'push' && (steps.cache.outputs.cache-hit != 'true' || env.FAUST_PRE_HASH != env.FAUST_POST_HASH)
       uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809
       with:
         path: files.tar.gz
