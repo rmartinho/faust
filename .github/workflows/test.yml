@@ -213,11 +213,9 @@ jobs:
           manifest: ${{ matrix.mod.dir }}/faust/faust.yml
           base: ${{ matrix.mod.base }}
           output: output/
-          rclone-config: ${{ secrets.RCLONE_CONFIG }}
-          remote-path: 'faust-data'
           mod-id: ${{ matrix.mod.id }}
       - name: Deploy
-        uses: ./.github/actions/cf-pages
+        uses: ./.github/actions/cf-pages/
         with:
           api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           account-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
