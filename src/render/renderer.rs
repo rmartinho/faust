@@ -262,10 +262,17 @@ impl Renderer {
 
                 let mut roster: Vec<_> = f.roster.iter().collect();
                 for u in roster.iter_mut() {
-                    let src = path_fallback(
+                    let src = try_paths(
                         &self.cfg,
-                        u.image.as_ref(),
-                        Some("data/ui/generic/generic_unit_card.tga"),
+                        [
+                            u.image.as_ref(),
+                            &if self.cfg.manifest.unit_info_images {
+                                format!("data/ui/unit_info/merc/{}_info.tga", u.key.to_lowercase())
+                            } else {
+                                format!("data/ui/units/mercs/#{}.tga", u.key.to_lowercase())
+                            },
+                            "data/ui/generic/generic_unit_card.tga",
+                        ],
                     );
                     let portrait_path = Self::unit_portrait_path(&m.id, &f.id, u);
                     let dst = self.cfg.out_dir.join(&portrait_path);

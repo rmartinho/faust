@@ -172,7 +172,7 @@ pub struct Unit {
     #[serde(rename = "g")]
     pub general: bool,
     #[serde(rename = "R")]
-    pub mercenary: bool,
+    pub is_mercenary: bool,
     #[serde(rename = "N")]
     pub legionary_name: bool,
 

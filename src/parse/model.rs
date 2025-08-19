@@ -372,7 +372,7 @@ fn build_unit(
         scaling: !non_scaling,
         horde,
         general,
-        mercenary,
+        is_mercenary: mercenary,
         legionary_name,
         is_militia,
         is_unique,
