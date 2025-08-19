@@ -1,5 +1,5 @@
 use std::{
-    collections::HashSet,
+    collections::{BTreeSet, HashSet},
     fmt::{self, Display, Formatter, Write as _},
     path::{Component, Path, PathBuf},
 };
@@ -10,6 +10,7 @@ use image::{
     DynamicImage, Rgba, RgbaImage,
     imageops::{FilterType::Lanczos3, filter3x3, overlay},
 };
+use implicit_clone::unsync::IString;
 use indicatif::{HumanBytes, MultiProgress, ProgressBar};
 use silphium::{
     ModuleMap, Route, StaticApp, StaticAppProps,
@@ -206,28 +207,6 @@ impl Renderer {
                 p.units = units.into();
             }
             m.pools = pools.into();
-            let mut rendered_aors = HashSet::new();
-            let mut aors = m.aors.to_vec();
-            for aor in aors.iter_mut() {
-                let aor_path = Self::aor_path(&m.id, aor);
-                if rendered_aors.contains(aor.map.as_ref()) {
-                    continue;
-                }
-                let dst = self.cfg.out_dir.join(&aor_path);
-                pb.tick();
-                pb.set_message(format!("{PICTURE}rendering {}", web_path(&aor_path)));
-                Self::render_map(
-                    &radar,
-                    &areas,
-                    &dst,
-                    m.regions.values().filter(|r| aor.regions.contains(&r.id)),
-                    Rgba([0xFF, 0x71, 0x00, 0xC0]),
-                    Rgba([0x00, 0x00, 0x00, 0xFF]),
-                )
-                .await?;
-                rendered_aors.insert(aor.map.as_ref());
-            }
-            m.aors = aors.into();
 
             for e in m.eras.values_mut() {
                 let src = self.cfg.manifest_dir.join(e.icon.as_ref());
@@ -245,6 +224,7 @@ impl Renderer {
                 Self::render_image(&self.cfg, &src, &dst, ERA_ICON_SIZE).await?;
             }
 
+            let mut rendered_aors: HashSet<BTreeSet<IString>> = HashSet::new();
             for f in m.factions.values_mut() {
                 let src = path_fallback(
                     &self.cfg,
@@ -257,12 +237,42 @@ impl Renderer {
                 pb.set_message(format!("{PICTURE}rendering {}", web_path(&symbol_path)));
                 Self::render_image(&self.cfg, &src, &dst, FACTION_SYMBOL_SIZE).await?;
 
+                let mut aors = f.aors.to_vec();
+                for aor in aors.iter_mut() {
+                    let aor_path = Self::aor_path(&m.id, rendered_aors.len(), aor);
+                    let region_set = aor.regions.iter().map(|s| s).collect();
+                    if rendered_aors.contains(&region_set) {
+                        continue;
+                    }
+                    let dst = self.cfg.out_dir.join(&aor_path);
+                    pb.tick();
+                    pb.set_message(format!("{PICTURE}rendering {}", web_path(&aor_path)));
+                    Self::render_map(
+                        &radar,
+                        &areas,
+                        &dst,
+                        m.regions.values().filter(|r| aor.regions.contains(&r.id)),
+                        Rgba([0xFF, 0x71, 0x00, 0xC0]),
+                        Rgba([0x00, 0x00, 0x00, 0xFF]),
+                    )
+                    .await?;
+                    rendered_aors.insert(region_set);
+                }
+                f.aors = aors.into();
+
                 let mut roster: Vec<_> = f.roster.iter().collect();
                 for u in roster.iter_mut() {
-                    let src = path_fallback(
+                    let src = try_paths(
                         &self.cfg,
-                        u.image.as_ref(),
-                        Some("data/ui/generic/generic_unit_card.tga"),
+                        [
+                            u.image.as_ref(),
+                            &if self.cfg.manifest.unit_info_images {
+                                format!("data/ui/unit_info/merc/{}_info.tga", u.key.to_lowercase())
+                            } else {
+                                format!("data/ui/units/mercs/#{}.tga", u.key.to_lowercase())
+                            },
+                            "data/ui/generic/generic_unit_card.tga",
+                        ],
                     );
                     let portrait_path = Self::unit_portrait_path(&m.id, &f.id, u);
                     let dst = self.cfg.out_dir.join(&portrait_path);
@@ -336,12 +346,10 @@ impl Renderer {
         path
     }
 
-    fn aor_path(module_id: &str, aor: &mut Aor) -> PathBuf {
+    fn aor_path(module_id: &str, i: usize, aor: &mut Aor) -> PathBuf {
         let path = PathBuf::from("images")
             .join(module_id)
-            .join("aors")
-            .join(aor.map.as_ref())
-            .with_extension("webp");
+            .join(format!("aors/aor-{}.webp", i + 1));
         aor.map = web_path(&path).into();
         path
     }

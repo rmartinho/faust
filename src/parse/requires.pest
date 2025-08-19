@@ -1,7 +1,7 @@
 Requires              =  {
-  
-  | SOI ~ "requires" ~ req_or ~ EOI
+  | SOI ~ "requires" ~ req_op ~ EOI
 }
+
 ReqPrimary            =  {
     req_resource
   | req_hidden_resource
@@ -26,10 +26,9 @@ ReqPrimary            =  {
 }
 Unknown               = @{ (!NEWLINE ~ ANY)+ }
 Alias                 = @{ Ident }
-req_or                = _{ Or }
-req_and               = _{ And }
-And                   =  { req_not ~ ("and" ~ req_not)* }
-Or                    =  { req_and ~ ("or" ~ req_and)* }
+req_op                = _{ Or | And | Not | ReqPrimary }
+And                   =  { req_not ~ "and" ~ req_op }
+Or                    =  { req_not ~ "or" ~ req_op }
 req_not               = _{ Not | ReqPrimary }
 Not                   =  { "not" ~ ReqPrimary }
 req_resource          = _{ "resource" ~ Resource ~ ","? }

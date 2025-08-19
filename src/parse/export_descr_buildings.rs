@@ -202,18 +202,34 @@ fn parse_requires(requires: &str) -> Result<Requires> {
     let req = Parser::parse(Rule::Requires, requires)
         .with_context(|| format!("parsing requirement {requires}"))?
         .next()
-        .unwrap()
-        .into_inner()
-        .next()
         .unwrap();
 
-    parse_req_or(req.into_inner())
+    parse_req_op(req.into_inner())
+}
+
+fn parse_req_op(mut pairs: Pairs<requires::Rule>) -> Result<Requires> {
+    use requires::Rule;
+    let pair = pairs.next().unwrap();
+    Ok(match pair.as_rule() {
+        Rule::Not => parse_req_not(pair.into_inner())?,
+        Rule::ReqPrimary => parse_req_primary(pair.into_inner())?,
+        Rule::Or => parse_req_or(pair.into_inner())?,
+        Rule::And => parse_req_and(pair.into_inner())?,
+        _ => bail!("unexpected parse result {pair}, expected `req_op`"),
+    })
 }
 
 fn parse_req_or(pairs: Pairs<requires::Rule>) -> Result<Requires> {
+    use requires::Rule;
     Ok(Requires::Or(
         pairs
-            .map(|p| parse_req_and(p.into_inner()))
+            .map(|p| match p.as_rule() {
+                Rule::Not => parse_req_not(p.into_inner()),
+                Rule::ReqPrimary => parse_req_primary(p.into_inner()),
+                Rule::Or => parse_req_or(p.into_inner()),
+                Rule::And => parse_req_and(p.into_inner()),
+                _ => bail!("unexpected parse result {p}, expected `req_or` child"),
+            })
             .collect::<Result<_>>()?,
     ))
 }
@@ -225,7 +241,9 @@ fn parse_req_and(pairs: Pairs<requires::Rule>) -> Result<Requires> {
             .map(|p| match p.as_rule() {
                 Rule::Not => parse_req_not(p.into_inner()),
                 Rule::ReqPrimary => parse_req_primary(p.into_inner()),
-                _ => unreachable!(),
+                Rule::Or => parse_req_or(p.into_inner()),
+                Rule::And => parse_req_and(p.into_inner()),
+                _ => bail!("unexpected parse result {p}, expected `req_and` child"),
             })
             .collect::<Result<_>>()?,
     ))
@@ -260,7 +278,7 @@ fn parse_req_primary(mut pairs: Pairs<requires::Rule>) -> Result<Requires> {
         Rule::OfficialReligion => Requires::OfficialReligion,
         Rule::Capability => parse_capability(pair.into_inner())?,
         Rule::RegionReligion => parse_region_religion(pair.into_inner())?,
-        _ => unreachable!(),
+        _ => bail!("unexpected parse result {pair}, expected `req_primary`"),
     })
 }
 

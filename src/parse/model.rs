@@ -1,11 +1,7 @@
-use std::{
-    collections::{BTreeSet, HashMap, HashSet},
-    time::Duration,
-};
+use std::collections::{BTreeSet, HashMap, HashSet};
 
 use implicit_clone::unsync::{IArray, IString};
 use indexmap::IndexMap;
-use indicatif::{MultiProgress, ProgressBar};
 use silphium::model;
 
 use crate::{
@@ -20,7 +16,6 @@ use crate::{
         export_descr_buildings::{Building, Requires},
         export_descr_unit::{self, Attr, WeaponAttr},
     },
-    utils::{THINKING, progress_style},
 };
 
 pub struct RawModel {
@@ -52,20 +47,13 @@ struct IntermediateModel {
 }
 
 pub fn build_model(
-    m: MultiProgress,
     cfg: &Config,
     raw: RawModel,
 ) -> (
     IndexMap<IString, model::Faction>,
     IndexMap<IString, model::Region>,
     IArray<model::Pool>,
-    IArray<model::Aor>,
 ) {
-    let pb = m.add(ProgressBar::new_spinner());
-    pb.set_style(progress_style());
-    pb.set_prefix("[1/5]");
-    pb.set_message(format!("{THINKING}collecting recruitment requirements..."));
-    pb.enable_steady_tick(Duration::from_millis(200));
     let unit_map: IndexMap<_, _> = raw.units.into_iter().map(|u| (u.id.clone(), u)).collect();
     let requires = build_requires(&raw.buildings, &unit_map);
     let tech_levels = build_tech_levels(&raw.buildings);
@@ -84,8 +72,6 @@ pub fn build_model(
         tech_levels,
     };
 
-    pb.set_prefix("[2/5]");
-    pb.set_message(format!("{THINKING}cataloging map regions..."));
     let regions = raw
         .regions
         .iter()
@@ -105,9 +91,6 @@ pub fn build_model(
             )
         })
         .collect();
-
-    pb.set_prefix("[3/5]");
-    pb.set_message(format!("{THINKING}cataloging mercenary pools..."));
     let pools = raw
         .pools
         .iter()
@@ -115,51 +98,32 @@ pub fn build_model(
         .map(|(i, p)| build_pool(p, i, cfg, &raw))
         .collect();
 
-    pb.set_prefix("[4/5]");
-    pb.set_message(format!("{THINKING}calculating areas of recruitment..."));
-    let aors = calculate_aors(m.clone(), cfg, &raw);
-
-    pb.set_prefix("[5/5]");
-    pb.set_message(format!("{THINKING}cataloging faction rosters..."));
     raw.factions
         .extract_if(.., |f| !raw.strat.contains_key(&f.id))
         .count();
     raw.factions.sort_by_key(|f| raw.strat[&f.id]);
-    let exclude_factions = |f: &&descr_sm_factions::Faction| !cfg.manifest.exclude.contains(&f.id);
-    let faction_count = raw.factions.iter().filter(exclude_factions).count();
 
     let factions = {
-        let pb = m.add(ProgressBar::new(faction_count as _));
-        pb.set_style(progress_style());
         let factions = raw
             .factions
             .iter()
             .filter(|f| !cfg.manifest.exclude.contains(&f.id))
-            .enumerate()
-            .map(|(i, f)| {
-                pb.tick();
-                pb.set_prefix(format!("[{i}/{faction_count}]"));
-                pb.set_message(format!("{THINKING}cataloging {} roster...", f.id));
-                build_faction(f, cfg, &raw, aors.as_slice())
-            })
+            .map(|f| build_faction(f, cfg, &raw))
             .collect();
-        pb.finish_and_clear();
         factions
     };
-    pb.finish_and_clear();
 
-    (factions, regions, pools, aors)
+    (factions, regions, pools)
 }
 
 fn build_faction(
     f: &descr_sm_factions::Faction,
     cfg: &Config,
     raw: &IntermediateModel,
-    aors: &[model::Aor],
 ) -> (IString, model::Faction) {
     let mut is_horde = false;
-    let mut has_aors = false;
-    let roster: IArray<_> = raw
+
+    let mut roster: Vec<_> = raw
         .unit_map
         .values()
         .filter(|u| {
@@ -170,17 +134,15 @@ fn build_faction(
             )
         })
         .map(|u| {
-            let u = build_unit(u, cfg, &f.id, raw, aors);
+            let u = build_unit(u, cfg, &f.id, raw);
             if u.horde {
                 is_horde = true;
             }
-            if u.is_regional {
-                has_aors = true;
-            }
             u
         })
-        .filter(|u| !u.mercenary)
         .collect();
+
+    let aors = calculate_aors(f, &mut roster, raw);
     (
         f.id.clone().into(),
         model::Faction {
@@ -206,7 +168,7 @@ fn build_faction(
                 .find(|(_, v)| *v == &f.id)
                 .map(|(k, _)| k.clone()),
             is_horde,
-            has_aors,
+            aors,
             eras: {
                 let redundant_eras = roster.iter().fold(
                     HashSet::from_iter(cfg.manifest.eras.keys().cloned()),
@@ -222,7 +184,7 @@ fn build_faction(
                     .cloned()
                     .collect()
             },
-            roster,
+            roster: roster.into(),
         },
     )
 }
@@ -232,7 +194,6 @@ fn build_unit(
     cfg: &Config,
     f_id: &str,
     raw: &IntermediateModel,
-    aors: &[model::Aor],
 ) -> model::Unit {
     let mut inexhaustible = false;
     let mut stamina = 0;
@@ -335,9 +296,6 @@ fn build_unit(
     }
 
     let id = u.id.clone().into();
-    let is_regional = aors
-        .iter()
-        .any(|aor| aor.faction == f_id && aor.units.contains(&id));
 
     model::Unit {
         id,
@@ -414,12 +372,12 @@ fn build_unit(
         scaling: !non_scaling,
         horde,
         general,
-        mercenary,
+        is_mercenary: mercenary,
         legionary_name,
         is_militia,
         is_unique,
 
-        is_regional,
+        is_regional: false,
 
         move_speed,
 
@@ -446,7 +404,7 @@ fn build_pool(p: &Pool, index: usize, cfg: &Config, raw: &IntermediateModel) -> 
                     .unit_map
                     .get(&e.id)
                     .expect(&format!("missing unit {:?}", e.id));
-                let mut unit = build_unit(u, cfg, "mercs", raw, &[]);
+                let mut unit = build_unit(u, cfg, "mercs", raw);
                 unit.cost = e.cost;
                 model::PoolEntry {
                     unit,
@@ -797,21 +755,18 @@ fn available_in_region(
 }
 
 fn calculate_aors<'a>(
-    m: MultiProgress,
-    cfg: &Config,
+    faction: &descr_sm_factions::Faction,
+    roster: &mut [model::Unit],
     raw: &'a IntermediateModel,
 ) -> IArray<model::Aor> {
-    let pb = m.add(ProgressBar::new_spinner());
-    pb.set_style(progress_style());
-    pb.set_prefix("[1/4]");
-    pb.set_message(format!(
-        "{THINKING}collecting regions where each unit is available..."
-    ));
+    // Set of all regions
+    let all_regions: BTreeSet<_> = raw.regions.iter().map(|r| r.id.as_str()).collect();
+
+    // Find all regions where each unit is available to this faction
     let mut unit_aors = HashMap::new();
     for region in raw.regions.iter() {
         for (unit, req) in raw.requires.iter() {
-            pb.tick();
-            if available_in_region(req, &region, None, &raw.require_aliases) {
+            if available_in_region(req, &region, Some(faction), &raw.require_aliases) {
                 unit_aors
                     .entry(unit.clone())
                     .or_insert_with(BTreeSet::new)
@@ -819,80 +774,50 @@ fn calculate_aors<'a>(
             }
         }
     }
-    let all_regions: BTreeSet<_> = raw.regions.iter().map(|r| r.id.as_str()).collect();
-    pb.set_prefix("[2/4]");
-    pb.set_message(format!("{THINKING}filtering out regional units..."));
-    let aor_units: BTreeSet<_> = unit_aors
+
+    // Discard AORs that are global
+    unit_aors
+        .extract_if(|_, aor| aor.len() == all_regions.len())
+        .count();
+
+    // Find minimal disjoint AORs intersections
+    let minimal_aors: Vec<_> = all_regions
         .iter()
-        .filter(|(u, _)| {
-            pb.tick();
-            !is_mercenary(&raw.unit_map[u.as_str()])
+        .map(|r| {
+            let include = unit_aors
+                .values()
+                .filter(|aor| aor.contains(r))
+                .fold(all_regions.clone(), |l, r| &l & r);
+            unit_aors
+                .values()
+                .filter(|aor| !aor.contains(r))
+                .fold(include, |acc, r| &acc - r)
         })
-        .filter(|(_, set)| set.len() > 0 && set.len() < all_regions.len())
-        .map(|(k, _)| k)
-        .collect();
-    let aors: BTreeSet<_> = unit_aors
-        .values()
-        .filter(|set| {
-            pb.tick();
-            set.len() > 0 && set.len() < all_regions.len()
-        })
-        .cloned()
+        .filter(|aor| aor.len() > 0)
         .collect();
 
-    pb.set_prefix("[3/4]");
-    pb.set_message(format!("{THINKING}coalescing areas of recruitment..."));
-    let aors: BTreeSet<Vec<IString>> = raw
-        .regions
-        .iter()
-        .filter_map(|r| {
-            pb.tick();
-            aors.iter()
-                .filter(|aor| aor.contains(r.id.as_str()))
-                .cloned()
-                .reduce(|l, r| &l & &r)
-                .map(|set| set.into_iter().map(|s| s.to_string().into()).collect())
-        })
-        .collect();
-    let region_map: &HashMap<_, _> = &raw.regions.iter().map(|r| (r.id.as_str(), r)).collect();
-    pb.set_prefix("[4/4]");
-    pb.set_message(format!(
-        "{THINKING}determining units available in each area..."
-    ));
-    aors.into_iter()
-        .enumerate()
-        .flat_map(|(i, regions)| {
-            let regions: IArray<IString> = regions.into_iter().map(Into::into).collect();
-            let aor_units = &aor_units;
-            let pb = pb.clone();
-            raw.factions.iter().filter_map(move |f| {
-                let units: IArray<IString> = aor_units
-                    .iter()
-                    .filter_map(|u| {
-                        pb.tick();
-                        let req = &raw.requires.get(u.as_str()).unwrap_or(&Requires::None);
-                        regions
-                            .iter()
-                            .all(|r| {
-                                available_in_region(
-                                    req,
-                                    region_map[r.as_str()],
-                                    Some(f),
-                                    &raw.require_aliases,
-                                )
-                            })
-                            .then(|| (*u).clone().into())
-                    })
-                    .collect();
+    // Collect all units in each minimal AOR
+    let mut aor_units = HashMap::new();
+    for aor in minimal_aors {
+        for u in roster.iter_mut() {
+            if let Some(u_aor) = unit_aors.get(u.id.as_str())
+                && u_aor.contains(aor.first().unwrap())
+            {
+                u.is_regional = true;
+                aor_units
+                    .entry(aor.clone())
+                    .or_insert_with(HashSet::new)
+                    .insert(u.id.clone());
+            }
+        }
+    }
 
-                (units.len() > 0).then(|| model::Aor {
-                    name: cfg.manifest.aors.get(i).cloned().unwrap_or_default(),
-                    map: format!("aor-{}", i + 1).into(),
-                    faction: f.id.clone().into(),
-                    units: units,
-                    regions: regions.clone(),
-                })
-            })
+    aor_units
+        .into_iter()
+        .map(|(aor, units)| model::Aor {
+            units: units.into_iter().collect(),
+            regions: aor.into_iter().map(|s| s.to_string().into()).collect(),
+            ..Default::default()
         })
         .collect()
 }
