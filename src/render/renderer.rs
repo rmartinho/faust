@@ -148,10 +148,16 @@ impl Renderer {
                 &self.cfg,
                 [
                     &format!(
+                        "data/world/maps/campaign/{}/feral_radar_map.tga",
+                        self.cfg.manifest.campaign
+                    ),
+                    &format!(
                         "data/world/maps/campaign/{}/radar_map2.tga",
                         self.cfg.manifest.campaign
                     ),
+                    "data/world/maps/base/feral_radar_map.tga",
                     "data/world/maps/base/radar_map2.tga",
+                    "data/world/maps/campaign/imperial_campaign/feral_radar_map.tga",
                     "data/world/maps/campaign/imperial_campaign/radar_map2.tga",
                 ],
             );
