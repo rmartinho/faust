@@ -41,8 +41,6 @@ pub struct Module {
     pub aliases: HashMap<IString, IString>,
     #[serde(rename = "e")]
     pub eras: IndexMap<IString, Era>,
-    #[serde(rename = "R")]
-    pub aors: IArray<Aor>,
 }
 
 #[serde_with::apply(
@@ -68,7 +66,7 @@ pub struct Faction {
     #[serde(rename = "r")]
     pub roster: IArray<Unit>,
     #[serde(rename = "A")]
-    pub has_aors: bool,
+    pub aors: IArray<Aor>,
 }
 
 impl Faction {
@@ -739,14 +737,12 @@ mod utils {
     }
 }
 
-#[derive(Properties, PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
+#[derive(Properties, PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug, Default)]
 pub struct Aor {
     #[serde(rename = "n")]
     pub name: IString,
     #[serde(rename = "m")]
     pub map: IString,
-    #[serde(rename = "f")]
-    pub faction: IString,
     #[serde(rename = "r")]
     pub regions: IArray<IString>,
     #[serde(rename = "u")]

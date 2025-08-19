@@ -175,7 +175,7 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
         .iter()
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect();
-    let (factions, regions, pools, aors) = build_model(
+    let (factions, regions, pools) = build_model(
         &cfg,
         RawModel {
             units,
@@ -203,7 +203,6 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
             regions,
             pools,
             aliases,
-            aors,
             eras: cfg
                 .manifest
                 .eras

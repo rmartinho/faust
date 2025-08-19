@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use implicit_clone::unsync::IArray;
 use yew::prelude::*;
 use yew_autoprops::autoprops;
 
@@ -11,15 +10,13 @@ use crate::{
 
 #[autoprops]
 #[function_component(RegionalRoster)]
-pub fn regional_roster(faction: Faction, aors: IArray<Aor>, filter: UnitFilter) -> Html {
+pub fn regional_roster(faction: Faction, filter: UnitFilter) -> Html {
     let filter = &filter;
-    let aors = aors.into_iter().filter_map(move |aor| {
-        let faction = &faction;
-        (aor.faction == faction.id).then(move || {
-            html! {
-              <AreaOfRecruitment {faction} {aor} {filter} />
-            }
-        })
+    let faction = &faction;
+    let aors = faction.aors.into_iter().map(|aor| {
+        html! {
+          <AreaOfRecruitment {faction} {aor} {filter} />
+        }
     });
 
     html! {

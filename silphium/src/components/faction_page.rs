@@ -2,9 +2,13 @@ use yew::prelude::*;
 use yew_autoprops::autoprops;
 
 use crate::{
+    AppContext,
     components::{
-        BackLink, Button, Dialog, FactionRoster, HelpDialog, RegionalRoster, RosterFilter, Text, UnitFilter
-    }, hooks::ModelHandle, model::{Faction, Module}, AppContext
+        BackLink, Button, Dialog, FactionRoster, HelpDialog, RegionalRoster, RosterFilter, Text,
+        UnitFilter,
+    },
+    hooks::ModelHandle,
+    model::{Faction, Module},
 };
 
 #[autoprops]
@@ -15,12 +19,11 @@ pub fn faction_page(module_id: AttrValue, faction_id: AttrValue) -> Html {
     let aliases = &module.aliases;
     let faction_id = aliases.get(&faction_id).unwrap_or(&faction_id);
     let faction = module.factions.get(faction_id).unwrap();
-    let aors = &module.aors;
 
     let filter = use_state(|| UnitFilter {
         era: (faction.eras.len() > 1).then(|| faction.eras[0].clone()),
         horde: faction.is_horde.then_some(false),
-        regional: faction.has_aors.then_some(false),
+        regional: (faction.aors.len() > 0).then_some(false),
     });
 
     let help_dialog = use_state(|| None as Option<Box<dyn Dialog>>);
@@ -49,7 +52,7 @@ pub fn faction_page(module_id: AttrValue, faction_id: AttrValue) -> Html {
       </header>
       <main>
         if let Some(true) = filter.regional {
-          <RegionalRoster {faction} {aors} filter={&*filter} />
+          <RegionalRoster {faction} filter={&*filter} />
         } else {
           <FactionRoster roster={&faction.roster} filter={&*filter} />
         }
