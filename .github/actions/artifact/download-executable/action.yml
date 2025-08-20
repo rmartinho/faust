@@ -1,0 +1,21 @@
+name: 'Download artifact'
+description: 'Downloads an artifact'
+inputs:
+  name:
+    description: 'Artifact name'
+    required: true
+  executable-name:
+    description: 'Executable file name'
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Download artifact
+      uses: ./.github/actions/artifact/download/
+      with:
+        name: ${{ inputs.name }}
+    - name: Make executable
+      shell: bash
+      run: |
+        chmod +x ${{ inputs.executable-name || inputs.name }}
