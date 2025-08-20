@@ -18,6 +18,7 @@ use crate::{
         export_descr_buildings::{Building, Requires},
         manifest::ParserMode,
         model::{RawModel, build_model},
+        sd::Sprite,
     },
     utils::{LOOKING_GLASS, THINKING, path_fallback, progress_style, read_file, try_paths},
 };
@@ -31,11 +32,12 @@ mod descr_sm_factions;
 mod descr_strat;
 mod export_descr_buildings;
 mod export_descr_unit;
+mod sd;
+mod text;
 
 mod eval;
 mod manifest;
 mod model;
-mod text;
 
 pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     let expanded_path = path_fallback(cfg, "data/text/expanded.txt", None);
@@ -76,6 +78,7 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     );
     let descr_mount_path = path_fallback(cfg, "data/descr_mount.txt", None);
     let descr_model_battle_path = path_fallback(cfg, "data/descr_model_battle.txt", None);
+    let strategy_sd_path = path_fallback(cfg, "data/ui/strategy.sd", None);
 
     let m = MultiProgress::new();
 
@@ -158,6 +161,17 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
             10,
             descr_model_battle_path.clone(),
             parse_descr_model_battle(cfg, descr_model_battle_path, cfg.manifest.mode),
+        )
+        .await?
+    } else {
+        HashMap::new()
+    };
+    let sprites = if cfg.manifest.mode == ParserMode::Medieval2 {
+        parse_progress(
+            m.clone(),
+            11,
+            strategy_sd_path.clone(),
+            parse_sd(cfg, strategy_sd_path, cfg.manifest.mode),
         )
         .await?
     } else {
@@ -354,6 +368,15 @@ async fn parse_descr_model_battle(
     let buf = read_file(cfg, &path).await?;
     let data = String::from_utf8_lossy(&buf);
     descr_model_battle::parse(data, mode)
+}
+
+async fn parse_sd(
+    cfg: &Config,
+    path: PathBuf,
+    mode: ParserMode,
+) -> Result<HashMap<String, Sprite>> {
+    let buf = read_file(cfg, &path).await?;
+    sd::parse(buf, mode)
 }
 
 const BOM: &str = "\u{feff}";
