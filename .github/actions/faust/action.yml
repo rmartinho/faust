@@ -21,4 +21,4 @@ runs:
     - name: Build site
       shell: bash
       run: |
-        ./${{ inputs.faust }} --verbose ${{ inputs.manifest }} --base-game-path ${{ inputs.base }} --out-dir ${{ inputs.output }}
+        ./${{ inputs.faust }} --verbose ${{ inputs.manifest }} --base-game-path ${{ inputs.base }} --out-dir ${{ inputs.out-dir }}

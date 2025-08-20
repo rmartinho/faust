@@ -211,7 +211,7 @@ jobs:
         with:
           manifest: ${{ matrix.mod.dir }}/faust/faust.yml
           base: ${{ matrix.mod.base }}
-          output: output/
+          out-dir: output/
       - name: Deploy
         uses: ./.github/actions/cf-pages/
         with:
