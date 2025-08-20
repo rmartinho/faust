@@ -1,34 +1,24 @@
 name: 'Run FAUST'
 description: 'Runs FAUST'
 inputs:
-  mod-id:
-    description: 'ID of the mod'
-    required: true
   faust:
     description: 'Path to FAUST executable'
-    required: true
+    required: false
+    default: 'faust'
   manifest:
     description: 'Path to FAUST manifest'
     required: true
   base:
     description: 'Path to FAUST manifest'
     required: true
-  output:
+  out-dir:
     description: 'Path to output'
     required: true
 
 runs:
   using: 'composite'
   steps:
-    - name: Prepare executable
-      shell: bash
-      run: |
-        chmod +x ${{ inputs.faust }}
-    - name: Download test data
-      uses: ./.github/actions/download-mod-data/
-      with:
-        mod-id: ${{ inputs.mod-id }}
     - name: Build site
       shell: bash
       run: |
-        ./${{ inputs.faust }} --verbose ${{ inputs.manifest }} --base-game-path ${{ inputs.base }} --out-dir ${{ inputs.output }} --deps-file deps
+        ./${{ inputs.faust }} --verbose ${{ inputs.manifest }} --base-game-path ${{ inputs.base }} --out-dir ${{ inputs.output }}
