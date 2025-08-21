@@ -22,11 +22,9 @@ use yew_router::Routable as _;
 
 use crate::{
     args::Config,
+    mod_folder::ModFolder,
     render::templates::{FILESYSTEM_STATIC, IndexHtml, PrefetchHtml, RedirectHtml},
-    utils::{
-        FOLDER, LINK, PAPER, PICTURE, path_fallback, progress_style, read_image, try_paths,
-        write_file, write_image,
-    },
+    utils::{FOLDER, LINK, PAPER, PICTURE, progress_style, read_image, write_file, write_image},
 };
 
 #[derive(Clone)]
@@ -104,6 +102,7 @@ impl Display for PreloadType {
 #[derive(Clone)]
 pub struct Renderer {
     pub cfg: Config,
+    pub folder: ModFolder,
     pub data: Vec<u8>,
     pub modules: ModuleMap,
     pub preload: Vec<(String, Preload)>,
@@ -113,6 +112,7 @@ impl Renderer {
     pub fn new(cfg: &Config, modules: ModuleMap) -> Self {
         Self {
             cfg: cfg.clone(),
+            folder: ModFolder::new(cfg.clone()),
             data: Vec::new(),
             modules,
             preload: vec![],
@@ -137,42 +137,17 @@ impl Renderer {
         pb.tick();
         pb.set_message(format!("{PICTURE}rendering images"));
         for m in self.modules.values_mut() {
-            let src = path_fallback(&self.cfg, m.banner.as_ref(), None);
+            let src = self.folder.banner_png();
             let banner_path = Self::module_banner_path(m);
             let dst = self.cfg.out_dir.join(&banner_path);
             pb.tick();
             pb.set_message(format!("{PICTURE}rendering {}", web_path(&banner_path)));
             Self::render_image(&self.cfg, &src, &dst, MOD_BANNER_SIZE).await?;
 
-            let radar_map_path = try_paths(
-                &self.cfg,
-                [
-                    &format!(
-                        "data/world/maps/campaign/{}/feral_radar_map.tga",
-                        self.cfg.manifest.campaign
-                    ),
-                    &format!(
-                        "data/world/maps/campaign/{}/radar_map2.tga",
-                        self.cfg.manifest.campaign
-                    ),
-                    "data/world/maps/base/feral_radar_map.tga",
-                    "data/world/maps/base/radar_map2.tga",
-                    "data/world/maps/campaign/imperial_campaign/feral_radar_map.tga",
-                    "data/world/maps/campaign/imperial_campaign/radar_map2.tga",
-                ],
-            );
-            let regions_map_path = try_paths(
-                &self.cfg,
-                [
-                    &format!(
-                        "data/world/maps/campaign/{}/map_regions.tga",
-                        self.cfg.manifest.campaign
-                    ),
-                    "data/world/maps/base/map_regions.tga",
-                ],
-            );
+            let radar_map_tga = self.folder.radar_map_tga();
+            let regions_map_path = self.folder.map_regions_tga();
             let mut areas = read_image(&self.cfg, regions_map_path).await?.into_rgba8();
-            let radar = read_image(&self.cfg, radar_map_path).await?;
+            let radar = read_image(&self.cfg, radar_map_tga).await?;
             let radar = radar
                 .resize_exact(areas.width() * 2, areas.height() * 2, Lanczos3)
                 .into_rgba8();
@@ -196,11 +171,7 @@ impl Renderer {
 
                 let mut units = p.units.to_vec();
                 for u in units.iter_mut() {
-                    let src = path_fallback(
-                        &self.cfg,
-                        u.unit.image.as_ref(),
-                        Some("data/ui/generic/generic_unit_card.tga"),
-                    );
+                    let src = self.folder.unit_info_tga("mercs", &u.unit.key);
                     let portrait_path = Self::unit_portrait_path(&m.id, "mercs", &mut u.unit);
                     if !rendered_mercs.contains(&u.unit.id) {
                         rendered_mercs.insert(u.unit.id.clone());
@@ -232,11 +203,7 @@ impl Renderer {
 
             let mut rendered_aors: HashSet<BTreeSet<IString>> = HashSet::new();
             for f in m.factions.values_mut() {
-                let src = path_fallback(
-                    &self.cfg,
-                    f.image.as_ref(),
-                    Some("data/loading_screen/symbols/symbol128_slaves.tga"),
-                );
+                let src = self.folder.faction_symbol_tga(f.image.as_str());
                 let symbol_path = Self::faction_symbol_path(&m.id, f);
                 let dst = self.cfg.out_dir.join(&symbol_path);
                 pb.tick();
@@ -268,18 +235,7 @@ impl Renderer {
 
                 let mut roster: Vec<_> = f.roster.iter().collect();
                 for u in roster.iter_mut() {
-                    let src = try_paths(
-                        &self.cfg,
-                        [
-                            u.image.as_ref(),
-                            &if self.cfg.manifest.unit_info_images {
-                                format!("data/ui/unit_info/merc/{}_info.tga", u.key.to_lowercase())
-                            } else {
-                                format!("data/ui/units/mercs/#{}.tga", u.key.to_lowercase())
-                            },
-                            "data/ui/generic/generic_unit_card.tga",
-                        ],
-                    );
+                    let src = self.folder.unit_info_tga(&f.id, &u.key);
                     let portrait_path = Self::unit_portrait_path(&m.id, &f.id, u);
                     let dst = self.cfg.out_dir.join(&portrait_path);
                     pb.tick();

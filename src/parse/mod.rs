@@ -10,6 +10,7 @@ use tracing::info;
 
 use crate::{
     args::Config,
+    mod_folder::ModFolder,
     parse::{
         descr_mercenaries::Pool,
         descr_model_battle::Model,
@@ -20,7 +21,7 @@ use crate::{
         model::{RawModel, build_model},
         sd::Sprite,
     },
-    utils::{LOOKING_GLASS, THINKING, path_fallback, progress_style, read_file, try_paths},
+    utils::{LOOKING_GLASS, THINKING, progress_style, read_file},
 };
 pub use manifest::Manifest;
 
@@ -36,147 +37,105 @@ mod sd;
 mod text;
 
 mod eval;
-mod manifest;
 mod model;
 
-pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
-    let expanded_path = path_fallback(cfg, "data/text/expanded.txt", None);
-    let expanded_bi_path = path_fallback(cfg, "data/text/expanded_bi.txt", None);
-    let export_units_path = path_fallback(cfg, "data/text/export_units.txt", None);
-    let descr_mercenaries_path = try_paths(
-        cfg,
-        [
-            &format!(
-                "data/world/maps/campaign/{}/descr_mercenaries.txt",
-                cfg.manifest.campaign
-            ),
-            "data/world/maps/base/descr_mercenaries.txt",
-        ],
-    );
-    let descr_regions_path = try_paths(
-        cfg,
-        [
-            &format!(
-                "data/world/maps/campaign/{}/descr_regions.txt",
-                cfg.manifest.campaign
-            ),
-            "data/world/maps/base/descr_regions.txt",
-        ],
-    );
-    let descr_sm_factions_path = path_fallback(cfg, "data/descr_sm_factions.txt", None);
-    let export_descr_unit_path = path_fallback(cfg, "data/export_descr_unit.txt", None);
-    let export_descr_buildings_path = path_fallback(cfg, "data/export_descr_buildings.txt", None);
-    let descr_strat_path = try_paths(
-        cfg,
-        [
-            &format!(
-                "data/world/maps/campaign/{}/descr_strat.txt",
-                cfg.manifest.campaign
-            ),
-            "data/world/maps/base/descr_strat.txt",
-        ],
-    );
-    let descr_mount_path = path_fallback(cfg, "data/descr_mount.txt", None);
-    let descr_model_battle_path = path_fallback(cfg, "data/descr_model_battle.txt", None);
-    let strategy_sd_path = path_fallback(cfg, "data/ui/strategy.sd", None);
+pub mod manifest;
 
+pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     let m = MultiProgress::new();
 
-    let expanded_text_path = match cfg.manifest.mode {
-        ParserMode::Original | ParserMode::Remastered => expanded_bi_path,
-        ParserMode::Medieval2 => expanded_path,
-    };
+    let folder = ModFolder::new(cfg.clone());
+
+    let text_expanded_txt = folder.text_expanded_txt();
     let mut text = parse_progress(
         m.clone(),
         1,
-        expanded_text_path.clone(),
-        parse_text(cfg, expanded_text_path, cfg.manifest.mode),
+        text_expanded_txt.clone(),
+        parse_text(cfg, text_expanded_txt, cfg.manifest.mode),
     )
     .await?;
+    let text_export_units_txt = folder.text_export_units_txt();
     let export_units = parse_progress(
         m.clone(),
         2,
-        export_units_path.clone(),
-        parse_text(cfg, export_units_path, cfg.manifest.mode),
+        text_export_units_txt.clone(),
+        parse_text(cfg, text_export_units_txt, cfg.manifest.mode),
     )
     .await?;
     text.extend(export_units.into_iter());
 
+    let descr_mercenaries_txt = folder.descr_mercenaries_txt();
     let pools = parse_progress(
         m.clone(),
         3,
-        descr_mercenaries_path.clone(),
-        parse_descr_mercenaries(cfg, descr_mercenaries_path, cfg.manifest.mode),
+        descr_mercenaries_txt.clone(),
+        parse_descr_mercenaries(cfg, descr_mercenaries_txt, cfg.manifest.mode),
     )
     .await?;
+    let descr_regions_txt = folder.descr_regions_txt();
     let regions = parse_progress(
         m.clone(),
         4,
-        descr_regions_path.clone(),
-        parse_descr_regions(cfg, descr_regions_path, cfg.manifest.mode),
+        descr_regions_txt.clone(),
+        parse_descr_regions(cfg, descr_regions_txt, cfg.manifest.mode),
     )
     .await?;
+    let descr_sm_factions_txt = folder.descr_sm_factions_txt();
     let factions = parse_progress(
         m.clone(),
         5,
-        descr_sm_factions_path.clone(),
-        parse_descr_sm_factions(cfg, descr_sm_factions_path, cfg.manifest.mode),
+        descr_sm_factions_txt.clone(),
+        parse_descr_sm_factions(cfg, descr_sm_factions_txt, cfg.manifest.mode),
     )
     .await?;
+    let export_descr_unit_txt = folder.export_descr_unit_txt();
     let units = parse_progress(
         m.clone(),
         6,
-        export_descr_unit_path.clone(),
-        parse_export_descr_unit(cfg, export_descr_unit_path, cfg.manifest.mode),
+        export_descr_unit_txt.clone(),
+        parse_export_descr_unit(cfg, export_descr_unit_txt, cfg.manifest.mode),
     )
     .await?;
+    let export_descr_buildings_txt = folder.export_descr_buildings_txt();
     let (require_aliases, buildings) = parse_progress(
         m.clone(),
         7,
-        export_descr_buildings_path.clone(),
-        parse_export_descr_buildings(cfg, export_descr_buildings_path, cfg.manifest.mode),
+        export_descr_buildings_txt.clone(),
+        parse_export_descr_buildings(cfg, export_descr_buildings_txt, cfg.manifest.mode),
     )
     .await?;
+    let descr_strat_txt = folder.descr_strat_txt();
     let strat = parse_progress(
         m.clone(),
         8,
-        descr_strat_path.clone(),
-        parse_descr_strat(cfg, descr_strat_path, cfg.manifest.mode),
+        descr_strat_txt.clone(),
+        parse_descr_strat(cfg, descr_strat_txt, cfg.manifest.mode),
     )
     .await?;
-    let mounts = if cfg.manifest.estimate_speed() {
-        parse_progress(
-            m.clone(),
-            9,
-            descr_mount_path.clone(),
-            parse_descr_mount(cfg, descr_mount_path, cfg.manifest.mode),
-        )
-        .await?
-    } else {
-        HashMap::new()
-    };
-    let models = if cfg.manifest.estimate_speed() {
-        parse_progress(
-            m.clone(),
-            10,
-            descr_model_battle_path.clone(),
-            parse_descr_model_battle(cfg, descr_model_battle_path, cfg.manifest.mode),
-        )
-        .await?
-    } else {
-        HashMap::new()
-    };
-    let sprites = if cfg.manifest.mode == ParserMode::Medieval2 {
-        parse_progress(
-            m.clone(),
-            11,
-            strategy_sd_path.clone(),
-            parse_sd(cfg, strategy_sd_path, cfg.manifest.mode),
-        )
-        .await?
-    } else {
-        HashMap::new()
-    };
+    let descr_mount_txt = folder.descr_mount_txt();
+    let mounts = parse_progress(
+        m.clone(),
+        9,
+        descr_mount_txt.clone(),
+        parse_descr_mount(cfg, descr_mount_txt, cfg.manifest.mode),
+    )
+    .await?;
+    let descr_model_battle_txt = folder.descr_model_battle_txt();
+    let models = parse_progress(
+        m.clone(),
+        10,
+        descr_model_battle_txt.clone(),
+        parse_descr_model_battle(cfg, descr_model_battle_txt, cfg.manifest.mode),
+    )
+    .await?;
+    let strategy_sd = folder.ui_strategy_sd();
+    let sprites = parse_progress(
+        m.clone(),
+        11,
+        strategy_sd.clone(),
+        parse_sd(cfg, strategy_sd, cfg.manifest.mode),
+    )
+    .await?;
 
     let pb = m.add(ProgressBar::new_spinner());
     pb.set_style(progress_style());
@@ -355,9 +314,13 @@ async fn parse_descr_mount(
     path: PathBuf,
     mode: ParserMode,
 ) -> Result<HashMap<String, Mount>> {
-    let buf = read_file(cfg, &path).await?;
-    let data = String::from_utf8_lossy(&buf);
-    descr_mount::parse(data, mode)
+    if cfg.manifest.estimate_speed() {
+        let buf = read_file(cfg, &path).await?;
+        let data = String::from_utf8_lossy(&buf);
+        descr_mount::parse(data, mode)
+    } else {
+        Ok(HashMap::new())
+    }
 }
 
 async fn parse_descr_model_battle(
@@ -365,9 +328,13 @@ async fn parse_descr_model_battle(
     path: PathBuf,
     mode: ParserMode,
 ) -> Result<HashMap<String, Model>> {
-    let buf = read_file(cfg, &path).await?;
-    let data = String::from_utf8_lossy(&buf);
-    descr_model_battle::parse(data, mode)
+    if cfg.manifest.estimate_speed() {
+        let buf = read_file(cfg, &path).await?;
+        let data = String::from_utf8_lossy(&buf);
+        descr_model_battle::parse(data, mode)
+    } else {
+        Ok(HashMap::new())
+    }
 }
 
 async fn parse_sd(
@@ -375,8 +342,12 @@ async fn parse_sd(
     path: PathBuf,
     mode: ParserMode,
 ) -> Result<HashMap<String, Sprite>> {
-    let buf = read_file(cfg, &path).await?;
-    sd::parse(buf, mode)
+    if cfg.manifest.mode == ParserMode::Medieval2 {
+        let buf = read_file(cfg, &path).await?;
+        sd::parse(buf, mode)
+    } else {
+        Ok(HashMap::new())
+    }
 }
 
 const BOM: &str = "\u{feff}";

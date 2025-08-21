@@ -134,7 +134,7 @@ fn build_faction(
             )
         })
         .map(|u| {
-            let u = build_unit(u, cfg, &f.id, raw);
+            let u = build_unit(u, cfg, raw);
             if u.horde {
                 is_horde = true;
             }
@@ -155,12 +155,7 @@ fn build_faction(
                 .trim()
                 .to_string()
                 .into(),
-            image: f
-                .logo
-                .to_str()
-                .expect("invalid file name")
-                .to_lowercase()
-                .into(),
+            image: f.logo.to_str().unwrap().to_string().into(),
             alias: cfg
                 .manifest
                 .aliases
@@ -189,12 +184,7 @@ fn build_faction(
     )
 }
 
-fn build_unit(
-    u: &export_descr_unit::Unit,
-    cfg: &Config,
-    f_id: &str,
-    raw: &IntermediateModel,
-) -> model::Unit {
+fn build_unit(u: &export_descr_unit::Unit, cfg: &Config, raw: &IntermediateModel) -> model::Unit {
     let mut inexhaustible = false;
     let mut stamina = 0;
     let mut abilities = vec![];
@@ -309,24 +299,7 @@ fn build_unit(
             .to_string()
             .into(),
         class,
-        image: if cfg.manifest.unit_info_images {
-            format!(
-                "data/ui/unit_info/{}/{}_info.tga",
-                if f_id == "mercs" {
-                    "merc".into()
-                } else {
-                    f_id.to_lowercase()
-                },
-                u.key.to_lowercase()
-            )
-        } else {
-            format!(
-                "data/ui/units/{}/#{}.tga",
-                f_id.to_lowercase(),
-                u.key.to_lowercase()
-            )
-        }
-        .into(),
+        image: Default::default(),
         soldiers: u.stats.soldiers,
         officers: u.stats.officers,
         mount: mount_type(u, cfg, raw),
@@ -404,7 +377,7 @@ fn build_pool(p: &Pool, index: usize, cfg: &Config, raw: &IntermediateModel) -> 
                     .unit_map
                     .get(&e.id)
                     .expect(&format!("missing unit {:?}", e.id));
-                let mut unit = build_unit(u, cfg, "mercs", raw);
+                let mut unit = build_unit(u, cfg, raw);
                 unit.cost = e.cost;
                 model::PoolEntry {
                     unit,

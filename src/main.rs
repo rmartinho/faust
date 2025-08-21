@@ -23,6 +23,7 @@ use crate::{
 };
 
 mod args;
+mod mod_folder;
 mod parse;
 mod platform;
 mod render;
