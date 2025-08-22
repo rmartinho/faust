@@ -1,10 +1,4 @@
-use std::{
-    convert::FloatToInt,
-    fs::OpenOptions,
-    io::Cursor,
-    path::{Path, PathBuf},
-    str::FromStr,
-};
+use std::{convert::FloatToInt, fs::OpenOptions, io::Cursor, path::Path, str::FromStr};
 
 use anyhow::{Context as _, Error, Result};
 use console::Emoji;
@@ -73,41 +67,9 @@ pub async fn read_file(cfg: &Config, path: impl AsRef<Path>) -> Result<Vec<u8>> 
 }
 
 pub fn progress_style() -> ProgressStyle {
-    ProgressStyle::with_template("{prefix:>7.bold.dim} {spinner} {wide_msg}")
+    ProgressStyle::with_template("{spinner} {wide_msg}")
         .expect("invalid progress style")
         .tick_chars("⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏ ")
-}
-
-fn do_try_paths<'a>(root: &Path, paths: &[&'a str]) -> PathBuf {
-    for path in paths.as_ref().iter() {
-        let file = root.join(path);
-        if file.exists() {
-            return file;
-        }
-    }
-    return paths.as_ref()[0].into();
-}
-
-pub fn try_paths<'a>(cfg: &Config, paths: impl AsRef<[&'a str]>) -> PathBuf {
-    let first = do_try_paths(&cfg.src_dir, paths.as_ref());
-    if first.exists() {
-        first
-    } else {
-        do_try_paths(&cfg.fallback_dir, paths.as_ref())
-    }
-}
-
-pub fn path_fallback(cfg: &Config, path: &str, generic: Option<&str>) -> PathBuf {
-    [
-        cfg.src_dir.join(path),
-        cfg.src_dir.join("data").join(path),
-        cfg.fallback_dir.join(path),
-        cfg.fallback_dir.join("data").join(path),
-    ]
-    .into_iter()
-    .chain(generic.into_iter().map(|g| cfg.fallback_dir.join(g)))
-    .find(|p| p.exists())
-    .unwrap_or(cfg.src_dir.join(path))
 }
 
 pub fn parse_maybe_float_int<I>(s: &str) -> Result<I>

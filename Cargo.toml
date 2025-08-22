@@ -51,3 +51,4 @@ tokio = { version = "1" }
 [patch.crates-io]
 yew = { git = "https://github.com/rmartinho/yew.git" }
 yew-router = { git = 'https://github.com/rmartinho/yew.git' }
+implicit-clone = { git = 'https://github.com/rmartinho/implicit-clone.git', branch = 'dont-use-generic-defaults' }

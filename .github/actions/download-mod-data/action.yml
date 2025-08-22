@@ -15,4 +15,4 @@ runs:
     - name: Download & Unpack
       shell: bash
       run: |
-        curl ${{ inputs.store-url }}/${{ inputs.mod-id }}.tar.zst | tar -x --zstd
+        curl -s ${{ inputs.store-url }}/${{ inputs.mod-id }}.tar.zst | tar -v -x --zstd

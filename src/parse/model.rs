@@ -15,6 +15,8 @@ use crate::{
         eval::{Evaluator, evaluate},
         export_descr_buildings::{Building, Requires},
         export_descr_unit::{self, Attr, WeaponAttr},
+        manifest::ParserMode::*,
+        sd::Sprite,
     },
 };
 
@@ -29,6 +31,8 @@ pub struct RawModel {
     pub strat: HashMap<String, usize>,
     pub mounts: HashMap<String, Mount>,
     pub models: HashMap<String, Model>,
+    pub sprites: HashMap<String, Sprite>,
+    pub default_culture: String,
 }
 
 struct IntermediateModel {
@@ -42,18 +46,21 @@ struct IntermediateModel {
     strat: HashMap<String, usize>,
     mounts: HashMap<String, Mount>,
     models: HashMap<String, Model>,
+    sprites: HashMap<String, Sprite>,
+    default_culture: String,
     requires: HashMap<String, Requires>,
     tech_levels: HashMap<String, u32>,
 }
 
-pub fn build_model(
-    cfg: &Config,
-    raw: RawModel,
-) -> (
-    IndexMap<IString, model::Faction>,
-    IndexMap<IString, model::Region>,
-    IArray<model::Pool>,
-) {
+pub struct ModelBits {
+    pub factions: IndexMap<IString, model::Faction>,
+    pub pools: IArray<model::Pool>,
+    pub regions: HashMap<String, Region>,
+    pub sprites: HashMap<String, Sprite>,
+    pub culture: String,
+}
+
+pub fn build_model(cfg: &Config, raw: RawModel) -> ModelBits {
     let unit_map: IndexMap<_, _> = raw.units.into_iter().map(|u| (u.id.clone(), u)).collect();
     let requires = build_requires(&raw.buildings, &unit_map);
     let tech_levels = build_tech_levels(&raw.buildings);
@@ -68,6 +75,8 @@ pub fn build_model(
         strat: raw.strat,
         mounts: raw.mounts,
         models: raw.models,
+        sprites: raw.sprites,
+        default_culture: raw.default_culture,
         requires,
         tech_levels,
     };
@@ -75,21 +84,8 @@ pub fn build_model(
     let regions = raw
         .regions
         .iter()
-        .map(|r| {
-            (
-                r.id.clone().into(),
-                model::Region {
-                    id: r.id.clone().into(),
-                    legion: r.legion.as_ref().map(|s| s.clone().into()),
-                    color: r.color,
-                    hidden_resources: r
-                        .hidden_resources
-                        .iter()
-                        .map(|s| s.clone().into())
-                        .collect(),
-                },
-            )
-        })
+        .cloned()
+        .map(|r| (r.id.clone(), r))
         .collect();
     let pools = raw
         .pools
@@ -99,21 +95,25 @@ pub fn build_model(
         .collect();
 
     raw.factions
-        .extract_if(.., |f| !raw.strat.contains_key(&f.id))
+        .extract_if(.., |f| {
+            !raw.strat.contains_key(&f.id) || cfg.manifest.exclude.contains(&f.id)
+        })
         .count();
     raw.factions.sort_by_key(|f| raw.strat[&f.id]);
 
-    let factions = {
-        let factions = raw
-            .factions
-            .iter()
-            .filter(|f| !cfg.manifest.exclude.contains(&f.id))
-            .map(|f| build_faction(f, cfg, &raw))
-            .collect();
-        factions
-    };
+    let factions = raw
+        .factions
+        .iter()
+        .map(|f| build_faction(f, cfg, &raw))
+        .collect();
 
-    (factions, regions, pools)
+    ModelBits {
+        factions,
+        pools,
+        regions,
+        sprites: raw.sprites,
+        culture: raw.default_culture,
+    }
 }
 
 fn build_faction(
@@ -134,7 +134,7 @@ fn build_faction(
             )
         })
         .map(|u| {
-            let u = build_unit(u, cfg, &f.id, raw);
+            let u = build_unit(u, cfg, raw);
             if u.horde {
                 is_horde = true;
             }
@@ -155,12 +155,10 @@ fn build_faction(
                 .trim()
                 .to_string()
                 .into(),
-            image: f
-                .logo
-                .to_str()
-                .expect("invalid file name")
-                .to_lowercase()
-                .into(),
+            image: match cfg.manifest.mode {
+                Original | Remastered => f.logo_path.to_str().unwrap().to_string().into(),
+                Medieval2 => f.logo_index.clone().into(),
+            },
             alias: cfg
                 .manifest
                 .aliases
@@ -189,12 +187,7 @@ fn build_faction(
     )
 }
 
-fn build_unit(
-    u: &export_descr_unit::Unit,
-    cfg: &Config,
-    f_id: &str,
-    raw: &IntermediateModel,
-) -> model::Unit {
+fn build_unit(u: &export_descr_unit::Unit, cfg: &Config, raw: &IntermediateModel) -> model::Unit {
     let mut inexhaustible = false;
     let mut stamina = 0;
     let mut abilities = vec![];
@@ -309,24 +302,7 @@ fn build_unit(
             .to_string()
             .into(),
         class,
-        image: if cfg.manifest.unit_info_images {
-            format!(
-                "data/ui/unit_info/{}/{}_info.tga",
-                if f_id == "mercs" {
-                    "merc".into()
-                } else {
-                    f_id.to_lowercase()
-                },
-                u.key.to_lowercase()
-            )
-        } else {
-            format!(
-                "data/ui/units/{}/#{}.tga",
-                f_id.to_lowercase(),
-                u.key.to_lowercase()
-            )
-        }
-        .into(),
+        image: Default::default(),
         soldiers: u.stats.soldiers,
         officers: u.stats.officers,
         mount: mount_type(u, cfg, raw),
@@ -404,7 +380,7 @@ fn build_pool(p: &Pool, index: usize, cfg: &Config, raw: &IntermediateModel) -> 
                     .unit_map
                     .get(&e.id)
                     .expect(&format!("missing unit {:?}", e.id));
-                let mut unit = build_unit(u, cfg, "mercs", raw);
+                let mut unit = build_unit(u, cfg, raw);
                 unit.cost = e.cost;
                 model::PoolEntry {
                     unit,

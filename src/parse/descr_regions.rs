@@ -70,7 +70,7 @@ fn parse_region(lines: &[String]) -> Result<Region> {
 const OPT_COMMA: &[char] = &[',', ' '];
 const COMMA: &str = ",";
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Region {
     pub id: String,
     pub legion: Option<String>,

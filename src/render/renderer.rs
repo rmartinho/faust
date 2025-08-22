@@ -1,10 +1,10 @@
 use std::{
-    collections::{BTreeSet, HashSet},
+    collections::{BTreeSet, HashMap, HashSet},
     fmt::{self, Display, Formatter, Write as _},
     path::{Component, Path, PathBuf},
 };
 
-use anyhow::{Context as _, Result};
+use anyhow::{Context as _, Result, anyhow};
 use askama::Template as _;
 use image::{
     DynamicImage, Rgba, RgbaImage,
@@ -14,7 +14,7 @@ use implicit_clone::unsync::IString;
 use indicatif::{HumanBytes, MultiProgress, ProgressBar};
 use silphium::{
     ModuleMap, Route, StaticApp, StaticAppProps,
-    model::{Aor, Era, Faction, Module, Pool, Region, Unit},
+    model::{Aor, Era, Faction, Module, Pool, Unit},
 };
 use tokio::fs;
 use tracing::info;
@@ -22,11 +22,10 @@ use yew_router::Routable as _;
 
 use crate::{
     args::Config,
+    mod_folder::ModFolder,
+    parse::{Region, Sprite, manifest::ParserMode::*},
     render::templates::{FILESYSTEM_STATIC, IndexHtml, PrefetchHtml, RedirectHtml},
-    utils::{
-        FOLDER, LINK, PAPER, PICTURE, path_fallback, progress_style, read_image, try_paths,
-        write_file, write_image,
-    },
+    utils::{FOLDER, LINK, PAPER, PICTURE, progress_style, read_image, write_file, write_image},
 };
 
 #[derive(Clone)]
@@ -102,19 +101,34 @@ impl Display for PreloadType {
 }
 
 #[derive(Clone)]
+pub struct RenderData {
+    pub regions: HashMap<String, Region>,
+    pub sprites: HashMap<String, Sprite>,
+    pub culture: String,
+}
+
+#[derive(Clone)]
 pub struct Renderer {
     pub cfg: Config,
+    pub folder: ModFolder,
     pub data: Vec<u8>,
     pub modules: ModuleMap,
+    pub render_data: HashMap<IString, RenderData>,
     pub preload: Vec<(String, Preload)>,
 }
 
 impl Renderer {
-    pub fn new(cfg: &Config, modules: ModuleMap) -> Self {
+    pub fn new(
+        cfg: &Config,
+        modules: ModuleMap,
+        render_data: HashMap<IString, RenderData>,
+    ) -> Self {
         Self {
             cfg: cfg.clone(),
+            folder: ModFolder::new(cfg.clone()),
             data: Vec::new(),
             modules,
+            render_data,
             preload: vec![],
         }
     }
@@ -133,46 +147,21 @@ impl Renderer {
     async fn render_images(&mut self, m: MultiProgress) -> Result<()> {
         let pb = m.add(ProgressBar::new_spinner());
         pb.set_style(progress_style());
-        pb.set_prefix("[3/5]");
         pb.tick();
         pb.set_message(format!("{PICTURE}rendering images"));
         for m in self.modules.values_mut() {
-            let src = path_fallback(&self.cfg, m.banner.as_ref(), None);
+            let extra = &self.render_data[m.id.as_ref()];
+            let src = self.folder.banner_png();
             let banner_path = Self::module_banner_path(m);
             let dst = self.cfg.out_dir.join(&banner_path);
             pb.tick();
             pb.set_message(format!("{PICTURE}rendering {}", web_path(&banner_path)));
             Self::render_image(&self.cfg, &src, &dst, MOD_BANNER_SIZE).await?;
 
-            let radar_map_path = try_paths(
-                &self.cfg,
-                [
-                    &format!(
-                        "data/world/maps/campaign/{}/feral_radar_map.tga",
-                        self.cfg.manifest.campaign
-                    ),
-                    &format!(
-                        "data/world/maps/campaign/{}/radar_map2.tga",
-                        self.cfg.manifest.campaign
-                    ),
-                    "data/world/maps/base/feral_radar_map.tga",
-                    "data/world/maps/base/radar_map2.tga",
-                    "data/world/maps/campaign/imperial_campaign/feral_radar_map.tga",
-                    "data/world/maps/campaign/imperial_campaign/radar_map2.tga",
-                ],
-            );
-            let regions_map_path = try_paths(
-                &self.cfg,
-                [
-                    &format!(
-                        "data/world/maps/campaign/{}/map_regions.tga",
-                        self.cfg.manifest.campaign
-                    ),
-                    "data/world/maps/base/map_regions.tga",
-                ],
-            );
+            let radar_map_tga = self.folder.radar_map_tga();
+            let regions_map_path = self.folder.map_regions_tga();
             let mut areas = read_image(&self.cfg, regions_map_path).await?.into_rgba8();
-            let radar = read_image(&self.cfg, radar_map_path).await?;
+            let radar = read_image(&self.cfg, radar_map_tga).await?;
             let radar = radar
                 .resize_exact(areas.width() * 2, areas.height() * 2, Lanczos3)
                 .into_rgba8();
@@ -188,7 +177,10 @@ impl Renderer {
                     &radar,
                     &areas,
                     &dst,
-                    m.regions.values().filter(|r| p.regions.contains(&r.id)),
+                    extra
+                        .regions
+                        .values()
+                        .filter(|r| p.regions.iter().find(|r1| r1.as_str() == r.id).is_some()),
                     Rgba([0xFF, 0x71, 0x00, 0xC0]),
                     Rgba([0x00, 0x00, 0x00, 0xFF]),
                 )
@@ -196,11 +188,7 @@ impl Renderer {
 
                 let mut units = p.units.to_vec();
                 for u in units.iter_mut() {
-                    let src = path_fallback(
-                        &self.cfg,
-                        u.unit.image.as_ref(),
-                        Some("data/ui/generic/generic_unit_card.tga"),
-                    );
+                    let src = self.folder.unit_info_tga("mercs", &u.unit.key);
                     let portrait_path = Self::unit_portrait_path(&m.id, "mercs", &mut u.unit);
                     if !rendered_mercs.contains(&u.unit.id) {
                         rendered_mercs.insert(u.unit.id.clone());
@@ -232,16 +220,28 @@ impl Renderer {
 
             let mut rendered_aors: HashSet<BTreeSet<IString>> = HashSet::new();
             for f in m.factions.values_mut() {
-                let src = path_fallback(
-                    &self.cfg,
-                    f.image.as_ref(),
-                    Some("data/loading_screen/symbols/symbol128_slaves.tga"),
-                );
+                let image_key = f.image.clone();
                 let symbol_path = Self::faction_symbol_path(&m.id, f);
                 let dst = self.cfg.out_dir.join(&symbol_path);
                 pb.tick();
                 pb.set_message(format!("{PICTURE}rendering {}", web_path(&symbol_path)));
-                Self::render_image(&self.cfg, &src, &dst, FACTION_SYMBOL_SIZE).await?;
+                match self.cfg.manifest.mode {
+                    Original | Remastered => {
+                        let src = self.folder.faction_symbol_tga(image_key.as_str());
+                        Self::render_image(&self.cfg, &src, &dst, FACTION_SYMBOL_SIZE).await?;
+                    }
+                    Medieval2 => {
+                        let sprite = &extra
+                            .sprites
+                            .get(image_key.as_str())
+                            .ok_or_else(|| anyhow!("missing sprite {image_key}"))?;
+                        let src = self
+                            .folder
+                            .ui_culture_spritesheet_tga(&extra.culture, &sprite.file);
+                        Self::render_sprite(&self.cfg, &src, &dst, sprite, FACTION_SYMBOL_SIZE)
+                            .await?;
+                    }
+                }
 
                 let mut aors = f.aors.to_vec();
                 for aor in aors.iter_mut() {
@@ -257,7 +257,9 @@ impl Renderer {
                         &radar,
                         &areas,
                         &dst,
-                        m.regions.values().filter(|r| aor.regions.contains(&r.id)),
+                        extra.regions.values().filter(|r| {
+                            aor.regions.iter().find(|r1| r1.as_str() == r.id).is_some()
+                        }),
                         Rgba([0xFF, 0x71, 0x00, 0xC0]),
                         Rgba([0x00, 0x00, 0x00, 0xFF]),
                     )
@@ -268,18 +270,7 @@ impl Renderer {
 
                 let mut roster: Vec<_> = f.roster.iter().collect();
                 for u in roster.iter_mut() {
-                    let src = try_paths(
-                        &self.cfg,
-                        [
-                            u.image.as_ref(),
-                            &if self.cfg.manifest.unit_info_images {
-                                format!("data/ui/unit_info/merc/{}_info.tga", u.key.to_lowercase())
-                            } else {
-                                format!("data/ui/units/mercs/#{}.tga", u.key.to_lowercase())
-                            },
-                            "data/ui/generic/generic_unit_card.tga",
-                        ],
-                    );
+                    let src = self.folder.unit_info_tga(&f.id, &u.key);
                     let portrait_path = Self::unit_portrait_path(&m.id, &f.id, u);
                     let dst = self.cfg.out_dir.join(&portrait_path);
                     pb.tick();
@@ -373,6 +364,27 @@ impl Renderer {
         Ok(())
     }
 
+    async fn render_sprite(
+        cfg: &Config,
+        from: &Path,
+        to: &Path,
+        sprite: &Sprite,
+        (width, height): (u32, u32),
+    ) -> Result<()> {
+        let mut sheet = read_image(cfg, from).await?;
+        let img = sheet
+            .crop(
+                sprite.left as _,
+                sprite.top as _,
+                (sprite.right - sprite.left) as _,
+                (sprite.bottom - sprite.top) as _,
+            )
+            .resize(width, height, Lanczos3);
+        write_image(to, &img).await?;
+        info!("rendered {}", to.display());
+        Ok(())
+    }
+
     async fn render_map<'a>(
         radar: &RgbaImage,
         areas: &RgbaImage,
@@ -414,7 +426,6 @@ impl Renderer {
     async fn render_data(&mut self, m: MultiProgress) -> Result<()> {
         let pb = m.add(ProgressBar::new_spinner());
         pb.set_style(progress_style());
-        pb.set_prefix("[4/5]");
         pb.tick();
         pb.set_message(format!("{PAPER}rendering catalog data"));
         let mut data = vec![];
@@ -436,7 +447,6 @@ impl Renderer {
     async fn render_routes(&self, m: MultiProgress) -> Result<()> {
         let pb = m.add(ProgressBar::new_spinner());
         pb.set_style(progress_style());
-        pb.set_prefix("[5/5]");
         pb.tick();
         pb.set_message(format!("{LINK}rendering routes"));
         let routes = collect_routes(&self.modules);
@@ -466,20 +476,19 @@ impl Renderer {
                 .await
                 .with_context(|| format!("writing file {}", r.path.display()))?;
             }
+            info!("rendered route {}", r.route.to_path());
         }
         pb.finish_with_message(format!("{LINK}rendered {} routes", routes.len()));
         Ok(())
     }
 
     async fn render_route(&self, route: Route) -> String {
-        let path = route.to_path();
         let props = StaticAppProps {
             route,
             data: self.data.clone().into(),
         };
         let renderer = yew::LocalServerRenderer::<StaticApp>::with_props(props);
         let string = renderer.render().await;
-        info!("rendered route {path}");
         string
     }
 
@@ -487,14 +496,12 @@ impl Renderer {
         let mut preload = self.preload.clone();
         preload.extend_from_slice(&r.preload);
         let string = PrefetchHtml { preload: &preload }.render()?;
-        info!("rendered preloads");
         Ok(string)
     }
 
     async fn create_directory(&self, m: MultiProgress) -> Result<()> {
         let pb = m.add(ProgressBar::new_spinner());
         pb.set_style(progress_style());
-        pb.set_prefix("[1/5]");
         if self.cfg.out_dir.exists() {
             pb.tick();
             pb.set_message(format!("{FOLDER}clearing output directory"));
@@ -517,7 +524,6 @@ impl Renderer {
     async fn create_static_files(&mut self, m: MultiProgress) -> Result<()> {
         let pb = m.add(ProgressBar::new_spinner());
         pb.set_style(progress_style());
-        pb.set_prefix("[2/5]");
         pb.tick();
         pb.set_message(format!("{PAPER}writing faust.yml"));
         write_file(&self.cfg.out_dir.join("faust.yml"), &self.cfg.manifest.raw)
