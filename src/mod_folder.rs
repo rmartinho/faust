@@ -81,10 +81,12 @@ impl ModFolder {
             } else {
                 faction.to_lowercase()
             };
-            self.root_fallback(format!("data/ui/unit_info/{faction}/{key}_info.tga"))
+            existing_path(self.root_fallback(format!("data/ui/unit_info/{faction}/{key}_info.tga")))
+                .unwrap_or(self.root_fallback(format!("data/ui/unit_info/merc/{key}_info.tga")))
         } else {
             let faction = faction.to_lowercase();
-            self.root_fallback(format!("data/ui/units/{faction}/#{key}.tga"))
+            existing_path(self.root_fallback(format!("data/ui/units/{faction}/#{key}.tga")))
+                .unwrap_or(self.root_fallback(format!("data/ui/units/mercs/#{key}.tga")))
         })
     }
     pub fn faction_symbol_tga(&self, path: impl AsRef<Path>) -> PathBuf {
