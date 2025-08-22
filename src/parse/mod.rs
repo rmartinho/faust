@@ -366,9 +366,13 @@ async fn parse_sd(
 }
 
 async fn parse_descr_cultures(cfg: &Config, path: PathBuf, mode: ParserMode) -> Result<String> {
-    let buf = read_file(cfg, &path).await?;
-    let data = String::from_utf8_lossy(&buf);
-    descr_cultures::parse(data, mode)
+    if cfg.manifest.mode == Medieval2 {
+        let buf = read_file(cfg, &path).await?;
+        let data = String::from_utf8_lossy(&buf);
+        descr_cultures::parse(data, mode)
+    } else {
+        Ok(String::new())
+    }
 }
 
 const BOM: &str = "\u{feff}";
