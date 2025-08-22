@@ -46,6 +46,13 @@ impl ModFolder {
     pub fn ui_strategy_sd(&self) -> PathBuf {
         self.root_fallback("data/ui/strategy.sd")
     }
+    pub fn ui_culture_spritesheet_tga(
+        &self,
+        culture: impl AsRef<Path>,
+        path: impl AsRef<Path>,
+    ) -> PathBuf {
+        self.culture_fallback(culture, path)
+    }
 
     pub fn descr_mercenaries_txt(&self) -> PathBuf {
         self.campaign_fallback("descr_mercenaries.txt")
@@ -107,6 +114,16 @@ impl ModFolder {
         existing_path(path.as_ref())
             .map(Into::into)
             .unwrap_or_else(|| self.root_fallback("data/ui/generic/generic_unit_card.tga"))
+    }
+    fn culture_fallback(&self, culture: impl AsRef<Path>, path: impl AsRef<Path>) -> PathBuf {
+        let culture = culture.as_ref();
+        let path = path.as_ref();
+        self.root_fallback(
+            PathBuf::from("data/ui")
+                .join(culture)
+                .join("interface")
+                .join(path),
+        )
     }
 
     fn data_path(&self, root: impl AsRef<Path>) -> PathBuf {

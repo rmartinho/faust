@@ -18,8 +18,7 @@ use crate::{
         descr_mount::Mount,
         export_descr_buildings::{Building, Requires},
         manifest::ParserMode::{self, *},
-        model::{RawModel, build_model},
-        sd::Sprite,
+        model::{ModelBits, RawModel, build_model},
     },
     render::RenderData,
     utils::{LOOKING_GLASS, THINKING, progress_style, read_file},
@@ -44,6 +43,7 @@ pub mod manifest;
 
 pub use descr_regions::Region;
 pub use manifest::Manifest;
+pub use sd::Sprite;
 
 pub async fn parse_folder(cfg: &Config) -> Result<(ModuleMap, HashMap<IString, RenderData>)> {
     let m = MultiProgress::new();
@@ -122,18 +122,18 @@ pub async fn parse_folder(cfg: &Config) -> Result<(ModuleMap, HashMap<IString, R
         parse_descr_model_battle(cfg, descr_model_battle_txt, cfg.manifest.mode),
     )
     .await?;
-    let strategy_sd = folder.ui_strategy_sd();
-    let sprites = parse_progress(
-        m.clone(),
-        strategy_sd.clone(),
-        parse_sd(cfg, strategy_sd, cfg.manifest.mode),
-    )
-    .await?;
     let descr_cultures_txt = folder.descr_cultures_txt();
     let default_culture = parse_progress(
         m.clone(),
         descr_cultures_txt.clone(),
         parse_descr_cultures(cfg, descr_cultures_txt, cfg.manifest.mode),
+    )
+    .await?;
+    let strategy_sd = folder.ui_strategy_sd();
+    let sprites = parse_progress(
+        m.clone(),
+        strategy_sd.clone(),
+        parse_sd(cfg, strategy_sd, cfg.manifest.mode),
     )
     .await?;
 
@@ -147,7 +147,13 @@ pub async fn parse_folder(cfg: &Config) -> Result<(ModuleMap, HashMap<IString, R
         .iter()
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect();
-    let (factions, regions, pools) = build_model(
+    let ModelBits {
+        factions,
+        regions,
+        pools,
+        sprites,
+        culture,
+    } = build_model(
         &cfg,
         RawModel {
             units,
@@ -211,7 +217,14 @@ pub async fn parse_folder(cfg: &Config) -> Result<(ModuleMap, HashMap<IString, R
         },
     )]);
 
-    let render_data = HashMap::from([(cfg.manifest.id.clone(), RenderData { regions })]);
+    let render_data = HashMap::from([(
+        cfg.manifest.id.clone(),
+        RenderData {
+            regions,
+            sprites,
+            culture,
+        },
+    )]);
 
     info!("built catalog");
     let _ = m.clear();

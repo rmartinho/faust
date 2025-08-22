@@ -54,7 +54,7 @@ pub fn parse(data: impl AsRef<str>) -> Result<Vec<Faction>> {
                     .and_then(|l| l.get("logo index"))
                     .and_then(|s| s.as_str())
                     .map(Into::into)
-                    .ok_or_else(|| anyhow!("no `logo index` found for {id}"))?,
+                    .unwrap_or_else(String::new),
                 id,
             })
         })

@@ -52,14 +52,15 @@ struct IntermediateModel {
     tech_levels: HashMap<String, u32>,
 }
 
-pub fn build_model(
-    cfg: &Config,
-    raw: RawModel,
-) -> (
-    IndexMap<IString, model::Faction>,
-    IndexMap<String, Region>,
-    IArray<model::Pool>,
-) {
+pub struct ModelBits {
+    pub factions: IndexMap<IString, model::Faction>,
+    pub pools: IArray<model::Pool>,
+    pub regions: HashMap<String, Region>,
+    pub sprites: HashMap<String, Sprite>,
+    pub culture: String,
+}
+
+pub fn build_model(cfg: &Config, raw: RawModel) -> ModelBits {
     let unit_map: IndexMap<_, _> = raw.units.into_iter().map(|u| (u.id.clone(), u)).collect();
     let requires = build_requires(&raw.buildings, &unit_map);
     let tech_levels = build_tech_levels(&raw.buildings);
@@ -94,21 +95,25 @@ pub fn build_model(
         .collect();
 
     raw.factions
-        .extract_if(.., |f| !raw.strat.contains_key(&f.id))
+        .extract_if(.., |f| {
+            !raw.strat.contains_key(&f.id) || cfg.manifest.exclude.contains(&f.id)
+        })
         .count();
     raw.factions.sort_by_key(|f| raw.strat[&f.id]);
 
-    let factions = {
-        let factions = raw
-            .factions
-            .iter()
-            .filter(|f| !cfg.manifest.exclude.contains(&f.id))
-            .map(|f| build_faction(f, cfg, &raw))
-            .collect();
-        factions
-    };
+    let factions = raw
+        .factions
+        .iter()
+        .map(|f| build_faction(f, cfg, &raw))
+        .collect();
 
-    (factions, regions, pools)
+    ModelBits {
+        factions,
+        pools,
+        regions,
+        sprites: raw.sprites,
+        culture: raw.default_culture,
+    }
 }
 
 fn build_faction(

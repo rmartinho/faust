@@ -69,6 +69,7 @@ fn read_string(r: &mut impl Read, null_terminated: bool) -> Result<String> {
     Ok(String::from_utf8(buf)?)
 }
 
+#[derive(Clone)]
 pub struct Sprite {
     pub file: String,
     pub top: u16,

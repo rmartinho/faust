@@ -11,7 +11,6 @@ use image::{
     imageops::{FilterType::Lanczos3, filter3x3, overlay},
 };
 use implicit_clone::unsync::IString;
-use indexmap::IndexMap;
 use indicatif::{HumanBytes, MultiProgress, ProgressBar};
 use silphium::{
     ModuleMap, Route, StaticApp, StaticAppProps,
@@ -24,7 +23,7 @@ use yew_router::Routable as _;
 use crate::{
     args::Config,
     mod_folder::ModFolder,
-    parse::Region,
+    parse::{Region, Sprite, manifest::ParserMode::*},
     render::templates::{FILESYSTEM_STATIC, IndexHtml, PrefetchHtml, RedirectHtml},
     utils::{FOLDER, LINK, PAPER, PICTURE, progress_style, read_image, write_file, write_image},
 };
@@ -103,7 +102,9 @@ impl Display for PreloadType {
 
 #[derive(Clone)]
 pub struct RenderData {
-    pub regions: IndexMap<String, Region>,
+    pub regions: HashMap<String, Region>,
+    pub sprites: HashMap<String, Sprite>,
+    pub culture: String,
 }
 
 #[derive(Clone)]
@@ -149,6 +150,7 @@ impl Renderer {
         pb.tick();
         pb.set_message(format!("{PICTURE}rendering images"));
         for m in self.modules.values_mut() {
+            let extra = &self.render_data[m.id.as_ref()];
             let src = self.folder.banner_png();
             let banner_path = Self::module_banner_path(m);
             let dst = self.cfg.out_dir.join(&banner_path);
@@ -175,7 +177,7 @@ impl Renderer {
                     &radar,
                     &areas,
                     &dst,
-                    self.render_data[m.id.as_ref()]
+                    extra
                         .regions
                         .values()
                         .filter(|r| p.regions.iter().find(|r1| r1.as_str() == r.id).is_some()),
@@ -218,12 +220,25 @@ impl Renderer {
 
             let mut rendered_aors: HashSet<BTreeSet<IString>> = HashSet::new();
             for f in m.factions.values_mut() {
-                let src = self.folder.faction_symbol_tga(f.image.as_str());
+                let image_key = f.image.clone();
                 let symbol_path = Self::faction_symbol_path(&m.id, f);
                 let dst = self.cfg.out_dir.join(&symbol_path);
                 pb.tick();
                 pb.set_message(format!("{PICTURE}rendering {}", web_path(&symbol_path)));
-                Self::render_image(&self.cfg, &src, &dst, FACTION_SYMBOL_SIZE).await?;
+                match self.cfg.manifest.mode {
+                    Original | Remastered => {
+                        let src = self.folder.faction_symbol_tga(image_key.as_str());
+                        Self::render_image(&self.cfg, &src, &dst, FACTION_SYMBOL_SIZE).await?;
+                    }
+                    Medieval2 => {
+                        let sprite = &extra.sprites[image_key.as_str()];
+                        let src = self
+                            .folder
+                            .ui_culture_spritesheet_tga(&extra.culture, &sprite.file);
+                        Self::render_sprite(&self.cfg, &src, &dst, sprite, FACTION_SYMBOL_SIZE)
+                            .await?;
+                    }
+                }
 
                 let mut aors = f.aors.to_vec();
                 for aor in aors.iter_mut() {
@@ -239,12 +254,9 @@ impl Renderer {
                         &radar,
                         &areas,
                         &dst,
-                        self.render_data[m.id.as_ref()]
-                            .regions
-                            .values()
-                            .filter(|r| {
-                                aor.regions.iter().find(|r1| r1.as_str() == r.id).is_some()
-                            }),
+                        extra.regions.values().filter(|r| {
+                            aor.regions.iter().find(|r1| r1.as_str() == r.id).is_some()
+                        }),
                         Rgba([0xFF, 0x71, 0x00, 0xC0]),
                         Rgba([0x00, 0x00, 0x00, 0xFF]),
                     )
@@ -344,6 +356,27 @@ impl Renderer {
     ) -> Result<()> {
         let img = read_image(cfg, from).await?;
         let img = img.resize(width, height, Lanczos3);
+        write_image(to, &img).await?;
+        info!("rendered {}", to.display());
+        Ok(())
+    }
+
+    async fn render_sprite(
+        cfg: &Config,
+        from: &Path,
+        to: &Path,
+        sprite: &Sprite,
+        (width, height): (u32, u32),
+    ) -> Result<()> {
+        let mut sheet = read_image(cfg, from).await?;
+        let img = sheet
+            .crop(
+                sprite.left as _,
+                sprite.top as _,
+                (sprite.right - sprite.left) as _,
+                (sprite.bottom - sprite.top) as _,
+            )
+            .resize(width, height, Lanczos3);
         write_image(to, &img).await?;
         info!("rendered {}", to.display());
         Ok(())
