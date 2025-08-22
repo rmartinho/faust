@@ -2,15 +2,15 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 
-use crate::parse::manifest::ParserMode;
+use crate::parse::manifest::ParserMode::{self, *};
 
 mod og;
 mod rr;
 
 pub fn parse(data: impl AsRef<str>, mode: ParserMode) -> Result<Vec<Faction>> {
     match mode {
-        ParserMode::Original | ParserMode::Medieval2 => og::parse(data),
-        ParserMode::Remastered => rr::parse(data),
+        Original | Medieval2 => og::parse(data),
+        Remastered => rr::parse(data),
     }
 }
 

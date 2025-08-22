@@ -40,8 +40,7 @@ async fn main() -> Result<()> {
 fn setup_tracing(args: &Args) -> Result<()> {
     if args.verbose {
         let stderr_log_level = filter::LevelFilter::INFO;
-        let stderr_layer = tracing_subscriber::fmt::layer()
-            .with_writer(io::stderr);
+        let stderr_layer = tracing_subscriber::fmt::layer().with_writer(io::stderr);
 
         tracing_subscriber::registry()
             .with(
@@ -63,7 +62,7 @@ async fn run() -> Result<()> {
     let cfg = Config::get(args)?;
 
     let step = Instant::now();
-    let modules = parse::parse_folder(&cfg).await?;
+    let (modules, extra) = parse::parse_folder(&cfg).await?;
     println!(
         "{LOOKING_GLASS}{}",
         style(format!(
@@ -74,7 +73,7 @@ async fn run() -> Result<()> {
     );
 
     let step = Instant::now();
-    let mut renderer = Renderer::new(&cfg, modules);
+    let mut renderer = Renderer::new(&cfg, modules, extra);
     renderer.render().await?;
     println!(
         "{LINK}{}",

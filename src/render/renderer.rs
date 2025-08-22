@@ -1,5 +1,5 @@
 use std::{
-    collections::{BTreeSet, HashSet},
+    collections::{BTreeSet, HashMap, HashSet},
     fmt::{self, Display, Formatter, Write as _},
     path::{Component, Path, PathBuf},
 };
@@ -11,10 +11,11 @@ use image::{
     imageops::{FilterType::Lanczos3, filter3x3, overlay},
 };
 use implicit_clone::unsync::IString;
+use indexmap::IndexMap;
 use indicatif::{HumanBytes, MultiProgress, ProgressBar};
 use silphium::{
     ModuleMap, Route, StaticApp, StaticAppProps,
-    model::{Aor, Era, Faction, Module, Pool, Region, Unit},
+    model::{Aor, Era, Faction, Module, Pool, Unit},
 };
 use tokio::fs;
 use tracing::info;
@@ -23,6 +24,7 @@ use yew_router::Routable as _;
 use crate::{
     args::Config,
     mod_folder::ModFolder,
+    parse::Region,
     render::templates::{FILESYSTEM_STATIC, IndexHtml, PrefetchHtml, RedirectHtml},
     utils::{FOLDER, LINK, PAPER, PICTURE, progress_style, read_image, write_file, write_image},
 };
@@ -100,21 +102,32 @@ impl Display for PreloadType {
 }
 
 #[derive(Clone)]
+pub struct RenderData {
+    pub regions: IndexMap<String, Region>,
+}
+
+#[derive(Clone)]
 pub struct Renderer {
     pub cfg: Config,
     pub folder: ModFolder,
     pub data: Vec<u8>,
     pub modules: ModuleMap,
+    pub render_data: HashMap<IString, RenderData>,
     pub preload: Vec<(String, Preload)>,
 }
 
 impl Renderer {
-    pub fn new(cfg: &Config, modules: ModuleMap) -> Self {
+    pub fn new(
+        cfg: &Config,
+        modules: ModuleMap,
+        render_data: HashMap<IString, RenderData>,
+    ) -> Self {
         Self {
             cfg: cfg.clone(),
             folder: ModFolder::new(cfg.clone()),
             data: Vec::new(),
             modules,
+            render_data,
             preload: vec![],
         }
     }
@@ -162,7 +175,10 @@ impl Renderer {
                     &radar,
                     &areas,
                     &dst,
-                    m.regions.values().filter(|r| p.regions.contains(&r.id)),
+                    self.render_data[m.id.as_ref()]
+                        .regions
+                        .values()
+                        .filter(|r| p.regions.iter().find(|r1| r1.as_str() == r.id).is_some()),
                     Rgba([0xFF, 0x71, 0x00, 0xC0]),
                     Rgba([0x00, 0x00, 0x00, 0xFF]),
                 )
@@ -223,7 +239,12 @@ impl Renderer {
                         &radar,
                         &areas,
                         &dst,
-                        m.regions.values().filter(|r| aor.regions.contains(&r.id)),
+                        self.render_data[m.id.as_ref()]
+                            .regions
+                            .values()
+                            .filter(|r| {
+                                aor.regions.iter().find(|r1| r1.as_str() == r.id).is_some()
+                            }),
                         Rgba([0xFF, 0x71, 0x00, 0xC0]),
                         Rgba([0x00, 0x00, 0x00, 0xFF]),
                     )

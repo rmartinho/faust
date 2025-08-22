@@ -15,7 +15,8 @@ use crate::{
         eval::{Evaluator, evaluate},
         export_descr_buildings::{Building, Requires},
         export_descr_unit::{self, Attr, WeaponAttr},
-        manifest::ParserMode,
+        manifest::ParserMode::*,
+        sd::Sprite,
     },
 };
 
@@ -30,6 +31,8 @@ pub struct RawModel {
     pub strat: HashMap<String, usize>,
     pub mounts: HashMap<String, Mount>,
     pub models: HashMap<String, Model>,
+    pub sprites: HashMap<String, Sprite>,
+    pub default_culture: String,
 }
 
 struct IntermediateModel {
@@ -43,6 +46,8 @@ struct IntermediateModel {
     strat: HashMap<String, usize>,
     mounts: HashMap<String, Mount>,
     models: HashMap<String, Model>,
+    sprites: HashMap<String, Sprite>,
+    default_culture: String,
     requires: HashMap<String, Requires>,
     tech_levels: HashMap<String, u32>,
 }
@@ -52,7 +57,7 @@ pub fn build_model(
     raw: RawModel,
 ) -> (
     IndexMap<IString, model::Faction>,
-    IndexMap<IString, model::Region>,
+    IndexMap<String, Region>,
     IArray<model::Pool>,
 ) {
     let unit_map: IndexMap<_, _> = raw.units.into_iter().map(|u| (u.id.clone(), u)).collect();
@@ -69,6 +74,8 @@ pub fn build_model(
         strat: raw.strat,
         mounts: raw.mounts,
         models: raw.models,
+        sprites: raw.sprites,
+        default_culture: raw.default_culture,
         requires,
         tech_levels,
     };
@@ -76,21 +83,8 @@ pub fn build_model(
     let regions = raw
         .regions
         .iter()
-        .map(|r| {
-            (
-                r.id.clone().into(),
-                model::Region {
-                    id: r.id.clone().into(),
-                    legion: r.legion.as_ref().map(|s| s.clone().into()),
-                    color: r.color,
-                    hidden_resources: r
-                        .hidden_resources
-                        .iter()
-                        .map(|s| s.clone().into())
-                        .collect(),
-                },
-            )
-        })
+        .cloned()
+        .map(|r| (r.id.clone(), r))
         .collect();
     let pools = raw
         .pools
@@ -157,10 +151,8 @@ fn build_faction(
                 .to_string()
                 .into(),
             image: match cfg.manifest.mode {
-                ParserMode::Original | ParserMode::Remastered => {
-                    f.logo_path.to_str().unwrap().to_string().into()
-                }
-                ParserMode::Medieval2 => f.logo_index.clone().into(),
+                Original | Remastered => f.logo_path.to_str().unwrap().to_string().into(),
+                Medieval2 => f.logo_index.clone().into(),
             },
             alias: cfg
                 .manifest

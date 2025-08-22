@@ -32,8 +32,6 @@ pub struct Module {
 
     #[serde(rename = "f")]
     pub factions: IndexMap<IString, Faction>,
-    #[serde(rename = "r")]
-    pub regions: IndexMap<IString, Region>,
     #[serde(rename = "p")]
     pub pools: IArray<Pool>,
 
@@ -621,22 +619,6 @@ pub struct PoolEntry {
     pub initial: u32,
     #[serde(rename = "R")]
     pub restrict: IArray<IString>,
-}
-
-#[serde_with::apply(
-    Option => #[serde(default, skip_serializing_if = "Option::is_none")],
-    IArray => #[serde(default, skip_serializing_if = "IArray::is_empty")],
-)]
-#[derive(Properties, PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]
-pub struct Region {
-    #[serde(rename = "i")]
-    pub id: IString,
-    #[serde(rename = "l")]
-    pub legion: Option<IString>,
-    #[serde(rename = "c")]
-    pub color: (u8, u8, u8),
-    #[serde(rename = "r")]
-    pub hidden_resources: IArray<IString>,
 }
 
 #[derive(Properties, PartialEq, Serialize, Deserialize, ImplicitClone, Clone, Debug)]

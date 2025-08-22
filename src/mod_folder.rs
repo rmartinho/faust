@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use crate::{args::Config, parse::manifest::ParserMode};
+use crate::{args::Config, parse::manifest::ParserMode::*};
 
 #[derive(Clone)]
 pub struct ModFolder {
@@ -16,6 +16,9 @@ impl ModFolder {
         self.root_fallback(self.cfg.manifest.banner.to_str().unwrap())
     }
 
+    pub fn descr_cultures_txt(&self) -> PathBuf {
+        self.root_fallback("data/descr_cultures.txt")
+    }
     pub fn descr_sm_factions_txt(&self) -> PathBuf {
         self.root_fallback("data/descr_sm_factions.txt")
     }
@@ -33,8 +36,8 @@ impl ModFolder {
     }
     pub fn text_expanded_txt(&self) -> PathBuf {
         self.root_fallback(match self.cfg.manifest.mode {
-            ParserMode::Original | ParserMode::Remastered => "data/text/expanded_bi.txt",
-            ParserMode::Medieval2 => "data/text/expanded.txt",
+            Original | Remastered => "data/text/expanded_bi.txt",
+            Medieval2 => "data/text/expanded.txt",
         })
     }
     pub fn text_export_units_txt(&self) -> PathBuf {
@@ -55,8 +58,8 @@ impl ModFolder {
     }
     pub fn radar_map_tga(&self) -> PathBuf {
         self.campaign_fallback(match self.cfg.manifest.mode {
-            ParserMode::Original | ParserMode::Medieval2 => "radar_map2.tga",
-            ParserMode::Remastered => "feral_radar_map.tga",
+            Original | Medieval2 => "radar_map2.tga",
+            Remastered => "feral_radar_map.tga",
         })
     }
     pub fn map_regions_tga(&self) -> PathBuf {

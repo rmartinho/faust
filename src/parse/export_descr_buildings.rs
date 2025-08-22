@@ -8,7 +8,10 @@ use anyhow::{Context as _, Result, anyhow, bail};
 use pest::{Parser as _, iterators::Pairs};
 use thiserror::Error;
 
-use crate::{parse::manifest::ParserMode, utils::parse_maybe_float_int};
+use crate::{
+    parse::manifest::ParserMode::{self, *},
+    utils::parse_maybe_float_int,
+};
 
 mod requires {
     use pest_derive::Parser as PestParser;
@@ -30,7 +33,7 @@ pub fn parse(
         .filter(|l| l.len() > 0); // strip empty lines
 
     let mut aliases = HashMap::new();
-    if mode == ParserMode::Original || mode == ParserMode::Remastered {
+    if mode == Original || mode == Remastered {
         aliases.insert(
             "marian_reforms".into(),
             Requires::MajorEvent("marian_reforms".into()),
@@ -112,7 +115,7 @@ fn parse_level<'a>(
         .next()
         .ok_or_else(|| anyhow!("invalid level header"))?;
     let mut req = split.remainder();
-    if mode == ParserMode::Medieval2 && matches!(split.next(), Some("city") | Some("castle")) {
+    if mode == Medieval2 && matches!(split.next(), Some("city") | Some("castle")) {
         req = split.remainder();
     }
     let req = req.map_or(Ok(Requires::None), parse_requires)?;
@@ -150,7 +153,7 @@ fn parse_caps<'a>(
                     let kw = split
                         .next()
                         .ok_or_else(|| anyhow!("invalid recruit line"))?;
-                    if kw != "recruit" && (mode != ParserMode::Medieval2 || kw != "recruit_pool") {
+                    if kw != "recruit" && (mode != Medieval2 || kw != "recruit_pool") {
                         return None;
                     }
                     let mut split = split

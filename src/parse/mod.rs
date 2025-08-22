@@ -1,6 +1,7 @@
 use std::{collections::HashMap, path::PathBuf, time::Duration};
 
 use anyhow::Result;
+use implicit_clone::unsync::IString;
 use indicatif::{MultiProgress, ProgressBar};
 use silphium::{
     ModuleMap,
@@ -15,16 +16,16 @@ use crate::{
         descr_mercenaries::Pool,
         descr_model_battle::Model,
         descr_mount::Mount,
-        descr_regions::Region,
         export_descr_buildings::{Building, Requires},
-        manifest::ParserMode,
+        manifest::ParserMode::{self, *},
         model::{RawModel, build_model},
         sd::Sprite,
     },
+    render::RenderData,
     utils::{LOOKING_GLASS, THINKING, progress_style, read_file},
 };
-pub use manifest::Manifest;
 
+mod descr_cultures;
 mod descr_mercenaries;
 mod descr_model_battle;
 mod descr_mount;
@@ -41,7 +42,10 @@ mod model;
 
 pub mod manifest;
 
-pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
+pub use descr_regions::Region;
+pub use manifest::Manifest;
+
+pub async fn parse_folder(cfg: &Config) -> Result<(ModuleMap, HashMap<IString, RenderData>)> {
     let m = MultiProgress::new();
 
     let folder = ModFolder::new(cfg.clone());
@@ -125,6 +129,13 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
         parse_sd(cfg, strategy_sd, cfg.manifest.mode),
     )
     .await?;
+    let descr_cultures_txt = folder.descr_cultures_txt();
+    let default_culture = parse_progress(
+        m.clone(),
+        descr_cultures_txt.clone(),
+        parse_descr_cultures(cfg, descr_cultures_txt, cfg.manifest.mode),
+    )
+    .await?;
 
     let pb = m.add(ProgressBar::new_spinner());
     pb.set_style(progress_style());
@@ -149,10 +160,10 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
             strat,
             mounts,
             models,
+            sprites,
+            default_culture,
         },
     );
-    info!("built catalog");
-    let _ = m.clear();
 
     let module_map = ModuleMap::from([(
         cfg.manifest.id.clone(),
@@ -161,7 +172,6 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
             name: cfg.manifest.name.clone(),
             banner: cfg.manifest.banner.to_string_lossy().into_owned().into(),
             factions,
-            regions,
             pools,
             aliases,
             eras: cfg
@@ -200,7 +210,13 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
                 .collect(),
         },
     )]);
-    Ok(module_map)
+
+    let render_data = HashMap::from([(cfg.manifest.id.clone(), RenderData { regions })]);
+
+    info!("built catalog");
+    let _ = m.clear();
+
+    Ok((module_map, render_data))
 }
 
 fn parse_progress<'a, T>(
@@ -228,7 +244,7 @@ async fn parse_text(
     mut path: PathBuf,
     mode: ParserMode,
 ) -> Result<HashMap<String, String>> {
-    if mode == ParserMode::Medieval2 && !path.exists() {
+    if mode == Medieval2 && !path.exists() {
         path.add_extension("strings.bin");
         let buf = read_file(cfg, &path).await?;
         text::parse_bin(buf, mode)
@@ -328,12 +344,18 @@ async fn parse_sd(
     path: PathBuf,
     mode: ParserMode,
 ) -> Result<HashMap<String, Sprite>> {
-    if cfg.manifest.mode == ParserMode::Medieval2 {
+    if cfg.manifest.mode == Medieval2 {
         let buf = read_file(cfg, &path).await?;
         sd::parse(buf, mode)
     } else {
         Ok(HashMap::new())
     }
+}
+
+async fn parse_descr_cultures(cfg: &Config, path: PathBuf, mode: ParserMode) -> Result<String> {
+    let buf = read_file(cfg, &path).await?;
+    let data = String::from_utf8_lossy(&buf);
+    descr_cultures::parse(data, mode)
 }
 
 const BOM: &str = "\u{feff}";
