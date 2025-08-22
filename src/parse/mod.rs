@@ -49,7 +49,6 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     let text_expanded_txt = folder.text_expanded_txt();
     let mut text = parse_progress(
         m.clone(),
-        1,
         text_expanded_txt.clone(),
         parse_text(cfg, text_expanded_txt, cfg.manifest.mode),
     )
@@ -57,7 +56,6 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     let text_export_units_txt = folder.text_export_units_txt();
     let export_units = parse_progress(
         m.clone(),
-        2,
         text_export_units_txt.clone(),
         parse_text(cfg, text_export_units_txt, cfg.manifest.mode),
     )
@@ -67,7 +65,6 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     let descr_mercenaries_txt = folder.descr_mercenaries_txt();
     let pools = parse_progress(
         m.clone(),
-        3,
         descr_mercenaries_txt.clone(),
         parse_descr_mercenaries(cfg, descr_mercenaries_txt, cfg.manifest.mode),
     )
@@ -75,7 +72,6 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     let descr_regions_txt = folder.descr_regions_txt();
     let regions = parse_progress(
         m.clone(),
-        4,
         descr_regions_txt.clone(),
         parse_descr_regions(cfg, descr_regions_txt, cfg.manifest.mode),
     )
@@ -83,7 +79,6 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     let descr_sm_factions_txt = folder.descr_sm_factions_txt();
     let factions = parse_progress(
         m.clone(),
-        5,
         descr_sm_factions_txt.clone(),
         parse_descr_sm_factions(cfg, descr_sm_factions_txt, cfg.manifest.mode),
     )
@@ -91,7 +86,6 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     let export_descr_unit_txt = folder.export_descr_unit_txt();
     let units = parse_progress(
         m.clone(),
-        6,
         export_descr_unit_txt.clone(),
         parse_export_descr_unit(cfg, export_descr_unit_txt, cfg.manifest.mode),
     )
@@ -99,7 +93,6 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     let export_descr_buildings_txt = folder.export_descr_buildings_txt();
     let (require_aliases, buildings) = parse_progress(
         m.clone(),
-        7,
         export_descr_buildings_txt.clone(),
         parse_export_descr_buildings(cfg, export_descr_buildings_txt, cfg.manifest.mode),
     )
@@ -107,7 +100,6 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     let descr_strat_txt = folder.descr_strat_txt();
     let strat = parse_progress(
         m.clone(),
-        8,
         descr_strat_txt.clone(),
         parse_descr_strat(cfg, descr_strat_txt, cfg.manifest.mode),
     )
@@ -115,7 +107,6 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     let descr_mount_txt = folder.descr_mount_txt();
     let mounts = parse_progress(
         m.clone(),
-        9,
         descr_mount_txt.clone(),
         parse_descr_mount(cfg, descr_mount_txt, cfg.manifest.mode),
     )
@@ -123,7 +114,6 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     let descr_model_battle_txt = folder.descr_model_battle_txt();
     let models = parse_progress(
         m.clone(),
-        10,
         descr_model_battle_txt.clone(),
         parse_descr_model_battle(cfg, descr_model_battle_txt, cfg.manifest.mode),
     )
@@ -131,7 +121,6 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
     let strategy_sd = folder.ui_strategy_sd();
     let sprites = parse_progress(
         m.clone(),
-        11,
         strategy_sd.clone(),
         parse_sd(cfg, strategy_sd, cfg.manifest.mode),
     )
@@ -139,7 +128,6 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
 
     let pb = m.add(ProgressBar::new_spinner());
     pb.set_style(progress_style());
-    pb.set_prefix("[11/11]");
     pb.set_message(format!("{THINKING}building catalog..."));
     pb.enable_steady_tick(Duration::from_millis(200));
     let aliases = cfg
@@ -217,13 +205,11 @@ pub async fn parse_folder(cfg: &Config) -> Result<ModuleMap> {
 
 fn parse_progress<'a, T>(
     m: MultiProgress,
-    i: usize,
     path: PathBuf,
     fut: impl Future<Output = T> + 'a,
 ) -> impl Future<Output = T> + 'a {
     let pb = m.add(ProgressBar::new_spinner());
     pb.set_style(progress_style());
-    pb.set_prefix(format!("[{}/11]", i));
     pb.set_message(format!("{LOOKING_GLASS}parsing {}...", path.display()));
 
     async move {

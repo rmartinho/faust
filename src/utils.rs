@@ -67,7 +67,7 @@ pub async fn read_file(cfg: &Config, path: impl AsRef<Path>) -> Result<Vec<u8>> 
 }
 
 pub fn progress_style() -> ProgressStyle {
-    ProgressStyle::with_template("{prefix:>7.bold.dim} {spinner} {wide_msg}")
+    ProgressStyle::with_template("{spinner} {wide_msg}")
         .expect("invalid progress style")
         .tick_chars("⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏ ")
 }

@@ -133,7 +133,6 @@ impl Renderer {
     async fn render_images(&mut self, m: MultiProgress) -> Result<()> {
         let pb = m.add(ProgressBar::new_spinner());
         pb.set_style(progress_style());
-        pb.set_prefix("[3/5]");
         pb.tick();
         pb.set_message(format!("{PICTURE}rendering images"));
         for m in self.modules.values_mut() {
@@ -370,7 +369,6 @@ impl Renderer {
     async fn render_data(&mut self, m: MultiProgress) -> Result<()> {
         let pb = m.add(ProgressBar::new_spinner());
         pb.set_style(progress_style());
-        pb.set_prefix("[4/5]");
         pb.tick();
         pb.set_message(format!("{PAPER}rendering catalog data"));
         let mut data = vec![];
@@ -392,7 +390,6 @@ impl Renderer {
     async fn render_routes(&self, m: MultiProgress) -> Result<()> {
         let pb = m.add(ProgressBar::new_spinner());
         pb.set_style(progress_style());
-        pb.set_prefix("[5/5]");
         pb.tick();
         pb.set_message(format!("{LINK}rendering routes"));
         let routes = collect_routes(&self.modules);
@@ -422,20 +419,19 @@ impl Renderer {
                 .await
                 .with_context(|| format!("writing file {}", r.path.display()))?;
             }
+            info!("rendered route {}", r.route.to_path());
         }
         pb.finish_with_message(format!("{LINK}rendered {} routes", routes.len()));
         Ok(())
     }
 
     async fn render_route(&self, route: Route) -> String {
-        let path = route.to_path();
         let props = StaticAppProps {
             route,
             data: self.data.clone().into(),
         };
         let renderer = yew::LocalServerRenderer::<StaticApp>::with_props(props);
         let string = renderer.render().await;
-        info!("rendered route {path}");
         string
     }
 
@@ -443,14 +439,12 @@ impl Renderer {
         let mut preload = self.preload.clone();
         preload.extend_from_slice(&r.preload);
         let string = PrefetchHtml { preload: &preload }.render()?;
-        info!("rendered preloads");
         Ok(string)
     }
 
     async fn create_directory(&self, m: MultiProgress) -> Result<()> {
         let pb = m.add(ProgressBar::new_spinner());
         pb.set_style(progress_style());
-        pb.set_prefix("[1/5]");
         if self.cfg.out_dir.exists() {
             pb.tick();
             pb.set_message(format!("{FOLDER}clearing output directory"));
@@ -473,7 +467,6 @@ impl Renderer {
     async fn create_static_files(&mut self, m: MultiProgress) -> Result<()> {
         let pb = m.add(ProgressBar::new_spinner());
         pb.set_style(progress_style());
-        pb.set_prefix("[2/5]");
         pb.tick();
         pb.set_message(format!("{PAPER}writing faust.yml"));
         write_file(&self.cfg.out_dir.join("faust.yml"), &self.cfg.manifest.raw)

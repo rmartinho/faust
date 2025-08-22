@@ -41,7 +41,6 @@ fn setup_tracing(args: &Args) -> Result<()> {
     if args.verbose {
         let stderr_log_level = filter::LevelFilter::INFO;
         let stderr_layer = tracing_subscriber::fmt::layer()
-            .pretty()
             .with_writer(io::stderr);
 
         tracing_subscriber::registry()
@@ -66,8 +65,7 @@ async fn run() -> Result<()> {
     let step = Instant::now();
     let modules = parse::parse_folder(&cfg).await?;
     println!(
-        "{} {LOOKING_GLASS}{}",
-        style("[1/2]").bold().dim(),
+        "{LOOKING_GLASS}{}",
         style(format!(
             "parsed mod folder in {}",
             HumanDuration(step.elapsed())
@@ -79,8 +77,7 @@ async fn run() -> Result<()> {
     let mut renderer = Renderer::new(&cfg, modules);
     renderer.render().await?;
     println!(
-        "{} {LINK}{}",
-        style("[2/2]").bold().dim(),
+        "{LINK}{}",
         style(format!(
             "rendered site in {}",
             HumanDuration(step.elapsed())
@@ -89,11 +86,11 @@ async fn run() -> Result<()> {
     );
 
     println!(
-        "      {SPARKLE}{}",
+        "{SPARKLE}{}",
         style(format!("Done in {}", HumanDuration(started.elapsed()))).bold()
     );
     println!(
-        "      {PACKAGE}Site files available at {}",
+        "{PACKAGE}Site files available at {}",
         style(cfg.out_dir.display()).bold(),
     );
 

@@ -23,7 +23,7 @@ pub async fn serve(cfg: &Config) -> Result<()> {
     }
 
     println!(
-        "      {EARTH}{} {}",
+        "{EARTH}{} {}",
         style(format!("Browse your site at {}", style(url).cyan().bold())).green(),
         style("(this has been copied to your clipboard)").dim()
     );
