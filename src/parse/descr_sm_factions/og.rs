@@ -28,7 +28,8 @@ fn parse_faction(lines: &[String]) -> Result<Faction> {
     let mut id = String::new();
     let mut name = String::new();
     let mut culture = String::new();
-    let mut logo = PathBuf::new();
+    let mut logo_path = PathBuf::new();
+    let mut logo_index = String::new();
     for line in lines.iter() {
         let mut split = line.split(char::is_whitespace);
         let keyword = split
@@ -53,19 +54,25 @@ fn parse_faction(lines: &[String]) -> Result<Faction> {
                 .with_context(|| format!("parsing line {line}"))?
                 .into();
         } else if keyword == "loading_logo" {
-            logo = fix_path_with_parent(
+            logo_path = fix_path_with_parent(
                 value
                     .ok_or_else(|| anyhow!("line didn't have a value"))
                     .with_context(|| format!("parsing line {line}"))?
                     .into(),
             );
+        } else if keyword == "logo_index" {
+            logo_index = value
+                .ok_or_else(|| anyhow!("line didn't have a value"))
+                .with_context(|| format!("parsing line {line}"))?
+                .into();
         }
     }
     Ok(Faction {
         id,
         name,
         culture,
-        logo,
+        logo_path,
+        logo_index,
     })
 }
 

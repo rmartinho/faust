@@ -15,6 +15,7 @@ use crate::{
         eval::{Evaluator, evaluate},
         export_descr_buildings::{Building, Requires},
         export_descr_unit::{self, Attr, WeaponAttr},
+        manifest::ParserMode,
     },
 };
 
@@ -155,7 +156,12 @@ fn build_faction(
                 .trim()
                 .to_string()
                 .into(),
-            image: f.logo.to_str().unwrap().to_string().into(),
+            image: match cfg.manifest.mode {
+                ParserMode::Original | ParserMode::Remastered => {
+                    f.logo_path.to_str().unwrap().to_string().into()
+                }
+                ParserMode::Medieval2 => f.logo_index.clone().into(),
+            },
             alias: cfg
                 .manifest
                 .aliases

@@ -19,5 +19,6 @@ pub struct Faction {
     pub id: String,
     pub name: String,
     pub culture: String,
-    pub logo: PathBuf,
+    pub logo_path: PathBuf,
+    pub logo_index: String,
 }

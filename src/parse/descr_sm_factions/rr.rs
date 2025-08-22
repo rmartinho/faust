@@ -41,13 +41,20 @@ pub fn parse(data: impl AsRef<str>) -> Result<Vec<Faction>> {
                     .and_then(|s| s.as_str())
                     .map(Into::into)
                     .ok_or_else(|| anyhow!("no `culture` found for {id}"))?,
-                logo: m
+                logo_path: m
                     .get("logos")
                     .and_then(|s| s.as_object())
                     .and_then(|l| l.get("loading screen icon"))
                     .and_then(|s| s.as_str())
                     .map(Into::into)
                     .ok_or_else(|| anyhow!("no `loading screen icon` found for {id}"))?,
+                logo_index: m
+                    .get("logos")
+                    .and_then(|s| s.as_object())
+                    .and_then(|l| l.get("logo index"))
+                    .and_then(|s| s.as_str())
+                    .map(Into::into)
+                    .ok_or_else(|| anyhow!("no `logo index` found for {id}"))?,
                 id,
             })
         })
