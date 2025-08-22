@@ -4,7 +4,7 @@ use std::{
     path::{Component, Path, PathBuf},
 };
 
-use anyhow::{Context as _, Result};
+use anyhow::{Context as _, Result, anyhow};
 use askama::Template as _;
 use image::{
     DynamicImage, Rgba, RgbaImage,
@@ -231,7 +231,10 @@ impl Renderer {
                         Self::render_image(&self.cfg, &src, &dst, FACTION_SYMBOL_SIZE).await?;
                     }
                     Medieval2 => {
-                        let sprite = &extra.sprites[image_key.as_str()];
+                        let sprite = &extra
+                            .sprites
+                            .get(image_key.as_str())
+                            .ok_or_else(|| anyhow!("missing sprite {image_key}"))?;
                         let src = self
                             .folder
                             .ui_culture_spritesheet_tga(&extra.culture, &sprite.file);
