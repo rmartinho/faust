@@ -195,6 +195,30 @@ jobs:
             name: '[M2] Rise of Quetzal'
             dir: m2-roq
             base: m2
+          - id: m2-bcki
+            name: '[M2] Broken Crescent'
+            dir: m2-bcki
+            base: m2
+          - id: m2-kgcm
+            name: '[M2] Kingdoms Grand Campaign'
+            dir: m2-kgcm
+            base: m2
+          - id: m2-jlmpvk
+            name: '[M2] Vanilla Kingdoms'
+            dir: m2-jlmpvk
+            base: m2
+          - id: m2-timur
+            name: '[M2] Timur: Total War'
+            dir: m2-timur
+            base: m2
+          - id: m2-tgc
+            name: '[M2] The Great Conflicts'
+            dir: m2-tgc
+            base: m2
+          - id: m2-ebii
+            name: '[M2] Europa Barbarorum II'
+            dir: m2-ebii
+            base: m2
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
