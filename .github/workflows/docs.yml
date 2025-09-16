@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - "docs/**"
+      - ".github/workflows/docs.yml"
+      - ".github/actions/gh-pages/action.yml"
 
 permissions:
   contents: read
