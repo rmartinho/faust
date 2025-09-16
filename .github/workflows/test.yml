@@ -35,7 +35,6 @@ jobs:
     name: Test - ${{ matrix.mod.name }}
     needs: build
     runs-on: ubuntu-24.04
-    environment: preview
     permissions:
       contents: read
       deployments: write
@@ -226,6 +225,12 @@ jobs:
         uses: ./.github/actions/artifact/download-executable/
         with:
           name: faust
+      - name: Create deployment
+        id: deployment
+        uses: ./.github/actions/deployment/start/
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          env: preview-${{ matrix.mod.id }}
       - name: Download test data
         uses: ./.github/actions/download-mod-data/
         with:
@@ -237,11 +242,20 @@ jobs:
           base: ${{ matrix.mod.base }}
           out-dir: output/
       - name: Deploy
+        id: deploy
         uses: ./.github/actions/cf-pages/
         with:
           api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           account-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          gitHub-token: ${{ secrets.GITHUB_TOKEN }}
           path: output/
           project: silphium
           branch: ${{ github.event_name == 'pull_request' && format('{0}/', github.ref_name) || '' }}${{ matrix.mod.id }}
+      - name: Finish deployment
+        uses: ./.github/actions/deployment/finish/
+        if: always()
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          status: ${{ job.status }}
+          env: ${{ steps.deployment.outputs.env }}
+          env-url: ${{ steps.deploy.outputs.deployment-url }}
+          deployment-id: ${{ steps.deployment.outputs.deployment-id }}

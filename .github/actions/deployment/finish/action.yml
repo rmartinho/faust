@@ -1,0 +1,32 @@
+name: 'Finish deployment'
+description: 'Finishes a deployment'
+inputs:
+  env:
+    description: 'Environment name'
+    required: true
+  env-url:
+    description: 'Environment URL'
+    required: true
+  deployment-id:
+    description: 'Deployment ID'
+    required: true
+  status:
+    description: 'Deployment status'
+    required: true
+  github-token:
+    description: 'GitHub Token'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Finish deployment
+      uses: bobheadxi/deployments@648679e8e4915b27893bd7dbc35cb504dc915bc8
+      with:
+        step: finish
+        override: false
+        token: ${{ inputs.github-token }}
+        status: ${{ inputs.status }}
+        env: ${{ inputs.env }}
+        env_url: ${{ inputs.env-url }}
+        deployment_id: ${{ inputs.deployment-id }}

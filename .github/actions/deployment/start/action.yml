@@ -1,0 +1,28 @@
+name: 'Start deployment'
+description: 'Starts a deployment'
+inputs:
+  env:
+    description: 'Environment name'
+    required: true
+  github-token:
+    description: 'GitHub Token'
+    required: true
+outputs:
+  env:
+    description: 'Environment Name'
+    value: ${{ steps.deployment.outputs.env }}
+  deployment-id:
+    description: 'Deployment ID'
+    value: ${{ steps.deployment.outputs.deployment_id }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Start deployment
+      id: deployment
+      uses: bobheadxi/deployments@648679e8e4915b27893bd7dbc35cb504dc915bc8
+      with:
+        step: start
+        ref: ${{ github.head_ref || github.ref }}
+        token: ${{ inputs.github-token }}
+        env: ${{ inputs.env }}
